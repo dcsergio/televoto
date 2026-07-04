@@ -1,12 +1,11 @@
-import { useEffect, useState, useCallback, type FormEvent } from "react";
+import * as React from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import type { EventData } from "./types";
-import { fetchActiveEvent, fetchMyVotes, castVote } from "./api";
+import { fetchActiveEvent, fetchMyVotes, castVote, updateEventVotingState } from "./api";
 import { getDeviceId } from "./fingerprint";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
 import { CandidateList } from "./components/CandidateList";
-import { ScoreSelector } from "./components/ScoreSelector";
-import { VoteButton } from "./components/VoteButton";
 import { Toast } from "./components/Toast";
 import { AdminPage } from "./components/AdminPage";
 import { HallOfFame } from "./components/HallOfFame";
@@ -16,7 +15,6 @@ export default function App() {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [myVotes, setMyVotes] = useState<Record<string, number>>({});
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
-  const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -24,12 +22,13 @@ export default function App() {
   const [pendingProtectedPage, setPendingProtectedPage] = useState<"admin" | "hof" | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
   const [authorizedProtectedPages, setAuthorizedProtectedPages] = useState<Record<"admin" | "hof", boolean>>({
     admin: false,
     hof: false,
   });
 
-  const PROTECTED_PAGE_PASSWORD = "televoto2026";
+  const PROTECTED_PAGE_PASSWORD = "t";
 
   useEffect(() => {
     async function init() {
@@ -52,35 +51,32 @@ export default function App() {
   const handleSelectCandidate = useCallback(
     (candidateId: string) => {
       setSelectedCandidate(candidateId);
-      if (myVotes[candidateId]) {
-        setSelectedScore(myVotes[candidateId]);
-      } else {
-        setSelectedScore(null);
-      }
     },
-    [myVotes]
+    []
   );
 
-  const handleVote = useCallback(async () => {
-    if (!selectedCandidate || !selectedScore || !deviceId) return;
-    setSubmitting(true);
-    try {
-      await castVote(selectedCandidate, deviceId, selectedScore);
-      setMyVotes((prev) => ({ ...prev, [selectedCandidate]: selectedScore }));
-      const candidate = event?.candidates.find((c) => c.id === selectedCandidate);
-      setToast({
-        message: `Voto ${selectedScore}/10 per ${candidate?.name ?? "candidato"} registrato!`,
-        type: "success",
-      });
-      setSelectedCandidate(null);
-      setSelectedScore(null);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Errore";
-      setToast({ message: msg, type: "error" });
-    } finally {
-      setSubmitting(false);
-    }
-  }, [selectedCandidate, selectedScore, deviceId, event]);
+  const handleVote = useCallback(
+    async (candidateId: string, score: number) => {
+      if (!candidateId || !deviceId) return;
+      setSubmitting(true);
+      try {
+        await castVote(candidateId, deviceId, score);
+        setMyVotes((prev) => ({ ...prev, [candidateId]: score }));
+        const candidate = event?.candidates.find((c) => c.id === candidateId);
+        setToast({
+          message: `Voto ${score}/10 per ${candidate?.name ?? "candidato"} registrato!`,
+          type: "success",
+        });
+        setSelectedCandidate(null);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Errore";
+        setToast({ message: msg, type: "error" });
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [deviceId, event]
+  );
 
   const handleOpenProtectedPage = useCallback((page: "admin" | "hof") => {
     setPendingProtectedPage(page);
@@ -88,8 +84,32 @@ export default function App() {
     setPasswordError("");
   }, []);
 
+  useEffect(() => {
+    if (!pendingProtectedPage) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      passwordInputRef.current?.focus();
+      passwordInputRef.current?.select();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [pendingProtectedPage]);
+
+  const handleCloseTelevote = useCallback(async () => {
+    if (!event) return;
+
+    try {
+      const updated = await updateEventVotingState(event.id, true);
+      setEvent((prev) => (prev ? { ...prev, votingClosed: updated.votingClosed } : prev));
+      setToast({ message: "Televoto chiuso con successo.", type: "success" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Errore nella chiusura del televoto";
+      setToast({ message: msg, type: "error" });
+    }
+  }, [event]);
+
   const handleProtectedPageSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (!pendingProtectedPage) return;
 
@@ -146,6 +166,7 @@ export default function App() {
           <form className="mt-6 space-y-3" onSubmit={handleProtectedPageSubmit}>
             <input
               type="password"
+              ref={passwordInputRef}
               value={passwordInput}
               onChange={(event) => setPasswordInput(event.target.value)}
               placeholder="Password"
@@ -189,6 +210,9 @@ export default function App() {
       return (
         <AdminPage
           eventId={event.id}
+          onVotingStateChange={(votingClosed) =>
+            setEvent((prev) => (prev ? { ...prev, votingClosed } : prev))
+          }
           onBack={() => setCurrentPage("voting")}
         />
       );
@@ -204,7 +228,9 @@ export default function App() {
         <HallOfFame
           eventId={event.id}
           eventName={event.name}
+          votingClosed={event.votingClosed}
           onBack={() => setCurrentPage("voting")}
+          onCloseTelevote={handleCloseTelevote}
         />
       );
     case "voting":
@@ -213,7 +239,7 @@ export default function App() {
       break;
   }
 
-  const alreadyVoted = selectedCandidate ? !!myVotes[selectedCandidate] : false;
+  const votingClosed = event.votingClosed;
 
   return (
     <div className="flex flex-col min-h-dvh">
@@ -223,6 +249,13 @@ export default function App() {
       />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 pb-8">
+        {votingClosed && (
+          <div className="mb-6 rounded-3xl border border-amber-400/40 bg-amber-500/10 p-5 text-center text-amber-100 shadow-sm">
+            <p className="text-sm uppercase tracking-[0.2em] font-semibold">Televoto chiuso</p>
+            <p className="mt-1 text-base">Non è più possibile esprimere voti.</p>
+          </div>
+        )}
+
         <HeroBanner name={event.name} subtitle={event.subtitle} />
 
         <section className="mt-6">
@@ -235,29 +268,16 @@ export default function App() {
             candidates={event.candidates}
             selectedId={selectedCandidate}
             votedMap={myVotes}
-            onSelect={handleSelectCandidate}
+            onSelect={!votingClosed ? handleSelectCandidate : () => undefined}
+            onVote={!votingClosed ? handleVote : undefined}
+            submitting={submitting}
           />
         </section>
 
-        {selectedCandidate && (
-          <section className="mt-8 animate-fade-in-up">
-            <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-text-secondary mb-4">
-              <span className="text-base">&#9734;</span>
-              Assegna il tuo punteggio
-            </h2>
-
-            <ScoreSelector
-              value={selectedScore}
-              onChange={setSelectedScore}
-            />
-
-            <VoteButton
-              disabled={!selectedScore || submitting}
-              loading={submitting}
-              alreadyVoted={alreadyVoted}
-              onClick={handleVote}
-            />
-          </section>
+        {votingClosed && (
+          <div className="mt-8 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-6 text-amber-100 text-center">
+            Il televoto è stato chiuso. I voti non sono più accettati.
+          </div>
         )}
       </main>
 

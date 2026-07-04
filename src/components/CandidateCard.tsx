@@ -1,10 +1,13 @@
 import type { CandidateData } from "../types";
+import { ScoreSelector } from "./ScoreSelector";
 
 interface CandidateCardProps {
   candidate: CandidateData;
   selected: boolean;
   votedScore: number | null;
   onClick: () => void;
+  onVote?: (candidateId: string, score: number) => void;
+  submitting: boolean;
   delay: number;
 }
 
@@ -41,57 +44,85 @@ function CandidateIcon({ color, number }: { color: string; number: number }) {
   );
 }
 
-export function CandidateCard({ candidate, selected, votedScore, onClick, delay }: CandidateCardProps) {
+export function CandidateCard({
+  candidate,
+  selected,
+  votedScore,
+  onClick,
+  onVote,
+  submitting,
+  delay,
+}: CandidateCardProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       className={`
-        w-full flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-2xl transition-all duration-200 text-left
-        animate-fade-in-up cursor-pointer
-        ${selected
-          ? "glass-selected"
-          : "glass hover:bg-bg-card-hover"
-        }
+        w-full animate-fade-in-up rounded-2xl transition-all duration-200
+        ${selected ? "glass-selected" : "glass hover:bg-bg-card-hover"}
       `}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <CandidateIcon color={candidate.color} number={candidate.number} />
-
-      <span
-        className="text-2xl md:text-3xl font-black tabular-nums"
-        style={{ color: candidate.color, opacity: 0.7 }}
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full flex items-center gap-3 md:gap-4 p-3 md:p-4 text-left"
       >
-        {String(candidate.number).padStart(2, "0")}
-      </span>
+        <CandidateIcon color={candidate.color} number={candidate.number} />
 
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-sm md:text-base uppercase tracking-wide text-text-primary truncate">
-          {candidate.name}
-        </p>
-        {candidate.subtitle && (
-          <p className="text-xs md:text-sm text-text-muted truncate">{candidate.subtitle}</p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {votedScore !== null && (
-          <span className="text-xs font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-full">
-            {votedScore}/10
-          </span>
-        )}
-        <div
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-            selected
-              ? "border-accent-cyan bg-accent-cyan/20"
-              : "border-text-muted/40"
-          }`}
+        <span
+          className="text-2xl md:text-3xl font-black tabular-nums"
+          style={{ color: candidate.color, opacity: 0.7 }}
         >
-          {selected && (
-            <div className="w-3 h-3 rounded-full bg-accent-cyan" />
+          {String(candidate.number).padStart(2, "0")}
+        </span>
+
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm md:text-base uppercase tracking-wide text-text-primary truncate">
+            {candidate.name}
+          </p>
+          {candidate.subtitle && (
+            <p className="text-xs md:text-sm text-text-muted truncate">{candidate.subtitle}</p>
           )}
         </div>
-      </div>
-    </button>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {votedScore !== null && (
+            <span className="text-xs font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-full">
+              {votedScore}/10
+            </span>
+          )}
+          <div
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+              selected
+                ? "border-accent-cyan bg-accent-cyan/20"
+                : "border-text-muted/40"
+            }`}
+          >
+            {selected && (
+              <div className="w-3 h-3 rounded-full bg-accent-cyan" />
+            )}
+          </div>
+        </div>
+      </button>
+
+      {selected && onVote && (
+        <div className="px-4 pb-4 pt-0">
+          <div className="relative -mt-4 rounded-3xl border border-slate-700 bg-slate-950/95 p-4 shadow-xl shadow-slate-950/30">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-text-secondary">Voto rapido</p>
+                <p className="mt-2 text-base font-semibold text-text-primary">Seleziona un punteggio</p>
+              </div>
+              {submitting && (
+                <span className="text-sm text-text-secondary">Salvataggio...</span>
+              )}
+            </div>
+            <ScoreSelector
+              value={votedScore ?? null}
+              onChange={(score) => onVote(candidate.id, score)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

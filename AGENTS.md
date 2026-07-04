@@ -18,7 +18,7 @@ See [README.md](README.md) for React/TypeScript/Vite setup details.
 | Database migration | `npm run db:migrate` |
 | Prisma Studio | `npm run db:studio` |
 
-**Important**: `npm run dev` runs both Vite (port 5173) and Express (port 3001) concurrently via `concurrently`.
+**Important**: `npm run dev` runs both Vite (port 8080) and Express (port 3001) concurrently via `concurrently`.
 
 ## Architecture
 
@@ -95,7 +95,7 @@ Three Prisma models:
 
 ## Potential Pitfalls
 
-- **Port conflicts**: Ensure ports 5173 (Vite) and 3001 (Express) are free when running `npm run dev`
+- **Port conflicts**: Ensure ports 8080 (Vite) and 3001 (Express) are free when running `npm run dev`
 - **Device ID changes**: FingerprintJS may return different IDs on browser resets; votes are per-device
 - **Prisma generation**: Generated code in `src/generated/prisma/` is auto-generated—don't edit it manually; regenerate with `npx prisma generate` if needed
 - **Database migrations**: Always run `npm run db:migrate` after schema changes, not just `npx prisma db push`

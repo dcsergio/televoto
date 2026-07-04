@@ -8,6 +8,47 @@ export async function fetchActiveEvent(): Promise<EventData> {
   return res.json();
 }
 
+export async function fetchEventState(eventId: string): Promise<{ id: string; votingClosed: boolean }> {
+  const res = await fetch(`${BASE}/events/${eventId}`);
+  if (!res.ok) throw new Error("Errore nel caricamento stato evento");
+  return res.json();
+}
+
+export async function updateEventVotingState(eventId: string, votingClosed: boolean) {
+  const res = await fetch(`${BASE}/events/${eventId}/voting-state`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ votingClosed }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nell'aggiornamento dello stato");
+  }
+  return res.json();
+}
+
+export async function resetEventVotes(eventId: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`${BASE}/events/${eventId}/votes`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nell'azzeramento della classifica");
+  }
+  return res.json();
+}
+
+export async function startEvent(eventId: string): Promise<{ ok: boolean; votingClosed: boolean; candidates: CandidateData[] }> {
+  const res = await fetch(`${BASE}/events/${eventId}/start`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nell'avvio della gara");
+  }
+  return res.json();
+}
+
 export async function fetchMyVotes(
   eventId: string,
   deviceId: string

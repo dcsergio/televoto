@@ -3,6 +3,7 @@ export interface EventData {
   name: string;
   subtitle: string | null;
   active: boolean;
+  votingClosed: boolean;
   candidates: CandidateData[];
 }
 

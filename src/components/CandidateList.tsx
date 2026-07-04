@@ -6,9 +6,18 @@ interface CandidateListProps {
   selectedId: string | null;
   votedMap: Record<string, number>;
   onSelect: (id: string) => void;
+  onVote?: (candidateId: string, score: number) => void;
+  submitting: boolean;
 }
 
-export function CandidateList({ candidates, selectedId, votedMap, onSelect }: CandidateListProps) {
+export function CandidateList({
+  candidates,
+  selectedId,
+  votedMap,
+  onSelect,
+  onVote,
+  submitting,
+}: CandidateListProps) {
   return (
     <div className="flex flex-col gap-3">
       {candidates.map((c, i) => (
@@ -18,6 +27,8 @@ export function CandidateList({ candidates, selectedId, votedMap, onSelect }: Ca
           selected={c.id === selectedId}
           votedScore={votedMap[c.id] ?? null}
           onClick={() => onSelect(c.id)}
+          onVote={onVote}
+          submitting={submitting}
           delay={i * 60}
         />
       ))}

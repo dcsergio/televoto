@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Event {
-  id          String      @id @default(cuid())
-  name        String
-  subtitle    String?
-  active      Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  candidates  Candidate[]
+  id           String      @id @default(cuid())
+  name         String
+  subtitle     String?
+  active       Boolean     @default(true)
+  votingClosed Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  candidates   Candidate[]
 }
 
 model Candidate {
