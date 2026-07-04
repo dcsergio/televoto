@@ -17,7 +17,7 @@ export function CandidateList({
   onSelect,
   onVote,
   submitting,
-}: CandidateListProps) {
+}: Readonly<CandidateListProps>) {
   return (
     <div className="flex flex-col gap-3">
       {candidates.map((c, i) => (
