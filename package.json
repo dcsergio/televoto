@@ -1,0 +1,53 @@
+{
+  "name": "televoto",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"tsx server/index.ts\"",
+    "dev:client": "vite",
+    "dev:server": "tsx server/index.ts",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:migrate": "npx prisma migrate dev",
+    "db:studio": "npx prisma studio"
+  },
+  "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
+    "@libsql/client": "^0.17.4",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/adapter-libsql": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@tailwindcss/vite": "^4.3.2",
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "prisma": "^7.8.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^10.0.3",
+    "oxlint": "^1.71.0",
+    "tsx": "^4.23.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.8.0": true,
+    "esbuild@0.28.1": true,
+    "prisma@7.8.0": true,
+    "better-sqlite3@12.11.1": true
+  }
+}

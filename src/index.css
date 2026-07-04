@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/* ── Neon Dark Theme ── */
+@theme {
+  --color-bg-primary: #0a0a1a;
+  --color-bg-secondary: #111128;
+  --color-bg-card: rgba(20, 20, 50, 0.6);
+  --color-bg-card-hover: rgba(30, 30, 70, 0.7);
+  --color-bg-card-selected: rgba(40, 40, 100, 0.8);
+  --color-border-glass: rgba(100, 100, 255, 0.15);
+  --color-border-neon: rgba(56, 189, 248, 0.6);
+  --color-text-primary: #f0f0ff;
+  --color-text-secondary: #9ca3c0;
+  --color-text-muted: #6b7294;
+  --color-accent-cyan: #38bdf8;
+  --color-accent-magenta: #c026d3;
+  --color-accent-coral: #f43f5e;
+  --color-accent-violet: #8b5cf6;
+  --color-accent-yellow: #eab308;
+  --color-neon-glow: rgba(56, 189, 248, 0.3);
+}
+
+/* ── Base ── */
+html {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: linear-gradient(
+    170deg,
+    var(--color-bg-primary) 0%,
+    #0d0d2b 30%,
+    #12122e 60%,
+    #0a0a1a 100%
+  );
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* ── Glass card ── */
+.glass {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border-glass);
+  border-radius: 16px;
+}
+
+.glass-selected {
+  background: var(--color-bg-card-selected);
+  border-color: var(--color-border-neon);
+  box-shadow: 0 0 20px var(--color-neon-glow), inset 0 0 20px rgba(56, 189, 248, 0.05);
+}
+
+/* ── Neon text glow ── */
+.neon-text {
+  text-shadow: 0 0 10px var(--color-accent-cyan), 0 0 30px rgba(56, 189, 248, 0.3);
+}
+
+/* ── Score button ── */
+.score-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  flex-shrink: 0;
+}
+
+.score-btn::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  padding: 2px;
+  background: var(--gradient);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+
+.score-btn:hover {
+  transform: scale(1.15);
+}
+
+.score-btn.active {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px var(--glow-color, rgba(56, 189, 248, 0.5));
+}
+
+@media (min-width: 768px) {
+  .score-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes pulse-neon {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--color-neon-glow);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-neon-glow), 0 0 40px rgba(56, 189, 248, 0.15);
+  }
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+/* ── Toast ── */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-enter {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+/* ── Hero gradient text ── */
+.gradient-title {
+  background: linear-gradient(90deg, #f43f5e, #c026d3, #8b5cf6, #38bdf8, #22c55e, #eab308);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  name        String
+  subtitle    String?
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  candidates  Candidate[]
+}
+
+model Candidate {
+  id        String   @id @default(cuid())
+  eventId   String
+  number    Int
+  name      String
+  subtitle  String?
+  color     String   @default("#6366f1")
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  votes     Vote[]
+
+  @@unique([eventId, number])
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  candidateId  String
+  deviceId     String
+  score        Int
+  createdAt    DateTime @default(now())
+  candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, deviceId])
+}
