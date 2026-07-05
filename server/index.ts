@@ -21,6 +21,36 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 const app = express();
 
+const defaultEventCandidates = [
+  { number: 1, name: "Luna Nera", subtitle: "Oltre le stelle", color: "#c026d3" },
+  { number: 2, name: "Mare di Luci", subtitle: "Onde", color: "#f97316" },
+  { number: 3, name: "Eclissi", subtitle: "Nel silenzio", color: "#06b6d4" },
+  { number: 4, name: "Vento Caldo", subtitle: "Senza confini", color: "#22c55e" },
+  { number: 5, name: "Specchi Rotti", subtitle: "Riflessi", color: "#8b5cf6" },
+  { number: 6, name: "Illusione", subtitle: "Fino all'alba", color: "#eab308" },
+];
+
+const defaultEventData = {
+  name: "Festival della Canzone 2026",
+  subtitle: "Vota il tuo artista preferito",
+  active: true,
+  votingClosed: false,
+  candidates: {
+    create: defaultEventCandidates,
+  },
+} as const;
+
+async function ensureDefaultEvent() {
+  return prisma.event.create({
+    data: defaultEventData,
+    include: {
+      candidates: {
+        orderBy: { number: "asc" },
+      },
+    },
+  });
+}
+
 const opaqueTokenAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const judgeTokenStreamClients = new Map<string, Set<express.Response>>();
 
@@ -163,7 +193,11 @@ app.get("/api/events/active", async (_req, res) => {
   });
 
   if (!fallbackEvent) {
-    res.status(404).json({ error: "No active event" });
+    const seededEvent = await ensureDefaultEvent();
+    res.json({
+      ...seededEvent,
+      votingClosed: seededEvent.votingClosed,
+    });
     return;
   }
 
