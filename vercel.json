@@ -6,10 +6,7 @@
   "regions": ["iad1"],
   "functions": {
     "api/[...path].ts": {
-      "includeFiles": [
-        "server/**",
-        "src/generated/prisma/**"
-      ]
+      "includeFiles": "{server/**,src/generated/prisma/**}"
     }
   },
   "rewrites": [
