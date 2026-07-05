@@ -1,7 +1,17 @@
 import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 
-const prisma = new PrismaClient({} as any);
+const databaseUrl = process.env["SUPABASE_DATABASE_URL"] ?? process.env["DATABASE_URL"];
+
+if (!databaseUrl) {
+  throw new Error("Missing DATABASE_URL environment variable");
+}
+
+const pool = new Pool({ connectionString: databaseUrl });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Clear existing data

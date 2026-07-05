@@ -2,7 +2,7 @@ import "dotenv/config";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import express from "express";
 import cors from "cors";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -137,19 +137,39 @@ app.use(express.json());
 app.get("/api/events/active", async (_req, res) => {
   const event = await prisma.event.findFirst({
     where: { active: true },
+    orderBy: { createdAt: "desc" },
     include: {
       candidates: {
         orderBy: { number: "asc" },
       },
     },
   });
-  if (!event) {
+
+  if (event) {
+    res.json({
+      ...event,
+      votingClosed: event.votingClosed,
+    });
+    return;
+  }
+
+  const fallbackEvent = await prisma.event.findFirst({
+    orderBy: { createdAt: "desc" },
+    include: {
+      candidates: {
+        orderBy: { number: "asc" },
+      },
+    },
+  });
+
+  if (!fallbackEvent) {
     res.status(404).json({ error: "No active event" });
     return;
   }
+
   res.json({
-    ...event,
-    votingClosed: event.votingClosed,
+    ...fallbackEvent,
+    votingClosed: fallbackEvent.votingClosed,
   });
 });
 
@@ -738,13 +758,13 @@ app.post("/api/events/:eventId/start", async (req, res) => {
 
         await tx.event.update({
           where: { id: eventId },
-          data: { votingClosed: false },
+          data: { active: true, votingClosed: false },
         });
       });
     } else {
       await prisma.event.update({
         where: { id: eventId },
-        data: { votingClosed: false },
+        data: { active: true, votingClosed: false },
       });
     }
 
@@ -824,6 +844,15 @@ if (shouldServeClient && fs.existsSync(clientIndexPath)) {
 }
 
 const PORT = process.env["PORT"] || 3001;
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
-});
+
+const isDirectExecution = process.argv[1]
+  ? pathToFileURL(process.argv[1]).href === import.meta.url
+  : false;
+
+if (isDirectExecution) {
+  app.listen(PORT, () => {
+    console.log(`API server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
