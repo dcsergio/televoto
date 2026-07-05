@@ -7,7 +7,7 @@ import express from "express";
 import cors from "cors";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import { PrismaClient } from "../src/generated/prisma/client.js";
+import { PrismaClient, Prisma } from "../src/generated/prisma/client.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const databaseUrl = process.env["SUPABASE_DATABASE_URL"] ?? process.env["DATABASE_URL"];
@@ -45,7 +45,18 @@ function getJudgeTokenStatus(record: { finalizedAt: Date | null; revokedAt: Date
   return "active";
 }
 
-async function getJudgeTokenSnapshot(eventId: string) {
+type JudgeTokenSnapshot = {
+  id: string;
+  label: string | null;
+  tokenPreview: string;
+  createdAt: Date;
+  finalizedAt: Date | null;
+  usedAt: Date | null;
+  revokedAt: Date | null;
+  status: "active" | "used" | "revoked";
+};
+
+async function getJudgeTokenSnapshot(eventId: string): Promise<JudgeTokenSnapshot[]> {
   const judgeTokens = await prisma.judgeToken.findMany({
     where: { eventId },
     orderBy: { createdAt: "desc" },
@@ -60,7 +71,7 @@ async function getJudgeTokenSnapshot(eventId: string) {
     },
   });
 
-  return judgeTokens.map((token) => ({
+  return judgeTokens.map((token): JudgeTokenSnapshot => ({
     ...token,
     usedAt: token.finalizedAt ?? null,
     status: getJudgeTokenStatus(token),
@@ -76,7 +87,7 @@ async function getJudgeTokenVotes(judgeTokenId: string) {
     },
   });
 
-  return votes.reduce<Record<string, number>>((accumulator, vote) => {
+  return votes.reduce<Record<string, number>>((accumulator: Record<string, number>, vote: { candidateId: string; score: number }) => {
     accumulator[vote.candidateId] = vote.score;
     return accumulator;
   }, {});
@@ -246,7 +257,7 @@ app.post("/api/vote", async (req, res) => {
         return;
       }
 
-      const vote = await prisma.$transaction((tx) => {
+      const vote = await prisma.$transaction((tx: Prisma.TransactionClient) => {
         return tx.vote.upsert({
           where: {
             candidateId_judgeTokenId: {
@@ -661,7 +672,7 @@ app.delete("/api/candidates/:id", async (req, res) => {
     });
 
     await prisma.$transaction(
-      remainingCandidates.map((candidate, index) =>
+      remainingCandidates.map((candidate: { id: string }, index: number) =>
         prisma.candidate.update({
           where: { id: candidate.id },
           data: { number: index + 1 },
@@ -706,7 +717,7 @@ app.post("/api/events/:eventId/start", async (req, res) => {
     if (candidates.length > 0) {
       const tempBase = candidates.at(-1)!.number + 1;
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         for (const [index, candidate] of candidates.entries()) {
           await tx.candidate.update({
             where: { id: candidate.id },
@@ -778,16 +789,16 @@ app.get("/api/rankings/:eventId", async (req, res) => {
     });
 
     const rankings = candidates
-      .map((c) => ({
+      .map((c: { id: string; number: number; name: string; color: string; votes: { score: number }[] }) => ({
         id: c.id,
         number: c.number,
         name: c.name,
         color: c.color,
-        totalScore: c.votes.reduce((sum, v) => sum + v.score, 0),
+        totalScore: c.votes.reduce((sum: number, v: { score: number }) => sum + v.score, 0),
         voteCount: c.votes.length,
-        avgScore: c.votes.length > 0 ? c.votes.reduce((sum, v) => sum + v.score, 0) / c.votes.length : 0,
+        avgScore: c.votes.length > 0 ? c.votes.reduce((sum: number, v: { score: number }) => sum + v.score, 0) / c.votes.length : 0,
       }))
-      .sort((a, b) => b.totalScore - a.totalScore);
+      .sort((a: { totalScore: number }, b: { totalScore: number }) => b.totalScore - a.totalScore);
 
     res.json(rankings);
   } catch (e: unknown) {
