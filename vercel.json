@@ -2,9 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "env": {
-    "DATABASE_URL": "@database_url"
-  },
   "framework": "vite",
   "regions": ["iad1"],
   "git": {
