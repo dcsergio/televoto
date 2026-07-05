@@ -1,6 +1,6 @@
 interface ScoreSelectorProps {
-  value: number | null;
-  onChange: (score: number) => void;
+  readonly value: number | null;
+  readonly onChange: (score: number) => void;
 }
 
 const SCORE_COLORS: { gradient: string; glow: string }[] = [
@@ -16,10 +16,10 @@ const SCORE_COLORS: { gradient: string; glow: string }[] = [
   { gradient: "linear-gradient(135deg, #8b5cf6, #c026d3)", glow: "rgba(192,38,211,0.5)" },
 ];
 
-export function ScoreSelector({ value, onChange }: ScoreSelectorProps) {
+export function ScoreSelector({ value, onChange }: Readonly<ScoreSelectorProps>) {
   return (
     <div>
-      <div className="flex justify-between items-center gap-1 sm:gap-2">
+      <div className="grid grid-cols-5 md:grid-cols-10 gap-2 justify-items-center">
         {Array.from({ length: 10 }, (_, i) => {
           const score = i + 1;
           const isActive = value === score;
