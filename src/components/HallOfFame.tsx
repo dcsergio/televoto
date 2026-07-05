@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { RankingEntry } from "../api";
 import { fetchRankings } from "../api";
 
@@ -6,7 +6,6 @@ interface HallOfFameProps {
   readonly eventId: string;
   readonly eventName: string;
   readonly votingClosed: boolean;
-  readonly onBack: () => void;
   readonly onCloseTelevote: () => Promise<void>;
 }
 
@@ -41,7 +40,6 @@ export function HallOfFame({
   eventId,
   eventName,
   votingClosed,
-  onBack,
   onCloseTelevote,
 }: HallOfFameProps) {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
@@ -51,16 +49,7 @@ export function HallOfFame({
   const [showWinner, setShowWinner] = useState(false);
   const [closingTelevote, setClosingTelevote] = useState(false);
 
-  useEffect(() => {
-    loadRankings();
-  }, [eventId]);
-
-  useEffect(() => {
-    setRevealedIndices([]);
-    setShowWinner(false);
-  }, [eventId]);
-
-  async function loadRankings() {
+  const loadRankings = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchRankings(eventId);
@@ -72,7 +61,16 @@ export function HallOfFame({
     } finally {
       setLoading(false);
     }
-  }
+  }, [eventId]);
+
+  useEffect(() => {
+    loadRankings();
+  }, [loadRankings]);
+
+  useEffect(() => {
+    setRevealedIndices([]);
+    setShowWinner(false);
+  }, [eventId]);
 
   const getMedalEmoji = (position: number): string => {
     switch (position) {
@@ -100,6 +98,7 @@ export function HallOfFame({
     isFinalistsStage,
     hasTopTie,
   });
+  const closeTelevoteLabel = votingClosed ? "Televoto chiuso" : closingTelevote ? "Chiusura..." : "Chiudi televoto";
 
   const handleRevealNext = () => {
     if (rankings.length === 0 || showWinner) return;
@@ -139,13 +138,6 @@ export function HallOfFame({
   return (
     <div className="min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <button
-          onClick={onBack}
-          className="mb-6 px-4 py-2 bg-accent-cyan/20 hover:bg-accent-cyan/30 text-accent-cyan rounded-lg transition"
-        >
-          ← Indietro
-        </button>
-
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">🏆 Classifica</h1>
           <p className="text-text-secondary text-lg">{eventName}</p>
@@ -180,7 +172,7 @@ export function HallOfFame({
                   disabled={votingClosed || closingTelevote}
                   className="rounded-lg border border-amber-500/30 bg-amber-500/20 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {votingClosed ? "Televoto chiuso" : closingTelevote ? "Chiusura..." : "Chiudi televoto"}
+                  {closeTelevoteLabel}
                 </button>
                 <button
                   type="button"

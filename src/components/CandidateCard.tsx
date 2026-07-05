@@ -2,17 +2,17 @@ import type { CandidateData } from "../types";
 import { ScoreSelector } from "./ScoreSelector";
 
 interface CandidateCardProps {
-  candidate: CandidateData;
-  selected: boolean;
-  votedScore: number | null;
-  onClick: () => void;
-  onVote?: (candidateId: string, score: number) => void;
-  submitting: boolean;
-  delay: number;
+  readonly candidate: CandidateData;
+  readonly selected: boolean;
+  readonly votedScore: number | null;
+  readonly onClick: () => void;
+  readonly onVote?: (candidateId: string, score: number) => void;
+  readonly submitting: boolean;
+  readonly delay: number;
 }
 
 // Shape components for candidate icons
-function CandidateIcon({ color, number }: { color: string; number: number }) {
+function CandidateIcon({ color, number }: Readonly<{ color: string; number: number }>) {
   const shapes = [
     // Circle
     <circle cx="24" cy="24" r="14" fill={color} opacity="0.9" key="circle" />,

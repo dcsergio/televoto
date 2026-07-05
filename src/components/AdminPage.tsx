@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SyntheticEvent } from "react";
 import type { CandidateData } from "../types";
 import { fetchCandidates, fetchEventState, startEvent, updateEventVotingState, addCandidate, updateCandidate, deleteCandidate, resetEventVotes } from "../api";
+import { JudgeCodeManager } from "./JudgeCodeManager";
 
 function getNextNumber(candidates: CandidateData[]) {
   if (candidates.length === 0) return "1";
@@ -19,11 +20,10 @@ function getRandomColor() {
 
 interface AdminPageProps {
   readonly eventId: string;
-  readonly onBack: () => void;
   readonly onVotingStateChange: (votingClosed: boolean) => void;
 }
 
-export function AdminPage({ eventId, onBack, onVotingStateChange }: AdminPageProps) {
+export function AdminPage({ eventId, onVotingStateChange }: AdminPageProps) {
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +44,7 @@ export function AdminPage({ eventId, onBack, onVotingStateChange }: AdminPagePro
     onConfirm: () => void;
   } | null>(null);
 
-  useEffect(() => {
-    loadCandidates();
-  }, [eventId]);
-
-  async function loadCandidates() {
+  const loadCandidates = useCallback(async () => {
     try {
       setLoading(true);
       const [data, eventState] = await Promise.all([
@@ -70,7 +66,11 @@ export function AdminPage({ eventId, onBack, onVotingStateChange }: AdminPagePro
     } finally {
       setLoading(false);
     }
-  }
+  }, [eventId, onVotingStateChange]);
+
+  useEffect(() => {
+    loadCandidates();
+  }, [loadCandidates]);
 
   async function handleAddCandidate(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -273,12 +273,6 @@ export function AdminPage({ eventId, onBack, onVotingStateChange }: AdminPagePro
   return (
     <div className="min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <button
-          onClick={onBack}
-          className="mb-6 px-4 py-2 bg-accent-cyan/20 hover:bg-accent-cyan/30 text-accent-cyan rounded-lg transition"
-        >
-          ← Indietro
-        </button>
 
         <h1 className="text-3xl font-bold mb-4">Admin - Gestione Candidati</h1>
 
@@ -525,6 +519,8 @@ export function AdminPage({ eventId, onBack, onVotingStateChange }: AdminPagePro
             ))
           )}
         </div>
+
+        <JudgeCodeManager eventId={eventId} />
       </div>
     </div>
   );

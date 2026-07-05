@@ -1,5 +1,5 @@
-import * as React from "react";
 import { useEffect, useState, useCallback, useRef } from "react";
+import type { FormEvent } from "react";
 import type { EventData } from "./types";
 import { fetchActiveEvent, fetchMyVotes, castVote, updateEventVotingState } from "./api";
 import { getDeviceId } from "./fingerprint";
@@ -9,8 +9,35 @@ import { CandidateList } from "./components/CandidateList";
 import { Toast } from "./components/Toast";
 import { AdminPage } from "./components/AdminPage";
 import { HallOfFame } from "./components/HallOfFame";
+import { finalizeJudgeToken, validateJudgeToken } from "./api";
+
+type AppRoute = "voting" | "admin" | "hof";
+
+function getRouteFromPath(pathname: string): AppRoute {
+  if (pathname === "/admin") return "admin";
+  if (pathname === "/hof") return "hof";
+  return "voting";
+}
+
+function getPathFromRoute(route: AppRoute): string {
+  if (route === "admin") return "/admin";
+  if (route === "hof") return "/hof";
+  return "/";
+}
+
+function getJudgeTokenFromLocation() {
+  return new URLSearchParams(globalThis.location.search).get("judgeToken");
+}
+
+type JudgeAccessStatus = "idle" | "loading" | "valid" | "used" | "revoked" | "invalid";
+
+interface JudgeAccessState {
+  status: JudgeAccessStatus;
+  message?: string;
+}
 
 export default function App() {
+  const initialJudgeToken = getJudgeTokenFromLocation();
   const [event, setEvent] = useState<EventData | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [myVotes, setMyVotes] = useState<Record<string, number>>({});
@@ -18,8 +45,13 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [currentPage, setCurrentPage] = useState<"voting" | "admin" | "hof">("voting");
-  const [pendingProtectedPage, setPendingProtectedPage] = useState<"admin" | "hof" | null>(null);
+  const [pathname, setPathname] = useState(() => globalThis.location.pathname);
+  const [judgeToken, setJudgeToken] = useState<string | null>(initialJudgeToken);
+  const [judgeAccess, setJudgeAccess] = useState<JudgeAccessState>(
+    initialJudgeToken ? { status: "loading" } : { status: "idle" }
+  );
+  const [judgeFinalizeOpen, setJudgeFinalizeOpen] = useState(false);
+  const [finalizingJudgeToken, setFinalizingJudgeToken] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
@@ -30,14 +62,28 @@ export default function App() {
 
   const PROTECTED_PAGE_PASSWORD = "t";
 
+  const currentPage = getRouteFromPath(pathname);
+  const protectedPage = currentPage === "voting" ? null : currentPage;
+  const needsProtectedAccess = protectedPage ? !authorizedProtectedPages[protectedPage] : false;
+  const judgeMode = Boolean(judgeToken);
+
+  const navigateTo = useCallback((route: AppRoute, replace = false) => {
+    const nextPath = getPathFromRoute(route);
+    const historyMethod = replace ? "replaceState" : "pushState";
+    globalThis.history[historyMethod]({}, "", nextPath);
+    setPathname(nextPath);
+  }, []);
+
   useEffect(() => {
     async function init() {
       try {
-        const [ev, did] = await Promise.all([fetchActiveEvent(), getDeviceId()]);
+        const [ev, did] = await Promise.all([fetchActiveEvent(), judgeMode ? Promise.resolve(null) : getDeviceId()]);
         setEvent(ev);
         setDeviceId(did);
-        const votes = await fetchMyVotes(ev.id, did);
-        setMyVotes(votes);
+        if (!judgeMode && did) {
+          const votes = await fetchMyVotes(ev.id, did);
+          setMyVotes(votes);
+        }
       } catch {
         setToast({ message: "Impossibile caricare l'evento", type: "error" });
       } finally {
@@ -45,6 +91,19 @@ export default function App() {
       }
     }
     init();
+  }, [judgeMode]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPathname(globalThis.location.pathname);
+      setJudgeToken(getJudgeTokenFromLocation());
+      setJudgeAccess(getJudgeTokenFromLocation() ? { status: "loading" } : { status: "idle" });
+      setPasswordInput("");
+      setPasswordError("");
+    };
+
+    globalThis.addEventListener("popstate", handlePopState);
+    return () => globalThis.removeEventListener("popstate", handlePopState);
   }, []);
 
   // When selecting a candidate, pre-fill score if already voted
@@ -57,10 +116,11 @@ export default function App() {
 
   const handleVote = useCallback(
     async (candidateId: string, score: number) => {
-      if (!candidateId || !deviceId) return;
+      if (!candidateId) return;
+      if (!deviceId && !judgeToken) return;
       setSubmitting(true);
       try {
-        await castVote(candidateId, deviceId, score);
+        await castVote(candidateId, deviceId ?? "", score, judgeToken ?? undefined);
         setMyVotes((prev) => ({ ...prev, [candidateId]: score }));
         const candidate = event?.candidates.find((c) => c.id === candidateId);
         setToast({
@@ -75,25 +135,72 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [deviceId, event]
+    [deviceId, event, judgeToken]
   );
 
-  const handleOpenProtectedPage = useCallback((page: "admin" | "hof") => {
-    setPendingProtectedPage(page);
-    setPasswordInput("");
-    setPasswordError("");
+  const handleVotingStateChange = useCallback((votingClosed: boolean) => {
+    setEvent((prev) => (prev ? { ...prev, votingClosed } : prev));
   }, []);
 
   useEffect(() => {
-    if (!pendingProtectedPage) return;
+    if (!needsProtectedAccess) return;
 
-    const frame = window.requestAnimationFrame(() => {
+    const frame = globalThis.requestAnimationFrame(() => {
       passwordInputRef.current?.focus();
       passwordInputRef.current?.select();
     });
 
-    return () => window.cancelAnimationFrame(frame);
-  }, [pendingProtectedPage]);
+    return () => globalThis.cancelAnimationFrame(frame);
+  }, [needsProtectedAccess]);
+
+  useEffect(() => {
+    if (!judgeToken) {
+      setJudgeAccess({ status: "idle" });
+      return;
+    }
+
+    let cancelled = false;
+    setJudgeAccess({ status: "loading" });
+    setMyVotes({});
+    setSelectedCandidate(null);
+
+    validateJudgeToken(judgeToken)
+      .then((result) => {
+        if (cancelled) return;
+        setJudgeAccess({
+          status: result.valid ? "valid" : result.status === "active" ? "invalid" : result.status,
+          message: result.message,
+        });
+        setMyVotes(result.votes ?? result.code?.votes ?? {});
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : "Codice non valido";
+        setJudgeAccess({ status: "invalid", message: msg });
+        setMyVotes({});
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [judgeToken]);
+
+  const handleProtectedPageSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (passwordInput === PROTECTED_PAGE_PASSWORD) {
+        if (protectedPage) {
+          setAuthorizedProtectedPages((prev) => ({ ...prev, [protectedPage]: true }));
+        }
+        setPasswordInput("");
+        setPasswordError("");
+      } else {
+        setPasswordError("Password errata");
+      }
+    },
+    [passwordInput, protectedPage]
+  );
 
   const handleCloseTelevote = useCallback(async () => {
     if (!event) return;
@@ -108,32 +215,39 @@ export default function App() {
     }
   }, [event]);
 
-  const handleProtectedPageSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!pendingProtectedPage) return;
+  const handleFinalizeJudgeCode = useCallback(async () => {
+    if (!judgeToken) return;
+    setFinalizingJudgeToken(true);
 
-      if (passwordInput === PROTECTED_PAGE_PASSWORD) {
-        setAuthorizedProtectedPages((prev) => ({ ...prev, [pendingProtectedPage]: true }));
-        setCurrentPage(pendingProtectedPage);
-        setPendingProtectedPage(null);
-        setPasswordInput("");
-        setPasswordError("");
-      } else {
-        setPasswordError("Password errata");
-      }
-    },
-    [passwordInput, pendingProtectedPage]
-  );
+    try {
+      const result = await finalizeJudgeToken(judgeToken);
+      setJudgeAccess({
+        status: result.status === "used" ? "used" : "valid",
+        message: result.message,
+      });
+      setMyVotes(result.votes ?? result.code?.votes ?? myVotes);
+      setJudgeFinalizeOpen(false);
+      setToast({ message: result.message || "Codice bloccato", type: "success" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Errore nel blocco del codice";
+      setToast({ message: msg, type: "error" });
+    } finally {
+      setFinalizingJudgeToken(false);
+    }
+  }, [judgeToken, myVotes]);
+
 
   const handleProtectedPageCancel = useCallback(() => {
-    setPendingProtectedPage(null);
     setPasswordInput("");
     setPasswordError("");
-    setCurrentPage("voting");
-  }, []);
+    navigateTo("voting");
+  }, [navigateTo]);
 
-  if (loading) {
+  const isJudgeAccessRejected = judgeMode && (judgeAccess.status === "invalid" || judgeAccess.status === "revoked");
+  const isJudgeVoteLocked = judgeAccess.status === "used";
+  const appLoading = loading || (judgeMode && judgeAccess.status === "loading");
+
+  if (appLoading) {
     return (
       <div className="flex items-center justify-center min-h-dvh">
         <div className="w-10 h-10 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin" />
@@ -149,8 +263,20 @@ export default function App() {
     );
   }
 
-  if (pendingProtectedPage) {
-    const pageLabel = pendingProtectedPage === "admin" ? "Admin" : "Classifica";
+  if (isJudgeAccessRejected && judgeAccess.message) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
+        <div className="w-full max-w-xl rounded-3xl border border-border-glass bg-slate-900/80 p-6 shadow-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Accesso giudice</p>
+          <h2 className="mt-2 text-2xl font-bold text-text-primary">Codice non disponibile</h2>
+          <p className="mt-3 text-sm text-text-secondary">{judgeAccess.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsProtectedAccess && protectedPage) {
+    const pageLabel = protectedPage === "admin" ? "Admin" : "Classifica";
 
     return (
       <div className="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
@@ -167,6 +293,7 @@ export default function App() {
             <input
               type="password"
               ref={passwordInputRef}
+              autoFocus
               value={passwordInput}
               onChange={(event) => setPasswordInput(event.target.value)}
               placeholder="Password"
@@ -200,36 +327,18 @@ export default function App() {
 
   switch (currentPage) {
     case "admin":
-      if (!authorizedProtectedPages.admin) {
-        return (
-          <div className="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
-            <p className="text-lg text-text-secondary">Accesso non autorizzato.</p>
-          </div>
-        );
-      }
       return (
         <AdminPage
           eventId={event.id}
-          onVotingStateChange={(votingClosed) =>
-            setEvent((prev) => (prev ? { ...prev, votingClosed } : prev))
-          }
-          onBack={() => setCurrentPage("voting")}
+          onVotingStateChange={handleVotingStateChange}
         />
       );
     case "hof":
-      if (!authorizedProtectedPages.hof) {
-        return (
-          <div className="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
-            <p className="text-lg text-text-secondary">Accesso non autorizzato.</p>
-          </div>
-        );
-      }
       return (
         <HallOfFame
           eventId={event.id}
           eventName={event.name}
           votingClosed={event.votingClosed}
-          onBack={() => setCurrentPage("voting")}
           onCloseTelevote={handleCloseTelevote}
         />
       );
@@ -240,15 +349,56 @@ export default function App() {
   }
 
   const votingClosed = event.votingClosed;
+  const canVote = !votingClosed && judgeMode && judgeAccess.status === "valid";
+  const candidateListEnabled = canVote;
+  const judgeVotesCount = Object.keys(myVotes).length;
+  const allJudgeVotesCast = Boolean(
+    judgeMode &&
+      judgeAccess.status === "valid" &&
+      event.candidates.length > 0 &&
+      event.candidates.every((candidate) => myVotes[candidate.id] !== undefined)
+  );
 
   return (
     <div className="flex flex-col min-h-dvh">
-      <Header
-        onOpenAdmin={() => handleOpenProtectedPage("admin")}
-        onOpenHallOfFame={() => handleOpenProtectedPage("hof")}
-      />
+      <Header />
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 pb-8">
+        {!votingClosed && !judgeMode && (
+          <div className="mb-6 rounded-3xl border border-slate-600 bg-slate-900/70 p-5 text-center text-slate-100 shadow-sm">
+            <p className="text-sm uppercase tracking-[0.2em] font-semibold text-accent-cyan">Accesso richiesto</p>
+            <p className="mt-1 text-base">Per votare serve un codice giudice valido.</p>
+          </div>
+        )}
+
+        {judgeMode && judgeAccess.status === "valid" && (
+          <div className="mb-6 rounded-3xl border border-cyan-400/40 bg-cyan-500/10 p-5 text-cyan-100 shadow-sm">
+            <p className="text-sm uppercase tracking-[0.2em] font-semibold">Modalità giudice</p>
+            <p className="mt-1 text-base">
+              Preferenze registrate: {judgeVotesCount}/{event.candidates.length}. Puoi modificare ogni voto finché non confermi il blocco.
+            </p>
+            {allJudgeVotesCast && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-300/30 bg-cyan-950/30 px-4 py-3">
+                <span className="text-sm text-cyan-50">Tutte le preferenze sono state espresse.</span>
+                <button
+                  type="button"
+                  onClick={() => setJudgeFinalizeOpen(true)}
+                  className="rounded-2xl bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200"
+                >
+                  Conferma e blocca codice
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {judgeMode && isJudgeVoteLocked && (
+          <div className="mb-6 rounded-3xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-emerald-100 shadow-sm">
+            <p className="text-sm uppercase tracking-[0.2em] font-semibold">Codice bloccato</p>
+            <p className="mt-1 text-base">I voti sono definitivi e non modificabili.</p>
+          </div>
+        )}
+
         {votingClosed && (
           <div className="mb-6 rounded-3xl border border-amber-400/40 bg-amber-500/10 p-5 text-center text-amber-100 shadow-sm">
             <p className="text-sm uppercase tracking-[0.2em] font-semibold">Televoto chiuso</p>
@@ -260,7 +410,7 @@ export default function App() {
 
         <section className="mt-6">
           <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-text-secondary mb-4">
-            <span className="text-base">&#9835;</span>
+            <span className="text-base" aria-hidden="true">&#9835;</span>
             Scegli il tuo candidato
           </h2>
 
@@ -268,8 +418,8 @@ export default function App() {
             candidates={event.candidates}
             selectedId={selectedCandidate}
             votedMap={myVotes}
-            onSelect={!votingClosed ? handleSelectCandidate : () => undefined}
-            onVote={!votingClosed ? handleVote : undefined}
+            onSelect={candidateListEnabled ? handleSelectCandidate : () => undefined}
+            onVote={candidateListEnabled ? handleVote : undefined}
             submitting={submitting}
           />
         </section>
@@ -287,6 +437,35 @@ export default function App() {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+
+      {judgeFinalizeOpen && judgeToken && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6">
+          <div className="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Conferma giudice</p>
+            <h2 className="mt-2 text-2xl font-bold text-text-primary">Bloccare il codice?</h2>
+            <p className="mt-3 text-sm text-text-secondary">
+              Dopo la conferma, le preferenze diventano definitive e non potranno più essere modificate da nessun dispositivo.
+            </p>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setJudgeFinalizeOpen(false)}
+                className="rounded-2xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalizeJudgeCode}
+                disabled={finalizingJudgeToken}
+                className="rounded-2xl bg-accent-cyan px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {finalizingJudgeToken ? "Blocco in corso..." : "Conferma e blocca"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -61,12 +61,13 @@ export async function fetchMyVotes(
 export async function castVote(
   candidateId: string,
   deviceId: string,
-  score: number
+  score: number,
+  judgeToken?: string
 ): Promise<{ ok: boolean }> {
   const res = await fetch(`${BASE}/vote`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ candidateId, deviceId, score }),
+    body: JSON.stringify({ candidateId, deviceId, score, judgeToken }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -141,5 +142,93 @@ export interface RankingEntry {
 export async function fetchRankings(eventId: string): Promise<RankingEntry[]> {
   const res = await fetch(`${BASE}/rankings/${eventId}`);
   if (!res.ok) throw new Error("Errore nel caricamento classifica");
+  return res.json();
+}
+
+export type JudgeTokenStatus = "active" | "used" | "revoked" | "invalid";
+
+export interface JudgeTokenRecord {
+  id: string;
+  label: string | null;
+  tokenPreview: string;
+  createdAt: string;
+  usedAt: string | null;
+  revokedAt: string | null;
+  status: Exclude<JudgeTokenStatus, "invalid">;
+}
+
+export interface GeneratedJudgeToken extends JudgeTokenRecord {
+  token: string;
+  url: string;
+}
+
+export interface JudgeTokenValidationResult {
+  valid: boolean;
+  status: JudgeTokenStatus;
+  message: string;
+  votes?: Record<string, number>;
+  code?: JudgeTokenRecord & { eventId: string; votes?: Record<string, number> };
+}
+
+export async function fetchJudgeTokens(eventId: string): Promise<JudgeTokenRecord[]> {
+  const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`);
+  if (!res.ok) throw new Error("Errore nel caricamento codici giudice");
+  return res.json();
+}
+
+export async function generateJudgeTokens(
+  eventId: string,
+  input: { count: number; length: number; labelPrefix?: string; origin?: string }
+): Promise<{ ok: boolean; codes: GeneratedJudgeToken[] }> {
+  const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nella generazione codici");
+  }
+  return res.json();
+}
+
+export async function validateJudgeToken(token: string): Promise<JudgeTokenValidationResult> {
+  const res = await fetch(`${BASE}/judge-tokens/validate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    return {
+      valid: false,
+      status: data.status || "invalid",
+      message: data.error || data.message || "Codice non valido",
+    };
+  }
+  return res.json();
+}
+
+export async function finalizeJudgeToken(token: string): Promise<JudgeTokenValidationResult> {
+  const res = await fetch(`${BASE}/judge-tokens/finalize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nel blocco del codice");
+  }
+  return res.json();
+}
+
+export async function revokeJudgeToken(id: string): Promise<JudgeTokenRecord> {
+  const res = await fetch(`${BASE}/judge-tokens/${id}/revoke`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nella revoca del codice");
+  }
   return res.json();
 }

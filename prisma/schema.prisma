@@ -15,6 +15,7 @@ model Event {
   votingClosed Boolean     @default(false)
   createdAt    DateTime    @default(now())
   candidates   Candidate[]
+  judgeTokens  JudgeToken[]
 }
 
 model Candidate {
@@ -30,13 +31,32 @@ model Candidate {
   @@unique([eventId, number])
 }
 
-model Vote {
+model JudgeToken {
   id           String   @id @default(cuid())
-  candidateId  String
-  deviceId     String
-  score        Int
+  eventId      String
+  label        String?
+  tokenHash    String   @unique
+  tokenPreview String
   createdAt    DateTime @default(now())
-  candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  finalizedAt  DateTime?
+  usedAt       DateTime?
+  revokedAt    DateTime?
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  votes        Vote[]
+
+  @@index([eventId])
+}
+
+model Vote {
+  id            String       @id @default(cuid())
+  candidateId   String
+  deviceId      String?
+  judgeTokenId  String?
+  score         Int
+  createdAt     DateTime     @default(now())
+  candidate     Candidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  judgeToken    JudgeToken?  @relation(fields: [judgeTokenId], references: [id], onDelete: SetNull)
 
   @@unique([candidateId, deviceId])
+  @@unique([candidateId, judgeTokenId])
 }

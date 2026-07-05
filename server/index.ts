@@ -1,4 +1,6 @@
 import "dotenv/config";
+import crypto from "node:crypto";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import express from "express";
@@ -12,7 +14,105 @@ const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
 const prisma = new PrismaClient({ adapter });
 const app = express();
 
-app.use(cors());
+const opaqueTokenAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const judgeTokenStreamClients = new Map<string, Set<express.Response>>();
+
+function generateOpaqueToken(length: number) {
+  const bytes = crypto.randomBytes(length);
+  let token = "";
+
+  for (let index = 0; index < length; index += 1) {
+    token += opaqueTokenAlphabet[bytes[index] % opaqueTokenAlphabet.length];
+  }
+
+  return token;
+}
+
+function hashOpaqueToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+function getJudgeTokenStatus(record: { finalizedAt: Date | null; revokedAt: Date | null }) {
+  if (record.revokedAt) return "revoked";
+  if (record.finalizedAt) return "used";
+  return "active";
+}
+
+async function getJudgeTokenSnapshot(eventId: string) {
+  const judgeTokens = await prisma.judgeToken.findMany({
+    where: { eventId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      label: true,
+      tokenPreview: true,
+      createdAt: true,
+      finalizedAt: true,
+      usedAt: true,
+      revokedAt: true,
+    },
+  });
+
+  return judgeTokens.map((token) => ({
+    ...token,
+    usedAt: token.finalizedAt ?? null,
+    status: getJudgeTokenStatus(token),
+  }));
+}
+
+async function getJudgeTokenVotes(judgeTokenId: string) {
+  const votes = await prisma.vote.findMany({
+    where: { judgeTokenId },
+    select: {
+      candidateId: true,
+      score: true,
+    },
+  });
+
+  return votes.reduce<Record<string, number>>((accumulator, vote) => {
+    accumulator[vote.candidateId] = vote.score;
+    return accumulator;
+  }, {});
+}
+
+async function sendJudgeTokenSnapshot(res: express.Response, eventId: string) {
+  res.write(`data: ${JSON.stringify({ eventId, tokens: await getJudgeTokenSnapshot(eventId) })}\n\n`);
+}
+
+async function broadcastJudgeTokenSnapshot(eventId: string) {
+  const clients = judgeTokenStreamClients.get(eventId);
+  if (!clients || clients.size === 0) return;
+
+  const payload = JSON.stringify({ eventId, tokens: await getJudgeTokenSnapshot(eventId) });
+  for (const client of clients) {
+    try {
+      client.write(`data: ${payload}\n\n`);
+    } catch {
+      clients.delete(client);
+    }
+  }
+
+  if (clients.size === 0) {
+    judgeTokenStreamClients.delete(eventId);
+  }
+}
+
+function attachJudgeTokenStreamClient(eventId: string, res: express.Response) {
+  const clients = judgeTokenStreamClients.get(eventId) ?? new Set<express.Response>();
+  clients.add(res);
+  judgeTokenStreamClients.set(eventId, clients);
+
+  return () => {
+    const currentClients = judgeTokenStreamClients.get(eventId);
+    currentClients?.delete(res);
+    if (currentClients && currentClients.size === 0) {
+      judgeTokenStreamClients.delete(eventId);
+    }
+  };
+}
+
+app.disable("x-powered-by");
+app.use(cors({ origin: false }));
 app.use(express.json());
 
 // Get active event with candidates
@@ -74,11 +174,12 @@ app.get("/api/events/:eventId/votes/:deviceId", async (req, res) => {
 app.post("/api/vote", async (req, res) => {
   const { candidateId, deviceId, score } = req.body as {
     candidateId: string;
-    deviceId: string;
+    deviceId?: string;
+    judgeToken?: string;
     score: number;
   };
 
-  if (!candidateId || !deviceId || typeof score !== "number") {
+  if (!candidateId || typeof score !== "number") {
     res.status(400).json({ error: "Missing fields" });
     return;
   }
@@ -87,10 +188,20 @@ app.post("/api/vote", async (req, res) => {
     return;
   }
 
+  if (!req.body.judgeToken) {
+    res.status(403).json({ error: "Serve un codice giudice" });
+    return;
+  }
+
+  if (!deviceId && !req.body.judgeToken) {
+    res.status(400).json({ error: "Missing voter identity" });
+    return;
+  }
+
   try {
     const candidate = await prisma.candidate.findUnique({
       where: { id: candidateId },
-      select: { event: { select: { votingClosed: true } } },
+      select: { eventId: true, event: { select: { votingClosed: true } } },
     });
 
     if (!candidate || candidate.event.votingClosed) {
@@ -98,14 +209,357 @@ app.post("/api/vote", async (req, res) => {
       return;
     }
 
+    const judgeToken = req.body.judgeToken as string | undefined;
+
+    if (judgeToken) {
+      const tokenHash = hashOpaqueToken(judgeToken);
+      const judgeRecord = await prisma.judgeToken.findUnique({
+        where: { tokenHash },
+        select: {
+          id: true,
+          eventId: true,
+          finalizedAt: true,
+          usedAt: true,
+          revokedAt: true,
+        },
+      });
+
+      if (!judgeRecord || judgeRecord.eventId !== candidate.eventId) {
+        res.status(403).json({ error: "Codice giudice non valido" });
+        return;
+      }
+
+      if (judgeRecord.revokedAt) {
+        res.status(403).json({ error: "Codice giudice revocato" });
+        return;
+      }
+
+      if (judgeRecord.finalizedAt) {
+        res.status(403).json({ error: "Codice giudice bloccato" });
+        return;
+      }
+
+      const vote = await prisma.$transaction((tx) => {
+        return tx.vote.upsert({
+          where: {
+            candidateId_judgeTokenId: {
+              candidateId,
+              judgeTokenId: judgeRecord.id,
+            },
+          },
+          update: { score },
+          create: {
+            candidateId,
+            score,
+            judgeTokenId: judgeRecord.id,
+          },
+        });
+      });
+
+      res.json({ ok: true, vote });
+      return;
+    }
+
     const vote = await prisma.vote.upsert({
       where: {
-        candidateId_deviceId: { candidateId, deviceId },
+        candidateId_deviceId: { candidateId, deviceId: deviceId ?? "" },
       },
       update: { score },
-      create: { candidateId, deviceId, score },
+      create: { candidateId, deviceId: deviceId ?? "", score },
     });
     res.json({ ok: true, vote });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.get("/api/events/:eventId/judge-tokens", async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    res.json(await getJudgeTokenSnapshot(eventId));
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.get("/api/events/:eventId/judge-tokens/stream", async (req, res) => {
+  const { eventId } = req.params;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+  res.write(": connected\n\n");
+
+  const detach = attachJudgeTokenStreamClient(eventId, res);
+
+  try {
+    await sendJudgeTokenSnapshot(res, eventId);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.write(`event: error\ndata: ${JSON.stringify({ error: msg })}\n\n`);
+  }
+
+  req.on("close", () => {
+    detach();
+    res.end();
+  });
+});
+
+app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
+  const { eventId } = req.params;
+  const { count, length, labelPrefix } = req.body as {
+    count?: number;
+    length?: number;
+    labelPrefix?: string;
+    origin?: string;
+  };
+
+  if (typeof count !== "number" || !Number.isInteger(count) || count < 1 || count > 200) {
+    res.status(400).json({ error: "Count must be between 1 and 200" });
+    return;
+  }
+
+  if (typeof length !== "number" || !Number.isInteger(length) || length < 16 || length > 64) {
+    res.status(400).json({ error: "Length must be between 16 and 64" });
+    return;
+  }
+
+  try {
+    const fallbackOrigin = `${req.protocol}://${req.get("host")}`;
+    const clientOrigin = typeof req.body.origin === "string" && req.body.origin.trim()
+      ? req.body.origin.trim()
+      : fallbackOrigin;
+    const baseUrl = new URL(clientOrigin).origin;
+
+    const generated: Array<{
+      id: string;
+      label: string | null;
+      token: string;
+      tokenPreview: string;
+      createdAt: Date;
+      finalizedAt: Date | null;
+      usedAt: Date | null;
+      revokedAt: Date | null;
+    }> = [];
+
+    for (let index = 0; index < count; index += 1) {
+      const rawToken = generateOpaqueToken(length);
+      const record = await prisma.judgeToken.create({
+        data: {
+          eventId,
+          label: labelPrefix ? `${labelPrefix} ${index + 1}` : null,
+          tokenHash: hashOpaqueToken(rawToken),
+          tokenPreview: rawToken.slice(0, 8),
+        },
+      });
+
+      generated.push({
+        id: record.id,
+        label: record.label,
+        token: rawToken,
+        tokenPreview: record.tokenPreview,
+        createdAt: record.createdAt,
+        finalizedAt: record.finalizedAt,
+        usedAt: record.finalizedAt ?? null,
+        revokedAt: record.revokedAt,
+      });
+    }
+
+    res.json({
+      ok: true,
+      codes: generated.map((code) => ({
+        ...code,
+        status: getJudgeTokenStatus(code),
+        url: `${baseUrl}/?judgeToken=${encodeURIComponent(code.token)}`,
+      })),
+    });
+    await broadcastJudgeTokenSnapshot(eventId);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post("/api/judge-tokens/validate", async (req, res) => {
+  const { token } = req.body as { token?: string };
+
+  if (!token) {
+    res.status(400).json({ error: "Missing token" });
+    return;
+  }
+
+  try {
+    const tokenHash = hashOpaqueToken(token.trim());
+    const judgeToken = await prisma.judgeToken.findUnique({
+      where: { tokenHash },
+      select: {
+        id: true,
+        label: true,
+        eventId: true,
+        tokenPreview: true,
+        createdAt: true,
+        finalizedAt: true,
+        usedAt: true,
+        revokedAt: true,
+      },
+    });
+
+    if (!judgeToken) {
+      res.status(404).json({ valid: false, status: "invalid", message: "Codice non trovato" });
+      return;
+    }
+
+    const votes = await getJudgeTokenVotes(judgeToken.id);
+
+    const status = getJudgeTokenStatus(judgeToken);
+    const valid = status === "active";
+    const message =
+      status === "active"
+        ? "Codice valido"
+        : status === "used"
+          ? "Codice bloccato"
+          : "Codice revocato";
+
+    res.json({
+      valid,
+      status,
+      message,
+      votes,
+      code: {
+        ...judgeToken,
+        usedAt: judgeToken.finalizedAt ?? null,
+        status,
+        votes,
+      },
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post("/api/judge-tokens/finalize", async (req, res) => {
+  const { token } = req.body as { token?: string };
+
+  if (!token) {
+    res.status(400).json({ error: "Missing token" });
+    return;
+  }
+
+  try {
+    const tokenHash = hashOpaqueToken(token.trim());
+    const judgeToken = await prisma.judgeToken.findUnique({
+      where: { tokenHash },
+      select: {
+        id: true,
+        eventId: true,
+        label: true,
+        tokenPreview: true,
+        createdAt: true,
+        finalizedAt: true,
+        usedAt: true,
+        revokedAt: true,
+      },
+    });
+
+    if (!judgeToken) {
+      res.status(404).json({ error: "Codice non trovato" });
+      return;
+    }
+
+    if (judgeToken.revokedAt) {
+      res.status(403).json({ error: "Codice giudice revocato" });
+      return;
+    }
+
+    const votes = await getJudgeTokenVotes(judgeToken.id);
+    const candidateCount = await prisma.candidate.count({ where: { eventId: judgeToken.eventId } });
+
+    if (judgeToken.finalizedAt) {
+      res.json({
+        ok: true,
+        status: "used",
+        message: "Codice già bloccato",
+        votes,
+        code: {
+          ...judgeToken,
+          usedAt: judgeToken.finalizedAt ?? null,
+          status: "used",
+          votes,
+        },
+      });
+      return;
+    }
+
+    if (candidateCount > 0 && Object.keys(votes).length !== candidateCount) {
+      res.status(400).json({ error: "Completa tutte le preferenze prima di bloccare il codice" });
+      return;
+    }
+
+    const updated = await prisma.judgeToken.update({
+      where: { id: judgeToken.id },
+      data: { finalizedAt: new Date(), usedAt: new Date() },
+      select: {
+        id: true,
+        eventId: true,
+        label: true,
+        tokenPreview: true,
+        createdAt: true,
+        finalizedAt: true,
+        usedAt: true,
+        revokedAt: true,
+      },
+    });
+
+    await broadcastJudgeTokenSnapshot(judgeToken.eventId);
+
+    res.json({
+      ok: true,
+      status: getJudgeTokenStatus(updated),
+      message: "Codice bloccato e voti resi definitivi",
+      votes,
+      code: {
+        ...updated,
+        usedAt: updated.finalizedAt ?? null,
+        status: getJudgeTokenStatus(updated),
+        votes,
+      },
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post("/api/judge-tokens/:id/revoke", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const updated = await prisma.judgeToken.update({
+      where: { id },
+      data: { revokedAt: new Date() },
+      select: {
+        id: true,
+        eventId: true,
+        label: true,
+        tokenPreview: true,
+        createdAt: true,
+        finalizedAt: true,
+        usedAt: true,
+        revokedAt: true,
+      },
+    });
+
+    res.json({
+      ...updated,
+      usedAt: updated.finalizedAt ?? null,
+      status: getJudgeTokenStatus(updated),
+    });
+    await broadcastJudgeTokenSnapshot(updated.eventId);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     res.status(500).json({ error: msg });
@@ -243,7 +697,7 @@ app.post("/api/events/:eventId/start", async (req, res) => {
     });
 
     if (candidates.length > 0) {
-      const tempBase = candidates[candidates.length - 1].number + 1;
+      const tempBase = candidates.at(-1)!.number + 1;
 
       await prisma.$transaction(async (tx) => {
         for (const [index, candidate] of candidates.entries()) {
@@ -334,6 +788,22 @@ app.get("/api/rankings/:eventId", async (req, res) => {
     res.status(500).json({ error: msg });
   }
 });
+
+const shouldServeClient = process.env["NODE_ENV"] === "production" || process.env["SERVE_CLIENT"] === "true";
+const clientDistPath = path.resolve(__dirname, "..", "dist");
+const clientIndexPath = path.join(clientDistPath, "index.html");
+
+if (shouldServeClient && fs.existsSync(clientIndexPath)) {
+  app.use(express.static(clientDistPath));
+
+  const sendClientApp = (_req: express.Request, res: express.Response) => {
+    res.sendFile(clientIndexPath);
+  };
+
+  app.get("/", sendClientApp);
+  app.get("/admin", sendClientApp);
+  app.get("/hof", sendClientApp);
+}
 
 const PORT = process.env["PORT"] || 3001;
 app.listen(PORT, () => {
