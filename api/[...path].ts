@@ -14,7 +14,7 @@ export default async function handler(req: unknown, res: unknown) {
   }
 
   try {
-    const { default: app } = await import("../server/index.ts");
+    const { default: app } = await import("../server/index.js");
     return app(req as never, res as never);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Server bootstrap failed";
