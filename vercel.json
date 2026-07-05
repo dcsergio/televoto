@@ -4,6 +4,16 @@
   "devCommand": "npm run dev",
   "framework": "vite",
   "regions": ["iad1"],
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/"
+    },
+    {
+      "source": "/hof",
+      "destination": "/"
+    }
+  ],
   "git": {
     "deploymentEnabled": {
       "main": true
