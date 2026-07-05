@@ -43,6 +43,7 @@ export default function App() {
   const [myVotes, setMyVotes] = useState<Record<string, number>>({});
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eventLoadError, setEventLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [pathname, setPathname] = useState(() => globalThis.location.pathname);
@@ -76,6 +77,7 @@ export default function App() {
 
   useEffect(() => {
     async function init() {
+      setEventLoadError(null);
       try {
         const [ev, did] = await Promise.all([fetchActiveEvent(), judgeMode ? Promise.resolve(null) : getDeviceId()]);
         setEvent(ev);
@@ -84,8 +86,10 @@ export default function App() {
           const votes = await fetchMyVotes(ev.id, did);
           setMyVotes(votes);
         }
-      } catch {
-        setToast({ message: "Impossibile caricare l'evento", type: "error" });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Impossibile caricare l'evento";
+        setEventLoadError(msg);
+        setToast({ message: msg, type: "error" });
       } finally {
         setLoading(false);
       }
@@ -256,6 +260,14 @@ export default function App() {
   }
 
   if (!event) {
+    if (eventLoadError) {
+      return (
+        <div className="flex items-center justify-center min-h-dvh px-4">
+          <p className="text-text-secondary text-lg text-center">Errore API: {eventLoadError}</p>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center justify-center min-h-dvh px-4">
         <p className="text-text-secondary text-lg">Nessun evento attivo al momento.</p>

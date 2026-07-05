@@ -4,7 +4,12 @@ const BASE = "/api";
 
 export async function fetchActiveEvent(): Promise<EventData> {
   const res = await fetch(`${BASE}/events/active`);
-  if (!res.ok) throw new Error("Nessun evento attivo");
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const serverMessage = typeof data.error === "string" ? data.error : "";
+    const statusLabel = `HTTP ${res.status}`;
+    throw new Error(serverMessage ? `${serverMessage} (${statusLabel})` : `Errore caricamento evento (${statusLabel})`);
+  }
   return res.json();
 }
 
