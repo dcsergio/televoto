@@ -1,113 +1,65 @@
 # AI Agent Instructions for Televoto
 
-## Project Overview
-Televoto is a real-time voting application for events. It's a full-stack TypeScript project with React frontend and Express backend.
+## Scope
+This file contains only project-specific guidance for AI coding agents.
+For generic setup and template-level details, see [README.md](README.md).
 
-See [README.md](README.md) for React/TypeScript/Vite setup details.
-
-## Quick Start & Build Commands
+## Runbook
 
 | Task | Command |
 |------|---------|
-| Development (frontend + backend) | `npm run dev` |
-| Frontend only (Vite HMR) | `npm run dev:client` |
+| Full dev (frontend + backend) | `npm run dev` |
+| Frontend only | `npm run dev:client` |
 | Backend only | `npm run dev:server` |
-| Build for production | `npm run build` |
+| Build | `npm run build` |
 | Lint | `npm run lint` |
-| Database seed | `npm run db:seed` |
-| Database migration | `npm run db:migrate` |
+| DB seed | `npm run db:seed` |
+| DB migration | `npm run db:migrate` |
 | Prisma Studio | `npm run db:studio` |
 
-**Important**: `npm run dev` runs both Vite (port 8080) and Express (port 3001) concurrently via `concurrently`.
+Notes:
+- `npm run dev` starts Vite (port 8080) and Express (port 3001) concurrently.
+- Vite uses `strictPort: true`; port 8080 conflicts will fail startup.
+- `npm run build` runs TypeScript build (`tsc -b`) before `vite build`.
 
-## Architecture
+## Architecture Boundaries
+- Frontend app: `src/` (React + Tailwind).
+- Frontend API layer: `src/api.ts` (use wrappers here, avoid raw `fetch` in components).
+- Backend API: `server/index.ts` (Express routes under `/api/*`).
+- DB schema/migrations: `prisma/schema.prisma` and `prisma/migrations/`.
+- Generated Prisma client: `src/generated/prisma/` (do not edit manually).
 
-### Stack
-- **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS
-- **Backend**: Express + Cors
-- **Database**: SQLite (better-sqlite3) + Prisma ORM
-- **Linting**: Oxlint
+## Backend API Surface
+Server routes are centralized in `server/index.ts`:
+- Event state: `GET /api/events/active`, `GET /api/events/:eventId`
+- Device votes: `GET /api/events/:eventId/votes/:deviceId`
+- Vote cast/update: `POST /api/vote`
+- Admin candidates: `GET /api/candidates/:eventId`, `POST /api/candidates`, `PUT /api/candidates/:id`, `DELETE /api/candidates/:id`
+- Admin event controls: `PUT /api/events/:eventId/voting-state`, `POST /api/events/:eventId/start`, `DELETE /api/events/:eventId/votes`
+- Hall of Fame: `GET /api/rankings/:eventId`
 
-### Key Directories
-- `src/` - React components and frontend logic
-  - `src/components/` - Reusable UI components (CandidateCard, Header, ScoreSelector, VoteButton, etc.)
-  - `src/api.ts` - Fetch wrapper for `/api/*` endpoints
-  - `src/fingerprint.ts` - Device ID generation (FingerprintJS)
-- `server/` - Express backend (port 3001)
-- `prisma/` - Database schema, migrations, and seed script
-- `src/generated/prisma/` - **Auto-generated Prisma client** (do not edit)
+When adding/changing endpoints:
+1. Update `server/index.ts`.
+2. Add/update wrapper in `src/api.ts`.
+3. Wire usage in components.
 
-### Proxy Configuration
-Vite proxies `/api` requests to `http://localhost:3001` (see `vite.config.ts`).
+## Project Conventions
+- UI text and server errors are primarily Italian. Keep language consistent.
+- Device identity comes from `getDeviceId()` in `src/fingerprint.ts`; voting is per device.
+- Vote score must stay integer 1-10 (validated server-side).
+- Types used by UI are in `src/types.ts` (`EventData`, `CandidateData`); `RankingEntry` lives in `src/api.ts`.
+- Protected pages (admin/Hall of Fame) currently use a hardcoded client-side password in `src/App.tsx`; treat as a development convenience, not production auth.
 
-## Data Model
+## Known Pitfalls
+- `DELETE /api/candidates/:id` reorders remaining candidate numbers to keep them sequential.
+- `POST /api/events/:eventId/start` performs a transaction that renumbers candidates, clears votes, and reopens voting.
+- Do not hand-edit generated Prisma files in `src/generated/prisma/`; regenerate with `npx prisma generate` if needed.
+- After schema changes, use `npm run db:migrate` (not only `prisma db push`) to preserve migration history.
 
-Three Prisma models:
-1. **Event** - Votable event (id, name, subtitle, active flag, timestamps)
-2. **Candidate** - Candidate in an event (id, number, name, color, link to Event)
-3. **Vote** - User vote (candidateId, deviceId, score 1-10, timestamp)
-   - Unique constraint: one vote per candidate per device
-   - Device ID tracked via fingerprinting
-
-## Development Conventions
-
-### Frontend
-- **Components**: All in `src/components/`, use `.tsx` files
-- **API calls**: Use functions from `src/api.ts` (not raw fetch)
-- **State management**: React hooks (useState, useEffect, useCallback)
-- **Styling**: Tailwind CSS via `@tailwindcss/vite`
-- **Device tracking**: Use `getDeviceId()` from `src/fingerprint.ts`
-- **Types**: Defined in `src/types.ts`
-
-### Backend
-- **Server**: `server/index.ts` - Express with Prisma
-- **Routes**: RESTful API at `/api/*`
-- **Database**: Use `PrismaClient` configured with better-sqlite3 adapter
-- **CORS**: Enabled for cross-origin requests
-
-### Database
-- **Migrations**: Run with `npm run db:migrate`, stored in `prisma/migrations/`
-- **Schema**: `prisma/schema.prisma`
-- **Seed**: `prisma/seed.ts` - executed via `npm run db:seed`
-- **Adapter**: Uses better-sqlite3 for local dev (can also use libsql for cloud)
-
-### Linting
-- Use **Oxlint** (not ESLint) - configured via `.oxlintrc.json`
-- Run: `npm run lint`
-- See README for enabling type-aware rules
-
-## Common Patterns
-
-### Adding an API Endpoint
-1. Add route handler in `server/index.ts`
-2. Add fetch wrapper in `src/api.ts`
-3. Use in React components via the API wrapper
-
-### Database Changes
-1. Update `prisma/schema.prisma`
-2. Run `npm run db:migrate` to create migration
-3. Backend auto-loads new Prisma client
-
-### Component Creation
-- Export functional components from `src/components/`
-- Import and use in `App.tsx` or other components
-- Use Tailwind classes for styling
-
-## Potential Pitfalls
-
-- **Port conflicts**: Ensure ports 8080 (Vite) and 3001 (Express) are free when running `npm run dev`
-- **Device ID changes**: FingerprintJS may return different IDs on browser resets; votes are per-device
-- **Prisma generation**: Generated code in `src/generated/prisma/` is auto-generated—don't edit it manually; regenerate with `npx prisma generate` if needed
-- **Database migrations**: Always run `npm run db:migrate` after schema changes, not just `npx prisma db push`
-- **Italian UI**: Some strings are in Italian; maintain consistency when adding new UI text
-
-## Type Definitions
-
-Check `src/types.ts` for TypeScript interfaces (e.g., `EventData`, `Candidate`, `Vote`).
-
-## Browser Compatibility
-
-The app uses modern JavaScript features and requires:
-- Fetch API
-- ES6+ syntax
-- FingerprintJS for device detection
+## Key Files
+- Frontend composition: `src/App.tsx`
+- Reusable components: `src/components/`
+- API client wrappers: `src/api.ts`
+- Backend server: `server/index.ts`
+- Vite proxy/ports: `vite.config.ts`
+- Prisma schema: `prisma/schema.prisma`
