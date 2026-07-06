@@ -21,38 +21,46 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 const app = express();
 
-const defaultEventCandidates = [
-  { number: 1, name: "Luna Nera", subtitle: "Oltre le stelle", color: "#c026d3" },
-  { number: 2, name: "Mare di Luci", subtitle: "Onde", color: "#f97316" },
-  { number: 3, name: "Eclissi", subtitle: "Nel silenzio", color: "#06b6d4" },
-  { number: 4, name: "Vento Caldo", subtitle: "Senza confini", color: "#22c55e" },
-  { number: 5, name: "Specchi Rotti", subtitle: "Riflessi", color: "#8b5cf6" },
-  { number: 6, name: "Illusione", subtitle: "Fino all'alba", color: "#eab308" },
-];
+const opaqueTokenAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const judgeTokenLength = 16;
+const judgeTokenStreamClients = new Map<string, Set<express.Response>>();
+const eventCodeRegex = /^\d{1,5}$/;
 
-const defaultEventData = {
-  name: "Festival della Canzone 2026",
-  subtitle: "Vota il tuo artista preferito",
-  active: true,
-  votingClosed: false,
-  candidates: {
-    create: defaultEventCandidates,
-  },
-} as const;
-
-async function ensureDefaultEvent() {
-  return prisma.event.create({
-    data: defaultEventData,
-    include: {
-      candidates: {
-        orderBy: { number: "asc" },
-      },
-    },
-  });
+function generateRandomEventCode() {
+  return String(Math.floor(Math.random() * 100000)).padStart(5, "0");
 }
 
-const opaqueTokenAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const judgeTokenStreamClients = new Map<string, Set<express.Response>>();
+function normalizeEventCode(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return eventCodeRegex.test(trimmed) ? trimmed : null;
+}
+
+function normalizeEventName(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+async function createUniqueEventCode() {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const code = generateRandomEventCode();
+    const existing = await prisma.event.findUnique({
+      where: { code },
+      select: { id: true },
+    });
+    if (!existing) return code;
+  }
+  throw new Error("Impossibile generare un codice evento univoco");
+}
+
+async function resolveEventIdByCode(eventCode: string) {
+  const event = await prisma.event.findUnique({
+    where: { code: eventCode },
+    select: { id: true },
+  });
+  return event?.id ?? null;
+}
 
 function generateOpaqueToken(length: number) {
   const bytes = crypto.randomBytes(length);
@@ -67,6 +75,12 @@ function generateOpaqueToken(length: number) {
 
 function hashOpaqueToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+function normalizeJudgeToken(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toUpperCase().replaceAll(/[^0-9A-Z]/g, "");
+  return normalized.length > 0 ? normalized : null;
 }
 
 function getJudgeTokenStatus(record: { finalizedAt: Date | null; revokedAt: Date | null }) {
@@ -163,55 +177,132 @@ app.disable("x-powered-by");
 app.use(cors({ origin: false }));
 app.use(express.json());
 
-// Get active event with candidates
-app.get("/api/events/active", async (_req, res) => {
-  const event = await prisma.event.findFirst({
-    where: { active: true },
-    orderBy: { createdAt: "desc" },
-    include: {
-      candidates: {
-        orderBy: { number: "asc" },
+app.get("/api/events", async (_req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        subtitle: true,
+        active: true,
+        votingClosed: true,
+        createdAt: true,
       },
-    },
-  });
-
-  if (event) {
-    res.json({
-      ...event,
-      votingClosed: event.votingClosed,
     });
+    res.json(events);
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
+      res.status(500).json({ error: "Schema DB non aggiornato: esegui la migration add_event_code" });
+      return;
+    }
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post("/api/events", async (req, res) => {
+  const body = req.body as { code?: string; name?: string; subtitle?: string };
+  const name = normalizeEventName(body.name);
+
+  if (!name) {
+    res.status(400).json({ error: "Il nome evento è obbligatorio" });
     return;
   }
 
-  const fallbackEvent = await prisma.event.findFirst({
-    orderBy: { createdAt: "desc" },
-    include: {
-      candidates: {
-        orderBy: { number: "asc" },
-      },
-    },
-  });
+  const hasCustomCode = typeof body.code === "string" && body.code.trim().length > 0;
+  const requestedCode = hasCustomCode
+    ? normalizeEventCode(body.code)
+    : null;
 
-  if (!fallbackEvent) {
-    const seededEvent = await ensureDefaultEvent();
-    res.json({
-      ...seededEvent,
-      votingClosed: seededEvent.votingClosed,
-    });
+  if (hasCustomCode && !requestedCode) {
+    res.status(400).json({ error: "Codice evento non valido (1-5 cifre)" });
     return;
   }
 
-  res.json({
-    ...fallbackEvent,
-    votingClosed: fallbackEvent.votingClosed,
-  });
+  const subtitle = typeof body.subtitle === "string" && body.subtitle.trim().length > 0
+    ? body.subtitle.trim()
+    : null;
+
+  try {
+    const code = requestedCode ?? await createUniqueEventCode();
+    const event = await prisma.event.create({
+      data: {
+        code,
+        name,
+        subtitle,
+        active: true,
+        votingClosed: true,
+      },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        subtitle: true,
+        active: true,
+        votingClosed: true,
+        createdAt: true,
+      },
+    });
+
+    res.status(201).json(event);
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
+      res.status(500).json({ error: "Schema DB non aggiornato: esegui la migration add_event_code" });
+      return;
+    }
+
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      res.status(409).json({ error: "Codice evento già in uso" });
+      return;
+    }
+
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.get("/api/events/by-code/:eventCode", async (req, res) => {
+  const parsedEventCode = normalizeEventCode(req.params.eventCode);
+  if (!parsedEventCode) {
+    res.status(400).json({ error: "Codice evento non valido" });
+    return;
+  }
+
+  let event;
+  try {
+    event = await prisma.event.findUnique({
+      where: { code: parsedEventCode },
+      include: {
+        candidates: {
+          orderBy: { number: "asc" },
+        },
+      },
+    });
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
+      res.status(500).json({ error: "Schema DB non aggiornato: esegui la migration add_event_code" });
+      return;
+    }
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+    return;
+  }
+
+  if (!event) {
+    res.status(404).json({ error: "Evento non trovato" });
+    return;
+  }
+
+  res.json(event);
 });
 
 app.get("/api/events/:eventId", async (req, res) => {
   const { eventId } = req.params;
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    select: { id: true, name: true, subtitle: true, active: true, votingClosed: true },
+    select: { id: true, code: true, name: true, subtitle: true, active: true, votingClosed: true },
   });
 
   if (!event) {
@@ -281,7 +372,7 @@ app.post("/api/vote", async (req, res) => {
       return;
     }
 
-    const judgeToken = req.body.judgeToken as string | undefined;
+    const judgeToken = normalizeJudgeToken(req.body.judgeToken);
 
     if (judgeToken) {
       const tokenHash = hashOpaqueToken(judgeToken);
@@ -383,9 +474,8 @@ app.get("/api/events/:eventId/judge-tokens/stream", async (req, res) => {
 
 app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
   const { eventId } = req.params;
-  const { count, length, labelPrefix } = req.body as {
+  const { count, labelPrefix } = req.body as {
     count?: number;
-    length?: number;
     labelPrefix?: string;
     origin?: string;
   };
@@ -395,17 +485,21 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
     return;
   }
 
-  if (typeof length !== "number" || !Number.isInteger(length) || length < 16 || length > 64) {
-    res.status(400).json({ error: "Length must be between 16 and 64" });
-    return;
-  }
-
   try {
     const fallbackOrigin = `${req.protocol}://${req.get("host")}`;
     const clientOrigin = typeof req.body.origin === "string" && req.body.origin.trim()
       ? req.body.origin.trim()
       : fallbackOrigin;
     const baseUrl = new URL(clientOrigin).origin;
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { code: true },
+    });
+
+    if (!event) {
+      res.status(404).json({ error: "Evento non trovato" });
+      return;
+    }
 
     const generated: Array<{
       id: string;
@@ -419,7 +513,7 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
     }> = [];
 
     for (let index = 0; index < count; index += 1) {
-      const rawToken = generateOpaqueToken(length);
+      const rawToken = generateOpaqueToken(judgeTokenLength);
       const record = await prisma.judgeToken.create({
         data: {
           eventId,
@@ -446,7 +540,10 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
       codes: generated.map((code) => ({
         ...code,
         status: getJudgeTokenStatus(code),
-        url: `${baseUrl}/?judgeToken=${encodeURIComponent(code.token)}`,
+        url: `${baseUrl}/?${new URLSearchParams({
+          eventCode: event.code,
+          judgeToken: code.token,
+        }).toString()}`,
       })),
     });
     await broadcastJudgeTokenSnapshot(eventId);
@@ -457,15 +554,23 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
 });
 
 app.post("/api/judge-tokens/validate", async (req, res) => {
-  const { token } = req.body as { token?: string };
+  const { token, eventCode } = req.body as { token?: string; eventCode?: string };
+  const normalizedToken = normalizeJudgeToken(token);
 
-  if (!token) {
+  if (!normalizedToken) {
     res.status(400).json({ error: "Missing token" });
     return;
   }
 
+  const parsedEventCode =
+    eventCode === undefined ? null : normalizeEventCode(eventCode);
+  if (eventCode !== undefined && !parsedEventCode) {
+    res.status(400).json({ error: "Codice evento non valido" });
+    return;
+  }
+
   try {
-    const tokenHash = hashOpaqueToken(token.trim());
+    const tokenHash = hashOpaqueToken(normalizedToken);
     const judgeToken = await prisma.judgeToken.findUnique({
       where: { tokenHash },
       select: {
@@ -483,6 +588,18 @@ app.post("/api/judge-tokens/validate", async (req, res) => {
     if (!judgeToken) {
       res.status(404).json({ valid: false, status: "invalid", message: "Codice non trovato" });
       return;
+    }
+
+    if (parsedEventCode) {
+      const requestedEventId = await resolveEventIdByCode(parsedEventCode);
+      if (!requestedEventId) {
+        res.status(404).json({ valid: false, status: "invalid", message: "Evento non trovato" });
+        return;
+      }
+      if (requestedEventId !== judgeToken.eventId) {
+        res.status(403).json({ valid: false, status: "invalid", message: "Codice non valido per questo evento" });
+        return;
+      }
     }
 
     const votes = await getJudgeTokenVotes(judgeToken.id);
@@ -515,15 +632,23 @@ app.post("/api/judge-tokens/validate", async (req, res) => {
 });
 
 app.post("/api/judge-tokens/finalize", async (req, res) => {
-  const { token } = req.body as { token?: string };
+  const { token, eventCode } = req.body as { token?: string; eventCode?: string };
+  const normalizedToken = normalizeJudgeToken(token);
 
-  if (!token) {
+  if (!normalizedToken) {
     res.status(400).json({ error: "Missing token" });
     return;
   }
 
+  const parsedEventCode =
+    eventCode === undefined ? null : normalizeEventCode(eventCode);
+  if (eventCode !== undefined && !parsedEventCode) {
+    res.status(400).json({ error: "Codice evento non valido" });
+    return;
+  }
+
   try {
-    const tokenHash = hashOpaqueToken(token.trim());
+    const tokenHash = hashOpaqueToken(normalizedToken);
     const judgeToken = await prisma.judgeToken.findUnique({
       where: { tokenHash },
       select: {
@@ -541,6 +666,18 @@ app.post("/api/judge-tokens/finalize", async (req, res) => {
     if (!judgeToken) {
       res.status(404).json({ error: "Codice non trovato" });
       return;
+    }
+
+    if (parsedEventCode) {
+      const requestedEventId = await resolveEventIdByCode(parsedEventCode);
+      if (!requestedEventId) {
+        res.status(404).json({ error: "Evento non trovato" });
+        return;
+      }
+      if (requestedEventId !== judgeToken.eventId) {
+        res.status(403).json({ error: "Codice non valido per questo evento" });
+        return;
+      }
     }
 
     if (judgeToken.revokedAt) {

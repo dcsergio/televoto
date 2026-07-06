@@ -2,8 +2,8 @@ import type { EventData, CandidateData } from "./types";
 
 const BASE = "/api";
 
-export async function fetchActiveEvent(): Promise<EventData> {
-  const res = await fetch(`${BASE}/events/active`);
+export async function fetchEventByCode(eventCode: string): Promise<EventData> {
+  const res = await fetch(`${BASE}/events/by-code/${encodeURIComponent(eventCode)}`);
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     const serverMessage = typeof data.error === "string" ? data.error : "";
@@ -13,7 +13,67 @@ export async function fetchActiveEvent(): Promise<EventData> {
   return res.json();
 }
 
-export async function fetchEventState(eventId: string): Promise<{ id: string; votingClosed: boolean }> {
+export interface AdminEventSummary {
+  id: string;
+  code: string;
+  name: string;
+  subtitle: string | null;
+  active: boolean;
+  votingClosed: boolean;
+  createdAt: string;
+}
+
+export async function fetchEvents(): Promise<AdminEventSummary[]> {
+  const res = await fetch(`${BASE}/events`);
+  if (!res.ok) {
+    const raw = await res.text().catch(() => "");
+    let serverMessage = "";
+    try {
+      const parsed = raw ? JSON.parse(raw) : {};
+      serverMessage = typeof parsed.error === "string" ? parsed.error : "";
+    } catch {
+      serverMessage = raw;
+    }
+    const statusLabel = `HTTP ${res.status}`;
+    throw new Error(
+      serverMessage
+        ? `${serverMessage} (${statusLabel})`
+        : `Errore nel caricamento eventi (${statusLabel})`
+    );
+  }
+  return res.json();
+}
+
+export async function createEvent(input: {
+  code?: string;
+  name: string;
+  subtitle?: string;
+}): Promise<AdminEventSummary> {
+  const res = await fetch(`${BASE}/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const raw = await res.text().catch(() => "");
+    let serverMessage = "";
+    try {
+      const parsed = raw ? JSON.parse(raw) : {};
+      serverMessage = typeof parsed.error === "string" ? parsed.error : "";
+    } catch {
+      serverMessage = raw;
+    }
+    const statusLabel = `HTTP ${res.status}`;
+    throw new Error(
+      serverMessage
+        ? `${serverMessage} (${statusLabel})`
+        : `Errore nella creazione evento (${statusLabel})`
+    );
+  }
+  return res.json();
+}
+
+export async function fetchEventState(eventId: string): Promise<{ id: string; code: string; votingClosed: boolean }> {
   const res = await fetch(`${BASE}/events/${eventId}`);
   if (!res.ok) throw new Error("Errore nel caricamento stato evento");
   return res.json();
@@ -183,7 +243,7 @@ export async function fetchJudgeTokens(eventId: string): Promise<JudgeTokenRecor
 
 export async function generateJudgeTokens(
   eventId: string,
-  input: { count: number; length: number; labelPrefix?: string; origin?: string }
+  input: { count: number; labelPrefix?: string; origin?: string }
 ): Promise<{ ok: boolean; codes: GeneratedJudgeToken[] }> {
   const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`, {
     method: "POST",
@@ -197,11 +257,11 @@ export async function generateJudgeTokens(
   return res.json();
 }
 
-export async function validateJudgeToken(token: string): Promise<JudgeTokenValidationResult> {
+export async function validateJudgeToken(token: string, eventCode?: string): Promise<JudgeTokenValidationResult> {
   const res = await fetch(`${BASE}/judge-tokens/validate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ token, eventCode }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -214,11 +274,11 @@ export async function validateJudgeToken(token: string): Promise<JudgeTokenValid
   return res.json();
 }
 
-export async function finalizeJudgeToken(token: string): Promise<JudgeTokenValidationResult> {
+export async function finalizeJudgeToken(token: string, eventCode?: string): Promise<JudgeTokenValidationResult> {
   const res = await fetch(`${BASE}/judge-tokens/finalize`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token }),
+    body: JSON.stringify({ token, eventCode }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

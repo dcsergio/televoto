@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "npx prisma migrate deploy",
+    "db:migrate:pooler": "set PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1&& npx prisma migrate deploy",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio"
   },

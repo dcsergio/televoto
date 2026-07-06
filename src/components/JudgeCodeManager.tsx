@@ -6,14 +6,19 @@ import { fetchJudgeTokens, generateJudgeTokens, revokeJudgeToken, validateJudgeT
 
 interface JudgeCodeManagerProps {
   readonly eventId: string;
+  readonly eventCode: string;
 }
 
 const defaultGeneratorForm = {
   count: 5,
-  length: 32,
   labelPrefix: "Giudice",
   baseUrl: "",
 };
+
+function formatJudgeToken(value: string) {
+  const normalized = value.replaceAll(/[^0-9A-Z]/gi, "").toUpperCase();
+  return normalized.match(/.{1,4}/g)?.join("-") ?? normalized;
+}
 
 function formatDate(value: string | null) {
   if (!value) return "-";
@@ -115,7 +120,7 @@ function QrCodePreview({ value, label }: { readonly value: string; readonly labe
   );
 }
 
-export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
+export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) {
   const [tokens, setTokens] = useState<JudgeTokenRecord[]>([]);
   const [generatedTokens, setGeneratedTokens] = useState<GeneratedJudgeToken[]>([]);
   const [loading, setLoading] = useState(true);
@@ -204,7 +209,6 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
 
       const result = await generateJudgeTokens(eventId, {
         count: generatorForm.count,
-        length: generatorForm.length,
         labelPrefix: generatorForm.labelPrefix,
         origin,
       });
@@ -235,7 +239,7 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
     setError(null);
 
     try {
-      const result = await validateJudgeToken(validationInput.trim());
+      const result = await validateJudgeToken(validationInput.trim(), eventCode);
       setValidationResult(result);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Errore nella validazione";
@@ -243,7 +247,7 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
     } finally {
       setValidationLoading(false);
     }
-  }, [validationInput]);
+  }, [eventCode, validationInput]);
 
   const handleRevoke = useCallback(async (id: string) => {
     setRevokingId(id);
@@ -294,7 +298,7 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
 
           return {
             label: token.label ?? "Codice giudice",
-            token: token.token,
+            token: formatJudgeToken(token.token),
             url: token.url,
             qrDataUrl,
           };
@@ -501,14 +505,9 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
             </label>
             <label className="space-y-2">
               <span className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Lunghezza</span>
-              <input
-                type="number"
-                min={16}
-                max={64}
-                value={generatorForm.length}
-                onChange={(event) => setGeneratorForm((prev) => ({ ...prev, length: Number(event.target.value) }))}
-                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-text-primary outline-none"
-              />
+              <div className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-text-primary">
+                16 caratteri fissi
+              </div>
             </label>
             <label className="space-y-2">
               <span className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Prefisso</span>
@@ -585,7 +584,7 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
                       />
                       <div className="space-y-2 text-sm">
                         <div className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-xs break-all text-text-primary">
-                          {token.token}
+                          {formatJudgeToken(token.token)}
                         </div>
                         <div className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs break-all text-text-secondary">
                           {token.url}
@@ -596,7 +595,7 @@ export function JudgeCodeManager({ eventId }: JudgeCodeManagerProps) {
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => handleCopy(token.token, "Codice copiato")}
+                        onClick={() => handleCopy(formatJudgeToken(token.token), "Codice copiato")}
                         className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-text-primary hover:bg-slate-800 transition"
                       >
                         Copia codice

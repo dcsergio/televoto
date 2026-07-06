@@ -21,6 +21,7 @@ async function main() {
 
   const event = await prisma.event.create({
     data: {
+      code: "00001",
       name: "Festival della Canzone 2026",
       subtitle: "Vota il tuo artista preferito",
       active: true,

@@ -1,5 +1,6 @@
 export interface EventData {
   id: string;
+  code: string;
   name: string;
   subtitle: string | null;
   active: boolean;

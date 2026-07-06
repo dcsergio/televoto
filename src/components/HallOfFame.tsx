@@ -4,6 +4,7 @@ import { fetchRankings } from "../api";
 
 interface HallOfFameProps {
   readonly eventId: string;
+  readonly eventCode: string;
   readonly eventName: string;
   readonly votingClosed: boolean;
   readonly onCloseTelevote: () => Promise<void>;
@@ -38,6 +39,7 @@ function getFinalistLabel(index: number, showWinner: boolean) {
 
 export function HallOfFame({
   eventId,
+  eventCode,
   eventName,
   votingClosed,
   onCloseTelevote,
@@ -141,6 +143,7 @@ export function HallOfFame({
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">🏆 Classifica</h1>
           <p className="text-text-secondary text-lg">{eventName}</p>
+          <p className="text-text-secondary text-sm mt-1">Codice evento: {eventCode}</p>
         </div>
 
         {error && (

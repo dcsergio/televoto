@@ -1,7 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { FormEvent } from "react";
 import type { EventData } from "./types";
-import { fetchActiveEvent, fetchMyVotes, castVote, updateEventVotingState } from "./api";
+import {
+  fetchEventByCode,
+  fetchMyVotes,
+  castVote,
+  updateEventVotingState,
+  finalizeJudgeToken,
+  validateJudgeToken,
+} from "./api";
 import { getDeviceId } from "./fingerprint";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
@@ -9,7 +16,6 @@ import { CandidateList } from "./components/CandidateList";
 import { Toast } from "./components/Toast";
 import { AdminPage } from "./components/AdminPage";
 import { HallOfFame } from "./components/HallOfFame";
-import { finalizeJudgeToken, validateJudgeToken } from "./api";
 
 type AppRoute = "voting" | "admin" | "hof";
 
@@ -26,7 +32,33 @@ function getPathFromRoute(route: AppRoute): string {
 }
 
 function getJudgeTokenFromLocation() {
-  return new URLSearchParams(globalThis.location.search).get("judgeToken");
+  const token = new URLSearchParams(globalThis.location.search).get("judgeToken");
+  if (!token) return null;
+  const normalized = token.trim().toUpperCase().replaceAll(/[^0-9A-Z]/g, "");
+  return normalized.length > 0 ? normalized : null;
+}
+
+function getEventCodeFromLocation() {
+  return new URLSearchParams(globalThis.location.search).get("eventCode");
+}
+
+const eventCodeRegex = /^\d{1,5}$/;
+const judgeTokenSegmentCount = 4;
+const judgeTokenSegmentLength = 4;
+
+function normalizeJudgeTokenInput(value: string) {
+  return value.trim().toUpperCase().replaceAll(/[^0-9A-Z]/g, "");
+}
+
+function splitJudgeTokenSegments(value: string) {
+  const normalized = normalizeJudgeTokenInput(value);
+  return Array.from({ length: judgeTokenSegmentCount }, (_, index) =>
+    normalized.slice(index * judgeTokenSegmentLength, (index + 1) * judgeTokenSegmentLength)
+  );
+}
+
+function joinJudgeTokenSegments(segments: string[]) {
+  return segments.join("");
 }
 
 type JudgeAccessStatus = "idle" | "loading" | "valid" | "used" | "revoked" | "invalid";
@@ -37,6 +69,7 @@ interface JudgeAccessState {
 }
 
 export default function App() {
+  const initialEventCode = getEventCodeFromLocation();
   const initialJudgeToken = getJudgeTokenFromLocation();
   const [event, setEvent] = useState<EventData | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -47,6 +80,8 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [pathname, setPathname] = useState(() => globalThis.location.pathname);
+  const [eventCode, setEventCode] = useState<string | null>(initialEventCode);
+  const [eventCodeInput, setEventCodeInput] = useState(initialEventCode ?? "");
   const [judgeToken, setJudgeToken] = useState<string | null>(initialJudgeToken);
   const [judgeAccess, setJudgeAccess] = useState<JudgeAccessState>(
     initialJudgeToken ? { status: "loading" } : { status: "idle" }
@@ -56,31 +91,44 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
+  const judgeCodeInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [authorizedProtectedPages, setAuthorizedProtectedPages] = useState<Record<"admin" | "hof", boolean>>({
     admin: false,
     hof: false,
   });
-  const [manualJudgeCode, setManualJudgeCode] = useState("");
+  const [manualJudgeCodeSegments, setManualJudgeCodeSegments] = useState<string[]>(() =>
+    splitJudgeTokenSegments("")
+  );
 
   const PROTECTED_PAGE_PASSWORD = "t";
 
   const currentPage = getRouteFromPath(pathname);
   const protectedPage = currentPage === "voting" ? null : currentPage;
   const needsProtectedAccess = protectedPage ? !authorizedProtectedPages[protectedPage] : false;
-  const judgeMode = Boolean(judgeToken);
+  const judgeMode = Boolean(judgeToken && eventCode);
 
   const navigateTo = useCallback((route: AppRoute, replace = false) => {
     const nextPath = getPathFromRoute(route);
     const historyMethod = replace ? "replaceState" : "pushState";
-    globalThis.history[historyMethod]({}, "", nextPath);
+    const query = new URLSearchParams(globalThis.location.search);
+    const search = query.toString();
+    globalThis.history[historyMethod]({}, "", search ? `${nextPath}?${search}` : nextPath);
     setPathname(nextPath);
   }, []);
 
   useEffect(() => {
     async function init() {
+      if (!eventCode) {
+        setEvent(null);
+        setLoading(false);
+        setEventLoadError(null);
+        return;
+      }
+
+      setLoading(true);
       setEventLoadError(null);
       try {
-        const [ev, did] = await Promise.all([fetchActiveEvent(), judgeMode ? Promise.resolve(null) : getDeviceId()]);
+        const [ev, did] = await Promise.all([fetchEventByCode(eventCode), judgeMode ? Promise.resolve(null) : getDeviceId()]);
         setEvent(ev);
         setDeviceId(did);
         if (!judgeMode && did) {
@@ -96,13 +144,17 @@ export default function App() {
       }
     }
     init();
-  }, [judgeMode]);
+  }, [eventCode, judgeMode]);
 
   useEffect(() => {
     const handlePopState = () => {
+      const nextEventCode = getEventCodeFromLocation();
+      const nextJudgeToken = getJudgeTokenFromLocation();
       setPathname(globalThis.location.pathname);
-      setJudgeToken(getJudgeTokenFromLocation());
-      setJudgeAccess(getJudgeTokenFromLocation() ? { status: "loading" } : { status: "idle" });
+      setEventCode(nextEventCode);
+      setEventCodeInput(nextEventCode ?? "");
+      setJudgeToken(nextJudgeToken);
+      setJudgeAccess(nextJudgeToken && nextEventCode ? { status: "loading" } : { status: "idle" });
       setPasswordInput("");
       setPasswordError("");
     };
@@ -143,10 +195,6 @@ export default function App() {
     [deviceId, event, judgeToken]
   );
 
-  const handleVotingStateChange = useCallback((votingClosed: boolean) => {
-    setEvent((prev) => (prev ? { ...prev, votingClosed } : prev));
-  }, []);
-
   useEffect(() => {
     if (!needsProtectedAccess) return;
 
@@ -159,7 +207,7 @@ export default function App() {
   }, [needsProtectedAccess]);
 
   useEffect(() => {
-    if (!judgeToken) {
+    if (!judgeToken || !eventCode) {
       setJudgeAccess({ status: "idle" });
       return;
     }
@@ -169,7 +217,7 @@ export default function App() {
     setMyVotes({});
     setSelectedCandidate(null);
 
-    validateJudgeToken(judgeToken)
+    validateJudgeToken(judgeToken, eventCode)
       .then((result) => {
         if (cancelled) return;
         setJudgeAccess({
@@ -188,7 +236,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [judgeToken]);
+  }, [judgeToken, eventCode]);
 
   const handleProtectedPageSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -221,11 +269,11 @@ export default function App() {
   }, [event]);
 
   const handleFinalizeJudgeCode = useCallback(async () => {
-    if (!judgeToken) return;
+    if (!judgeToken || !eventCode) return;
     setFinalizingJudgeToken(true);
 
     try {
-      const result = await finalizeJudgeToken(judgeToken);
+      const result = await finalizeJudgeToken(judgeToken, eventCode);
       setJudgeAccess({
         status: result.status === "used" ? "used" : "valid",
         message: result.message,
@@ -239,7 +287,7 @@ export default function App() {
     } finally {
       setFinalizingJudgeToken(false);
     }
-  }, [judgeToken, myVotes]);
+  }, [eventCode, judgeToken, myVotes]);
 
 
   const handleProtectedPageCancel = useCallback(() => {
@@ -248,24 +296,108 @@ export default function App() {
     navigateTo("voting");
   }, [navigateTo]);
 
-  const handleManualJudgeCodeSubmit = useCallback(
+  const handleEventCodeSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const trimmedJudgeCode = manualJudgeCode.trim();
+      const trimmedEventCode = eventCodeInput.trim();
 
-      if (!trimmedJudgeCode) {
-        setToast({ message: "Inserisci un codice voto valido.", type: "error" });
+      if (!eventCodeRegex.test(trimmedEventCode)) {
+        setToast({ message: "Inserisci un codice evento valido (1-5 cifre).", type: "error" });
         return;
       }
 
       const nextSearch = new URLSearchParams(globalThis.location.search);
+      nextSearch.set("eventCode", trimmedEventCode);
+      globalThis.history.pushState({}, "", `${globalThis.location.pathname}?${nextSearch.toString()}`);
+      setEventCode(trimmedEventCode);
+    },
+    [eventCodeInput]
+  );
+
+  const handleManualJudgeCodeSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const trimmedJudgeCode = joinJudgeTokenSegments(manualJudgeCodeSegments);
+
+      if (trimmedJudgeCode.length !== judgeTokenSegmentCount * judgeTokenSegmentLength) {
+        setToast({ message: "Inserisci un codice voto valido.", type: "error" });
+        return;
+      }
+
+      if (!eventCode) {
+        setToast({ message: "Inserisci prima il codice evento.", type: "error" });
+        return;
+      }
+
+      const nextSearch = new URLSearchParams(globalThis.location.search);
+      nextSearch.set("eventCode", eventCode);
       nextSearch.set("judgeToken", trimmedJudgeCode);
       globalThis.history.pushState({}, "", `${globalThis.location.pathname}?${nextSearch.toString()}`);
       setJudgeToken(trimmedJudgeCode);
       setJudgeAccess({ status: "loading" });
     },
-    [manualJudgeCode]
+    [eventCode, manualJudgeCodeSegments]
   );
+
+  const handleManualJudgeCodeSegmentChange = useCallback((index: number, value: string) => {
+    const normalized = normalizeJudgeTokenInput(value);
+
+    if (normalized.length > judgeTokenSegmentLength) {
+      const nextSegments = splitJudgeTokenSegments(normalized);
+      setManualJudgeCodeSegments(nextSegments);
+      const targetIndex = Math.min(
+        Math.floor((normalized.length - 1) / judgeTokenSegmentLength),
+        judgeTokenSegmentCount - 1
+      );
+      judgeCodeInputRefs.current[targetIndex]?.focus();
+      judgeCodeInputRefs.current[targetIndex]?.setSelectionRange(judgeTokenSegmentLength, judgeTokenSegmentLength);
+      return;
+    }
+
+    setManualJudgeCodeSegments((prev) => {
+      const next = [...prev];
+      next[index] = normalized.slice(0, judgeTokenSegmentLength);
+      return next;
+    });
+
+    if (normalized.length === judgeTokenSegmentLength && index < judgeTokenSegmentCount - 1) {
+      judgeCodeInputRefs.current[index + 1]?.focus();
+      judgeCodeInputRefs.current[index + 1]?.select();
+    }
+  }, []);
+
+  const handleManualJudgeCodeSegmentKeyDown = useCallback(
+    (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Backspace" && !manualJudgeCodeSegments[index] && index > 0) {
+        const previousInput = judgeCodeInputRefs.current[index - 1];
+        previousInput?.focus();
+        previousInput?.setSelectionRange(judgeTokenSegmentLength, judgeTokenSegmentLength);
+      }
+
+      if (event.key === "ArrowLeft" && index > 0) {
+        judgeCodeInputRefs.current[index - 1]?.focus();
+      }
+
+      if (event.key === "ArrowRight" && index < judgeTokenSegmentCount - 1) {
+        judgeCodeInputRefs.current[index + 1]?.focus();
+      }
+    },
+    [manualJudgeCodeSegments]
+  );
+
+  const handleManualJudgeCodeSegmentPaste = useCallback((event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text");
+    const nextSegments = splitJudgeTokenSegments(pasted);
+    setManualJudgeCodeSegments(nextSegments);
+
+    const lastFilledIndex = Math.min(
+      Math.max(Math.ceil(normalizeJudgeTokenInput(pasted).length / judgeTokenSegmentLength) - 1, 0),
+      judgeTokenSegmentCount - 1
+    );
+    judgeCodeInputRefs.current[lastFilledIndex]?.focus();
+    judgeCodeInputRefs.current[lastFilledIndex]?.select();
+  }, []);
 
   const isJudgeAccessRejected = judgeMode && (judgeAccess.status === "invalid" || judgeAccess.status === "revoked");
   const isJudgeVoteLocked = judgeAccess.status === "used";
@@ -279,7 +411,36 @@ export default function App() {
     );
   }
 
-  if (!event) {
+  if (!eventCode && currentPage !== "admin") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
+        <div className="w-full max-w-xl rounded-3xl border border-border-glass bg-slate-900/80 p-6 shadow-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Codice evento</p>
+          <h2 className="mt-2 text-2xl font-bold text-text-primary">Inserisci il codice evento</h2>
+          <p className="mt-3 text-sm text-text-secondary">
+            Per accedere al televoto o alla classifica devi indicare un codice evento valido.
+          </p>
+          <form className="mt-5 flex flex-col gap-3 sm:flex-row" onSubmit={handleEventCodeSubmit}>
+            <input
+              type="text"
+              value={eventCodeInput}
+              onChange={(event) => setEventCodeInput(event.target.value)}
+              placeholder="Es. 00001"
+              className="flex-1 rounded-2xl border border-border-glass bg-slate-800 px-4 py-2 text-text-primary outline-none ring-0"
+            />
+            <button
+              type="submit"
+              className="rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
+            >
+              Entra
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event && currentPage !== "admin") {
     if (eventLoadError) {
       return (
         <div className="flex items-center justify-center min-h-dvh px-4">
@@ -290,7 +451,7 @@ export default function App() {
 
     return (
       <div className="flex items-center justify-center min-h-dvh px-4">
-        <p className="text-text-secondary text-lg">Nessun evento attivo al momento.</p>
+        <p className="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
       </div>
     );
   }
@@ -361,14 +522,22 @@ export default function App() {
     case "admin":
       return (
         <AdminPage
-          eventId={event.id}
-          onVotingStateChange={handleVotingStateChange}
+          initialEventId={event?.id}
+          initialEventCode={event?.code}
         />
       );
     case "hof":
+      if (!event) {
+        return (
+          <div className="flex items-center justify-center min-h-dvh px-4">
+            <p className="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
+          </div>
+        );
+      }
       return (
         <HallOfFame
           eventId={event.id}
+          eventCode={event.code}
           eventName={event.name}
           votingClosed={event.votingClosed}
           onCloseTelevote={handleCloseTelevote}
@@ -378,6 +547,14 @@ export default function App() {
     default:
       // Voting page continues below
       break;
+  }
+
+  if (!event) {
+    return (
+      <div className="flex items-center justify-center min-h-dvh px-4">
+        <p className="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
+      </div>
+    );
   }
 
   const votingClosed = event.votingClosed;
@@ -403,17 +580,31 @@ export default function App() {
               Per votare hai bisogno del Codice Voto. Scansiona il QR code direttamente con la fotocamera del tuo
               cellulare, oppure inserisci il codice qui sotto.
             </p>
-            <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={handleManualJudgeCodeSubmit}>
-              <input
-                type="text"
-                value={manualJudgeCode}
-                onChange={(event) => setManualJudgeCode(event.target.value)}
-                placeholder="Inserisci il Codice Voto"
-                className="flex-1 rounded-2xl border border-border-glass bg-slate-800 px-4 py-2 text-text-primary outline-none ring-0"
-              />
+            <form className="mt-4 flex flex-col gap-3" onSubmit={handleManualJudgeCodeSubmit}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {manualJudgeCodeSegments.map((segment, index) => (
+                  <input
+                    key={index}
+                    ref={(element) => {
+                      judgeCodeInputRefs.current[index] = element;
+                    }}
+                    type="text"
+                    inputMode="text"
+                    autoCapitalize="characters"
+                    autoComplete="one-time-code"
+                    value={segment}
+                    maxLength={judgeTokenSegmentLength}
+                    onChange={(event) => handleManualJudgeCodeSegmentChange(index, event.target.value)}
+                    onKeyDown={(event) => handleManualJudgeCodeSegmentKeyDown(index, event)}
+                    onPaste={handleManualJudgeCodeSegmentPaste}
+                    placeholder="XXXX"
+                    className="w-full rounded-2xl border border-border-glass bg-slate-800 px-4 py-3 text-center font-mono text-lg uppercase tracking-[0.25em] text-text-primary outline-none ring-0"
+                  />
+                ))}
+              </div>
               <button
                 type="submit"
-                className="rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
+                className="self-start rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
               >
                 Vai al voto
               </button>

@@ -3,12 +3,27 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+function firstNonEmpty(...values: Array<string | undefined>) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"] ?? process.env["SUPABASE_DATABASE_URL"],
+    url: firstNonEmpty(
+      process.env["PRISMA_CLI_URL"],
+      process.env["DIRECT_DATABASE_URL"],
+      process.env["SUPABASE_DIRECT_URL"],
+      process.env["DATABASE_URL"],
+      process.env["SUPABASE_DATABASE_URL"]
+    ),
   },
 });
