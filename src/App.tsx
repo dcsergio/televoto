@@ -60,6 +60,7 @@ export default function App() {
     admin: false,
     hof: false,
   });
+  const [manualJudgeCode, setManualJudgeCode] = useState("");
 
   const PROTECTED_PAGE_PASSWORD = "t";
 
@@ -247,6 +248,25 @@ export default function App() {
     navigateTo("voting");
   }, [navigateTo]);
 
+  const handleManualJudgeCodeSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const trimmedJudgeCode = manualJudgeCode.trim();
+
+      if (!trimmedJudgeCode) {
+        setToast({ message: "Inserisci un codice voto valido.", type: "error" });
+        return;
+      }
+
+      const nextSearch = new URLSearchParams(globalThis.location.search);
+      nextSearch.set("judgeToken", trimmedJudgeCode);
+      globalThis.history.pushState({}, "", `${globalThis.location.pathname}?${nextSearch.toString()}`);
+      setJudgeToken(trimmedJudgeCode);
+      setJudgeAccess({ status: "loading" });
+    },
+    [manualJudgeCode]
+  );
+
   const isJudgeAccessRejected = judgeMode && (judgeAccess.status === "invalid" || judgeAccess.status === "revoked");
   const isJudgeVoteLocked = judgeAccess.status === "used";
   const appLoading = loading || (judgeMode && judgeAccess.status === "loading");
@@ -379,7 +399,25 @@ export default function App() {
         {!votingClosed && !judgeMode && (
           <div className="mb-6 rounded-3xl border border-slate-600 bg-slate-900/70 p-5 text-center text-slate-100 shadow-sm">
             <p className="text-sm uppercase tracking-[0.2em] font-semibold text-accent-cyan">Accesso richiesto</p>
-            <p className="mt-1 text-base">Per votare serve un codice giudice valido.</p>
+            <p className="mt-1 text-base">
+              Per votare hai bisogno del Codice Voto. Scansiona il QR code direttamente con la fotocamera del tuo
+              cellulare, oppure inserisci il codice qui sotto.
+            </p>
+            <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={handleManualJudgeCodeSubmit}>
+              <input
+                type="text"
+                value={manualJudgeCode}
+                onChange={(event) => setManualJudgeCode(event.target.value)}
+                placeholder="Inserisci il Codice Voto"
+                className="flex-1 rounded-2xl border border-border-glass bg-slate-800 px-4 py-2 text-text-primary outline-none ring-0"
+              />
+              <button
+                type="submit"
+                className="rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
+              >
+                Vai al voto
+              </button>
+            </form>
           </div>
         )}
 
