@@ -3,13 +3,12 @@ import type { FormEvent } from "react";
 import type { EventData } from "./types";
 import {
   fetchEventByCode,
-  fetchMyVotes,
+  fetchEventState,
   castVote,
   updateEventVotingState,
   finalizeJudgeToken,
   validateJudgeToken,
 } from "./api";
-import { getDeviceId } from "./fingerprint";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
 import { CandidateList } from "./components/CandidateList";
@@ -72,7 +71,6 @@ export default function App() {
   const initialEventCode = getEventCodeFromLocation();
   const initialJudgeToken = getJudgeTokenFromLocation();
   const [event, setEvent] = useState<EventData | null>(null);
-  const [deviceId, setDeviceId] = useState<string | null>(null);
   const [myVotes, setMyVotes] = useState<Record<string, number>>({});
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -128,12 +126,10 @@ export default function App() {
       setLoading(true);
       setEventLoadError(null);
       try {
-        const [ev, did] = await Promise.all([fetchEventByCode(eventCode), judgeMode ? Promise.resolve(null) : getDeviceId()]);
+        const ev = await fetchEventByCode(eventCode);
         setEvent(ev);
-        setDeviceId(did);
-        if (!judgeMode && did) {
-          const votes = await fetchMyVotes(ev.id, did);
-          setMyVotes(votes);
+        if (!judgeMode) {
+          setMyVotes({});
         }
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Impossibile caricare l'evento";
@@ -145,6 +141,33 @@ export default function App() {
     }
     init();
   }, [eventCode, judgeMode]);
+
+  const VOTING_STATE_POLL_MS = 7000;
+
+  useEffect(() => {
+    if (!event || event.votingClosed || currentPage !== "voting") return;
+
+    let cancelled = false;
+
+    const pollVotingState = async () => {
+      try {
+        const state = await fetchEventState(event.id);
+        if (cancelled) return;
+        if (state.votingClosed) {
+          setEvent((prev) => (prev ? { ...prev, votingClosed: true } : prev));
+        }
+      } catch {
+        // Polling silenzioso: il prossimo ciclo riproverà
+      }
+    };
+
+    const intervalId = globalThis.setInterval(pollVotingState, VOTING_STATE_POLL_MS);
+
+    return () => {
+      cancelled = true;
+      globalThis.clearInterval(intervalId);
+    };
+  }, [event, currentPage]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -173,11 +196,10 @@ export default function App() {
 
   const handleVote = useCallback(
     async (candidateId: string, score: number) => {
-      if (!candidateId) return;
-      if (!deviceId && !judgeToken) return;
+      if (!candidateId || !judgeToken) return;
       setSubmitting(true);
       try {
-        await castVote(candidateId, deviceId ?? "", score, judgeToken ?? undefined);
+        await castVote(candidateId, score, judgeToken);
         setMyVotes((prev) => ({ ...prev, [candidateId]: score }));
         const candidate = event?.candidates.find((c) => c.id === candidateId);
         setToast({
@@ -192,7 +214,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [deviceId, event, judgeToken]
+    [event, judgeToken]
   );
 
   useEffect(() => {

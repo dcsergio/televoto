@@ -313,31 +313,10 @@ app.get("/api/events/:eventId", async (req, res) => {
   res.json(event);
 });
 
-// Get votes for a device on an event
-app.get("/api/events/:eventId/votes/:deviceId", async (req, res) => {
-  const { eventId, deviceId } = req.params;
-  const votes = await prisma.vote.findMany({
-    where: {
-      deviceId,
-      candidate: { eventId },
-    },
-    select: {
-      candidateId: true,
-      score: true,
-    },
-  });
-  const map: Record<string, number> = {};
-  for (const v of votes) {
-    map[v.candidateId] = v.score;
-  }
-  res.json(map);
-});
-
-// Cast a vote
+// Cast a vote (judge token required)
 app.post("/api/vote", async (req, res) => {
-  const { candidateId, deviceId, score } = req.body as {
+  const { candidateId, score } = req.body as {
     candidateId: string;
-    deviceId?: string;
     judgeToken?: string;
     score: number;
   };
@@ -356,11 +335,6 @@ app.post("/api/vote", async (req, res) => {
     return;
   }
 
-  if (!deviceId && !req.body.judgeToken) {
-    res.status(400).json({ error: "Missing voter identity" });
-    return;
-  }
-
   try {
     const candidate = await prisma.candidate.findUnique({
       where: { id: candidateId },
@@ -374,62 +348,55 @@ app.post("/api/vote", async (req, res) => {
 
     const judgeToken = normalizeJudgeToken(req.body.judgeToken);
 
-    if (judgeToken) {
-      const tokenHash = hashOpaqueToken(judgeToken);
-      const judgeRecord = await prisma.judgeToken.findUnique({
-        where: { tokenHash },
-        select: {
-          id: true,
-          eventId: true,
-          finalizedAt: true,
-          usedAt: true,
-          revokedAt: true,
-        },
-      });
-
-      if (!judgeRecord || judgeRecord.eventId !== candidate.eventId) {
-        res.status(403).json({ error: "Codice giudice non valido" });
-        return;
-      }
-
-      if (judgeRecord.revokedAt) {
-        res.status(403).json({ error: "Codice giudice revocato" });
-        return;
-      }
-
-      if (judgeRecord.finalizedAt) {
-        res.status(403).json({ error: "Codice giudice bloccato" });
-        return;
-      }
-
-      const vote = await prisma.$transaction((tx: Prisma.TransactionClient) => {
-        return tx.vote.upsert({
-          where: {
-            candidateId_judgeTokenId: {
-              candidateId,
-              judgeTokenId: judgeRecord.id,
-            },
-          },
-          update: { score },
-          create: {
-            candidateId,
-            score,
-            judgeTokenId: judgeRecord.id,
-          },
-        });
-      });
-
-      res.json({ ok: true, vote });
+    if (!judgeToken) {
+      res.status(403).json({ error: "Serve un codice giudice" });
       return;
     }
 
-    const vote = await prisma.vote.upsert({
-      where: {
-        candidateId_deviceId: { candidateId, deviceId: deviceId ?? "" },
+    const tokenHash = hashOpaqueToken(judgeToken);
+    const judgeRecord = await prisma.judgeToken.findUnique({
+      where: { tokenHash },
+      select: {
+        id: true,
+        eventId: true,
+        finalizedAt: true,
+        usedAt: true,
+        revokedAt: true,
       },
-      update: { score },
-      create: { candidateId, deviceId: deviceId ?? "", score },
     });
+
+    if (!judgeRecord || judgeRecord.eventId !== candidate.eventId) {
+      res.status(403).json({ error: "Codice giudice non valido" });
+      return;
+    }
+
+    if (judgeRecord.revokedAt) {
+      res.status(403).json({ error: "Codice giudice revocato" });
+      return;
+    }
+
+    if (judgeRecord.finalizedAt) {
+      res.status(403).json({ error: "Codice giudice bloccato" });
+      return;
+    }
+
+    const vote = await prisma.$transaction((tx: Prisma.TransactionClient) => {
+      return tx.vote.upsert({
+        where: {
+          candidateId_judgeTokenId: {
+            candidateId,
+            judgeTokenId: judgeRecord.id,
+          },
+        },
+        update: { score },
+        create: {
+          candidateId,
+          score,
+          judgeTokenId: judgeRecord.id,
+        },
+      });
+    });
+
     res.json({ ok: true, vote });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
@@ -872,6 +839,88 @@ app.delete("/api/candidates/:id", async (req, res) => {
     );
 
     res.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.get("/api/events/:eventId/voting-progress", async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    const [candidates, judgeTokens] = await Promise.all([
+      prisma.candidate.findMany({
+        where: { eventId },
+        orderBy: { number: "asc" },
+        select: { id: true, number: true, name: true },
+      }),
+      prisma.judgeToken.findMany({
+        where: { eventId },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          label: true,
+          tokenPreview: true,
+          finalizedAt: true,
+          revokedAt: true,
+          votes: { select: { candidateId: true } },
+        },
+      }),
+    ]);
+
+    const candidateCount = candidates.length;
+    const activeJudges = judgeTokens.filter((token) => !token.revokedAt && !token.finalizedAt);
+    const finalizedJudges = judgeTokens.filter((token) => token.finalizedAt && !token.revokedAt);
+    const revokedJudges = judgeTokens.filter((token) => token.revokedAt);
+
+    const judges = judgeTokens.map((token) => {
+      const status = getJudgeTokenStatus(token);
+      const votedCandidateIds = new Set(token.votes.map((vote) => vote.candidateId));
+      const votesCast = votedCandidateIds.size;
+      const missingCandidates = candidates.filter((candidate) => !votedCandidateIds.has(candidate.id));
+
+      return {
+        id: token.id,
+        label: token.label,
+        tokenPreview: token.tokenPreview,
+        status,
+        votesCast,
+        votesRequired: candidateCount,
+        missingCandidates: status === "active"
+          ? missingCandidates.map((candidate) => ({
+              id: candidate.id,
+              number: candidate.number,
+              name: candidate.name,
+            }))
+          : [],
+      };
+    });
+
+    const incompleteCandidates = candidates
+      .map((candidate) => {
+        const missingJudgeCount = activeJudges.filter(
+          (judge) => !judge.votes.some((vote) => vote.candidateId === candidate.id)
+        ).length;
+
+        return {
+          candidateId: candidate.id,
+          candidateNumber: candidate.number,
+          candidateName: candidate.name,
+          missingJudgeCount,
+        };
+      })
+      .filter((entry) => entry.missingJudgeCount > 0);
+
+    res.json({
+      candidateCount,
+      totalJudges: judgeTokens.length,
+      activeJudges: activeJudges.length,
+      finalizedJudges: finalizedJudges.length,
+      revokedJudges: revokedJudges.length,
+      judges,
+      incompleteCandidates,
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     res.status(500).json({ error: msg });

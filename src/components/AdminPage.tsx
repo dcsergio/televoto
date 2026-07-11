@@ -15,6 +15,7 @@ import {
   type AdminEventSummary,
 } from "../api";
 import { JudgeCodeManager } from "./JudgeCodeManager";
+import { VotingProgressDashboard } from "./VotingProgressDashboard";
 
 const eventCodeRegex = /^\d{1,5}$/;
 
@@ -736,6 +737,8 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
             </div>
 
             <JudgeCodeManager eventId={selectedEvent.id} eventCode={selectedEvent.code} />
+
+            <VotingProgressDashboard eventId={selectedEvent.id} votingClosed={votingClosed} />
           </>
         )}
       </div>

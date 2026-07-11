@@ -25,13 +25,14 @@ function getButtonLabel({
 }) {
   if (showWinner) return "Vincitore rivelato";
   if (revealedCount >= rankingsLength) return "Classifica completa";
-  if (isFinalistsStage && hasTopTie) return "Pari merito";
+  if (isFinalistsStage && hasTopTie) return "Proclama pari merito";
   if (isFinalistsStage) return "Mostra vincitore";
   if (revealedCount === 0) return "Avvia";
   return "Mostra il prossimo posto";
 }
 
-function getFinalistLabel(index: number, showWinner: boolean) {
+function getFinalistLabel(index: number, showWinner: boolean, hasTopTie: boolean) {
+  if (showWinner && hasTopTie) return "Vincitore";
   if (showWinner && index === 0) return "Vincitore";
   if (index === 0) return "Finalista 1";
   return "Finalista 2";
@@ -46,14 +47,21 @@ export function HallOfFame({
 }: HallOfFameProps) {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [revealedIndices, setRevealedIndices] = useState<number[]>([]);
   const [showWinner, setShowWinner] = useState(false);
   const [closingTelevote, setClosingTelevote] = useState(false);
+  const [presenterMode, setPresenterMode] = useState(false);
 
-  const loadRankings = useCallback(async () => {
+  const loadRankings = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
     try {
-      setLoading(true);
+      if (silent) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       const data = await fetchRankings(eventId);
       setRankings(data);
       setError(null);
@@ -62,6 +70,7 @@ export function HallOfFame({
       setError(msg);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [eventId]);
 
@@ -73,6 +82,22 @@ export function HallOfFame({
     setRevealedIndices([]);
     setShowWinner(false);
   }, [eventId]);
+
+  useEffect(() => {
+    if (!presenterMode) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPresenterMode(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => undefined);
+        }
+      }
+    };
+
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
+  }, [presenterMode]);
 
   const getMedalEmoji = (position: number): string => {
     switch (position) {
@@ -92,7 +117,8 @@ export function HallOfFame({
   const finalists = rankings.slice(0, 2);
   const hasTopTie = rankings.length > 1 && rankings[0].totalScore === rankings[1].totalScore;
   const visibleEntries = rankings.filter((_, index) => revealedIndices.includes(index));
-  const revealDisabled = showWinner || revealedIndices.length >= rankings.length || (isFinalistsStage && hasTopTie);
+  const revealDisabled = showWinner || revealedIndices.length >= rankings.length;
+  const canUndo = showWinner || revealedIndices.length > 0;
   const buttonLabel = getButtonLabel({
     showWinner,
     revealedCount: revealedIndices.length,
@@ -106,7 +132,6 @@ export function HallOfFame({
     if (rankings.length === 0 || showWinner) return;
 
     if (isFinalistsStage) {
-      if (hasTopTie) return;
       setShowWinner(true);
       return;
     }
@@ -116,6 +141,39 @@ export function HallOfFame({
     const nextIndex = rankings.length - 1 - revealedIndices.length;
     const nextRevealed = [...revealedIndices, nextIndex].sort((a, b) => a - b);
     setRevealedIndices(nextRevealed);
+  };
+
+  const handleUndoReveal = () => {
+    if (showWinner) {
+      setShowWinner(false);
+      return;
+    }
+
+    if (revealedIndices.length === 0) return;
+
+    const lastRevealed = Math.min(...revealedIndices);
+    setRevealedIndices(revealedIndices.filter((index) => index !== lastRevealed));
+  };
+
+  const handleRefreshRankings = async () => {
+    await loadRankings({ silent: true });
+  };
+
+  const handleTogglePresenterMode = async () => {
+    if (presenterMode) {
+      setPresenterMode(false);
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(() => undefined);
+      }
+      return;
+    }
+
+    setPresenterMode(true);
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch {
+      // Fullscreen API non disponibile: usa solo la modalità presentazione CSS
+    }
   };
 
   const handleCloseTelevote = async () => {
@@ -137,14 +195,78 @@ export function HallOfFame({
     );
   }
 
+  const controlBar = (
+    <div className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-800/70 p-4 ${presenterMode ? "fixed bottom-4 left-4 right-4 z-50 opacity-90 hover:opacity-100" : ""}`}>
+      <div>
+        <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
+        <p className="text-lg font-semibold text-text-primary">
+          Mostra la classifica dal fondo verso l'alto
+        </p>
+        <p className="mt-2 text-sm text-text-secondary">
+          Stato televoto: {votingClosed ? "chiuso" : "aperto"}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={handleRefreshRankings}
+          disabled={refreshing}
+          className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {refreshing ? "Aggiornamento..." : "Aggiorna classifica"}
+        </button>
+        <button
+          type="button"
+          onClick={handleUndoReveal}
+          disabled={!canUndo}
+          className="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Annulla ultimo
+        </button>
+        <button
+          type="button"
+          onClick={handleTogglePresenterMode}
+          className="rounded-lg border border-violet-500/30 bg-violet-500/20 px-4 py-2 font-semibold text-violet-200 transition hover:bg-violet-500/30"
+        >
+          {presenterMode ? "Esci presentazione" : "Modalità presentazione"}
+        </button>
+        <button
+          type="button"
+          onClick={handleCloseTelevote}
+          disabled={votingClosed || closingTelevote}
+          className="rounded-lg border border-amber-500/30 bg-amber-500/20 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {closeTelevoteLabel}
+        </button>
+        <button
+          type="button"
+          onClick={handleRevealNext}
+          disabled={revealDisabled}
+          className="rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {buttonLabel}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">🏆 Classifica</h1>
-          <p className="text-text-secondary text-lg">{eventName}</p>
-          <p className="text-text-secondary text-sm mt-1">Codice evento: {eventCode}</p>
-        </div>
+    <div className={`min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary ${presenterMode ? "fixed inset-0 z-40 overflow-y-auto" : ""}`}>
+      <div className={`mx-auto px-4 py-8 ${presenterMode ? "max-w-6xl pt-12" : "max-w-4xl"}`}>
+        {!presenterMode && (
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2">🏆 Classifica</h1>
+            <p className="text-text-secondary text-lg">{eventName}</p>
+            <p className="text-text-secondary text-sm mt-1">Codice evento: {eventCode}</p>
+          </div>
+        )}
+
+        {presenterMode && (
+          <div className="mb-8 text-center">
+            <h1 className="text-5xl font-bold mb-2">🏆 {eventName}</h1>
+            <p className="text-text-secondary text-lg">Classifica finale</p>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-300">
@@ -158,35 +280,7 @@ export function HallOfFame({
           </div>
         ) : (
           <>
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
-                <p className="text-lg font-semibold text-text-primary">
-                  Mostra la classifica dal fondo verso l’alto
-                </p>
-                <p className="mt-2 text-sm text-text-secondary">
-                  Stato televoto: {votingClosed ? "chiuso" : "aperto"}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleCloseTelevote}
-                  disabled={votingClosed || closingTelevote}
-                  className="rounded-lg border border-amber-500/30 bg-amber-500/20 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {closeTelevoteLabel}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRevealNext}
-                  disabled={revealDisabled}
-                  className="rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {buttonLabel}
-                </button>
-              </div>
-            </div>
+            {controlBar}
 
             {isFinalistsStage && !showWinner && (
               <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
@@ -196,9 +290,9 @@ export function HallOfFame({
 
             <div className="space-y-4">
               {showFinalists && finalists.length > 0 && (
-                <div className={`grid gap-4 ${showWinner ? "lg:grid-cols-1" : "lg:grid-cols-2"}`}>
+                <div className={`grid gap-4 ${showWinner && !hasTopTie ? "lg:grid-cols-1" : showWinner && hasTopTie ? "lg:grid-cols-2" : "lg:grid-cols-2"}`}>
                   {finalists.map((entry, index) => {
-                    const isWinnerCard = showWinner && index === 0;
+                    const isWinnerCard = showWinner && (hasTopTie || index === 0);
                     return (
                       <div
                         key={entry.id}
@@ -212,13 +306,13 @@ export function HallOfFame({
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="text-sm uppercase tracking-[0.2em] text-text-secondary">
-                              {getFinalistLabel(index, showWinner)}
+                              {getFinalistLabel(index, showWinner, hasTopTie)}
                             </p>
                             <h2 className={`flex items-center gap-2 font-bold ${isWinnerCard ? "text-3xl" : "text-xl"}`}>
-                              {showWinner && <span className="text-2xl">{getMedalEmoji(index)}</span>}
+                              {showWinner && isWinnerCard && <span className="text-2xl">{getMedalEmoji(index)}</span>}
                               <span>{entry.name}</span>
                             </h2>
-                            {hasTopTie && !showWinner && (
+                            {hasTopTie && showWinner && (
                               <p className="mt-2 text-sm font-semibold uppercase tracking-[0.15em] text-sky-300">
                                 Pari merito
                               </p>
@@ -226,7 +320,7 @@ export function HallOfFame({
                           </div>
                           {isWinnerCard && (
                             <div className="rounded-full bg-amber-400/20 px-3 py-1 text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-                              Campione
+                              {hasTopTie ? "Co-vincitore" : "Campione"}
                             </div>
                           )}
                         </div>
@@ -238,12 +332,14 @@ export function HallOfFame({
 
                         {isWinnerCard && (
                           <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-                            Il vincitore è stato proclamato.
+                            {hasTopTie
+                              ? "Entrambi i finalisti condividono il primo posto."
+                              : "Il vincitore è stato proclamato."}
                           </div>
                         )}
 
                         <div className="mt-6 flex items-end justify-between gap-4">
-                          {showWinner ? (
+                          {showWinner && isWinnerCard ? (
                             <div>
                               <div className={`font-bold text-accent-cyan ${isWinnerCard ? "text-4xl" : "text-3xl"}`}>
                                 {entry.totalScore}
@@ -262,7 +358,8 @@ export function HallOfFame({
                 <div className="rounded-2xl border border-sky-400/30 bg-sky-500/10 p-5">
                   <p className="text-sm uppercase tracking-[0.2em] text-sky-300">Pari merito</p>
                   <p className="mt-2 text-lg font-semibold text-text-primary">
-                    I primi due classificati hanno lo stesso punteggio.
+                    I primi due classificati hanno lo stesso punteggio ({rankings[0].totalScore} punti).
+                    Clicca &quot;Proclama pari merito&quot; per mostrare entrambi come vincitori.
                   </p>
                 </div>
               )}
@@ -327,8 +424,7 @@ export function HallOfFame({
           </>
         )}
 
-        {/* Summary Stats */}
-        {rankings.length > 0 && (
+        {!presenterMode && rankings.length > 0 && (
           <div className="mt-12 p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Statistiche Evento</h3>
             <div className="grid grid-cols-3 gap-4">

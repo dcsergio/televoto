@@ -114,29 +114,53 @@ export async function startEvent(eventId: string): Promise<{ ok: boolean; voting
   return res.json();
 }
 
-export async function fetchMyVotes(
-  eventId: string,
-  deviceId: string
-): Promise<Record<string, number>> {
-  const res = await fetch(`${BASE}/events/${eventId}/votes/${deviceId}`);
-  if (!res.ok) return {};
-  return res.json();
-}
-
 export async function castVote(
   candidateId: string,
-  deviceId: string,
   score: number,
-  judgeToken?: string
+  judgeToken: string
 ): Promise<{ ok: boolean }> {
   const res = await fetch(`${BASE}/vote`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ candidateId, deviceId, score, judgeToken }),
+    body: JSON.stringify({ candidateId, score, judgeToken }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || "Errore nel voto");
+  }
+  return res.json();
+}
+
+export interface VotingProgressJudge {
+  id: string;
+  label: string | null;
+  tokenPreview: string;
+  status: "active" | "used" | "revoked";
+  votesCast: number;
+  votesRequired: number;
+  missingCandidates: Array<{ id: string; number: number; name: string }>;
+}
+
+export interface VotingProgress {
+  candidateCount: number;
+  totalJudges: number;
+  activeJudges: number;
+  finalizedJudges: number;
+  revokedJudges: number;
+  judges: VotingProgressJudge[];
+  incompleteCandidates: Array<{
+    candidateId: string;
+    candidateNumber: number;
+    candidateName: string;
+    missingJudgeCount: number;
+  }>;
+}
+
+export async function fetchVotingProgress(eventId: string): Promise<VotingProgress> {
+  const res = await fetch(`${BASE}/events/${eventId}/voting-progress`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nel caricamento progresso voti");
   }
   return res.json();
 }
