@@ -201,11 +201,6 @@ export default function App() {
       try {
         await castVote(candidateId, score, judgeToken);
         setMyVotes((prev) => ({ ...prev, [candidateId]: score }));
-        const candidate = event?.candidates.find((c) => c.id === candidateId);
-        setToast({
-          message: `Voto ${score}/10 per ${candidate?.name ?? "candidato"} registrato!`,
-          type: "success",
-        });
         setSelectedCandidate(null);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Errore";
@@ -214,7 +209,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [event, judgeToken]
+    [judgeToken]
   );
 
   useEffect(() => {

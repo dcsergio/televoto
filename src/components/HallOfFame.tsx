@@ -14,19 +14,22 @@ function getButtonLabel({
   showWinner,
   revealedCount,
   rankingsLength,
+  isAboutToRevealThirdPlace,
+  isThirdPlaceStage,
   isFinalistsStage,
-  hasTopTie,
 }: {
   showWinner: boolean;
   revealedCount: number;
   rankingsLength: number;
+  isAboutToRevealThirdPlace: boolean;
+  isThirdPlaceStage: boolean;
   isFinalistsStage: boolean;
-  hasTopTie: boolean;
 }) {
   if (showWinner) return "Vincitore rivelato";
   if (revealedCount >= rankingsLength) return "Classifica completa";
-  if (isFinalistsStage && hasTopTie) return "Proclama pari merito";
-  if (isFinalistsStage) return "Mostra vincitore";
+  if (isFinalistsStage) return "Mostra esito finale";
+  if (isThirdPlaceStage) return "Vai alla finale a due";
+  if (isAboutToRevealThirdPlace) return "Proclama il terzo classificato";
   if (revealedCount === 0) return "Avvia";
   return "Mostra il prossimo posto";
 }
@@ -50,6 +53,7 @@ export function HallOfFame({
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [revealedIndices, setRevealedIndices] = useState<number[]>([]);
+  const [showFinalistsStage, setShowFinalistsStage] = useState(false);
   const [showWinner, setShowWinner] = useState(false);
   const [closingTelevote, setClosingTelevote] = useState(false);
   const [presenterMode, setPresenterMode] = useState(false);
@@ -80,6 +84,7 @@ export function HallOfFame({
 
   useEffect(() => {
     setRevealedIndices([]);
+    setShowFinalistsStage(false);
     setShowWinner(false);
   }, [eventId]);
 
@@ -112,19 +117,28 @@ export function HallOfFame({
     }
   };
 
-  const showFinalists = rankings.length > 2 && revealedIndices.length >= rankings.length - 2;
-  const isFinalistsStage = showFinalists && !showWinner;
+  const nonFinalistCount = Math.max(rankings.length - 2, 0);
+  const nextRevealIndex = rankings.length - 1 - revealedIndices.length;
+  const showFinalists = showFinalistsStage || showWinner;
+  const isFinalistsStage = showFinalistsStage && !showWinner;
+  const isAboutToRevealThirdPlace =
+    rankings.length > 2 && nextRevealIndex === 2 && !showFinalistsStage && !showWinner;
+  const isThirdPlaceStage = rankings.length > 2 && revealedIndices.includes(2) && !showFinalistsStage && !showWinner;
+  const revealStarted = revealedIndices.length > 0 || showFinalistsStage || showWinner;
   const finalists = rankings.slice(0, 2);
   const hasTopTie = rankings.length > 1 && rankings[0].totalScore === rankings[1].totalScore;
   const visibleEntries = rankings.filter((_, index) => revealedIndices.includes(index));
-  const revealDisabled = showWinner || revealedIndices.length >= rankings.length;
-  const canUndo = showWinner || revealedIndices.length > 0;
+  const revealDisabled =
+    rankings.length === 0 || showWinner || (rankings.length < 2 && revealedIndices.length >= rankings.length);
+  const canAdvanceByPageClick = !presenterMode && rankings.length > 0 && !revealDisabled;
+  const canUndo = showWinner || showFinalistsStage || revealedIndices.length > 0;
   const buttonLabel = getButtonLabel({
     showWinner,
     revealedCount: revealedIndices.length,
     rankingsLength: rankings.length,
+    isAboutToRevealThirdPlace,
+    isThirdPlaceStage,
     isFinalistsStage,
-    hasTopTie,
   });
   const closeTelevoteLabel = votingClosed ? "Televoto chiuso" : closingTelevote ? "Chiusura..." : "Chiudi televoto";
 
@@ -133,6 +147,11 @@ export function HallOfFame({
 
     if (isFinalistsStage) {
       setShowWinner(true);
+      return;
+    }
+
+    if (rankings.length >= 2 && revealedIndices.length >= nonFinalistCount) {
+      setShowFinalistsStage(true);
       return;
     }
 
@@ -146,6 +165,11 @@ export function HallOfFame({
   const handleUndoReveal = () => {
     if (showWinner) {
       setShowWinner(false);
+      return;
+    }
+
+    if (showFinalistsStage) {
+      setShowFinalistsStage(false);
       return;
     }
 
@@ -187,6 +211,11 @@ export function HallOfFame({
     }
   };
 
+  const handlePageRevealClick = () => {
+    if (!canAdvanceByPageClick) return;
+    handleRevealNext();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-dvh">
@@ -206,7 +235,7 @@ export function HallOfFame({
           Stato televoto: {votingClosed ? "chiuso" : "aperto"}
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
+      {presenterMode && <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={handleRefreshRankings}
@@ -246,14 +275,17 @@ export function HallOfFame({
         >
           {buttonLabel}
         </button>
-      </div>
+      </div>}
     </div>
   );
 
   return (
-    <div className={`min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary ${presenterMode ? "fixed inset-0 z-40 overflow-y-auto" : ""}`}>
+    <div
+      className={`min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary ${presenterMode ? "fixed inset-0 z-40 overflow-y-auto" : ""} ${canAdvanceByPageClick ? "cursor-pointer" : ""}`}
+      onClick={handlePageRevealClick}
+    >
       <div className={`mx-auto px-4 py-8 ${presenterMode ? "max-w-6xl pt-12" : "max-w-4xl"}`}>
-        {!presenterMode && (
+        {!presenterMode && !revealStarted && (
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-2">🏆 Classifica</h1>
             <p className="text-text-secondary text-lg">{eventName}</p>
@@ -280,15 +312,18 @@ export function HallOfFame({
           </div>
         ) : (
           <>
-            {controlBar}
-
-            {isFinalistsStage && !showWinner && (
-              <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
-                <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Finale a due</p>
-              </div>
-            )}
+            {(presenterMode || !revealStarted) && controlBar}
 
             <div className="space-y-4">
+              {!presenterMode && visibleEntries.length === 0 && !showFinalists && (
+                <div
+                  className="w-full rounded-2xl border border-accent-cyan/40 bg-accent-cyan/10 p-5 text-left transition hover:bg-accent-cyan/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Avvio classifica</p>
+                  <p className="mt-2 text-xl font-semibold text-text-primary">Clicca qui per iniziare il reveal</p>
+                </div>
+              )}
+
               {showFinalists && finalists.length > 0 && (
                 <div className={`grid gap-4 ${showWinner && !hasTopTie ? "lg:grid-cols-1" : showWinner && hasTopTie ? "lg:grid-cols-2" : "lg:grid-cols-2"}`}>
                   {finalists.map((entry, index) => {
@@ -330,14 +365,6 @@ export function HallOfFame({
                           <p className="text-sm text-text-secondary">Numero: {entry.number}</p>
                         </div>
 
-                        {isWinnerCard && (
-                          <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
-                            {hasTopTie
-                              ? "Entrambi i finalisti condividono il primo posto."
-                              : "Il vincitore è stato proclamato."}
-                          </div>
-                        )}
-
                         <div className="mt-6 flex items-end justify-between gap-4">
                           {showWinner && isWinnerCard ? (
                             <div>
@@ -354,25 +381,18 @@ export function HallOfFame({
                 </div>
               )}
 
-              {hasTopTie && isFinalistsStage && (
-                <div className="rounded-2xl border border-sky-400/30 bg-sky-500/10 p-5">
-                  <p className="text-sm uppercase tracking-[0.2em] text-sky-300">Pari merito</p>
-                  <p className="mt-2 text-lg font-semibold text-text-primary">
-                    I primi due classificati hanno lo stesso punteggio ({rankings[0].totalScore} punti).
-                    Clicca &quot;Proclama pari merito&quot; per mostrare entrambi come vincitori.
-                  </p>
-                </div>
-              )}
-
-              {!isFinalistsStage && visibleEntries.map((entry) => {
+              {visibleEntries.map((entry) => {
                 const index = rankings.findIndex((item) => item.id === entry.id);
+                const isThirdPlaceCard = isThirdPlaceStage && index === 2;
                 return (
                   <div
                     key={entry.id}
-                    className="p-6 bg-gradient-to-r rounded-lg border transition hover:shadow-lg animate-fade-in-up"
+                    className={`p-6 rounded-lg border transition hover:shadow-lg animate-fade-in-up ${
+                      isThirdPlaceCard ? "bg-gradient-to-br from-amber-500/20 via-slate-800 to-slate-900 shadow-[0_0_30px_rgba(251,191,36,0.18)]" : "bg-gradient-to-r"
+                    }`}
                     style={{
                       borderColor: entry.color,
-                      backgroundColor: `${entry.color}15`,
+                      backgroundColor: isThirdPlaceCard ? undefined : `${entry.color}15`,
                     }}
                   >
                     <div className="flex items-center gap-6">
@@ -420,11 +440,12 @@ export function HallOfFame({
                   </div>
                 );
               })}
+
             </div>
           </>
         )}
 
-        {!presenterMode && rankings.length > 0 && (
+        {!presenterMode && rankings.length > 0 && !revealStarted && (
           <div className="mt-12 p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Statistiche Evento</h3>
             <div className="grid grid-cols-3 gap-4">
