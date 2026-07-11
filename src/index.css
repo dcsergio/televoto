@@ -59,6 +59,14 @@ body {
   box-shadow: 0 0 20px var(--color-neon-glow), inset 0 0 20px rgba(56, 189, 248, 0.05);
 }
 
+.glass-voted {
+  background: rgba(20, 20, 50, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  opacity: 0.85;
+}
+
 /* ── Neon text glow ── */
 .neon-text {
   text-shadow: 0 0 10px var(--color-accent-cyan), 0 0 30px rgba(56, 189, 248, 0.3);
@@ -67,19 +75,20 @@ body {
 /* ── Score button ── */
 .score-btn {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
+  font-weight: 800;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   border: 2px solid transparent;
   background-clip: padding-box;
   flex-shrink: 0;
+  touch-action: manipulation;
 }
 
 .score-btn::before {
@@ -95,19 +104,23 @@ body {
 }
 
 .score-btn:hover {
-  transform: scale(1.15);
+  transform: scale(1.1);
+}
+
+.score-btn:active {
+  transform: scale(0.9);
 }
 
 .score-btn.active {
-  transform: scale(1.2);
-  box-shadow: 0 0 16px var(--glow-color, rgba(56, 189, 248, 0.5));
+  transform: scale(1.15);
+  box-shadow: 0 0 20px var(--glow-color, rgba(56, 189, 248, 0.6));
 }
 
 @media (min-width: 768px) {
   .score-btn {
-    width: 48px;
-    height: 48px;
-    font-size: 0.9rem;
+    width: 50px;
+    height: 50px;
+    font-size: 1.05rem;
   }
 }
 
@@ -174,4 +187,31 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.progress-bar-glow {
+  box-shadow: 0 0 12px var(--color-accent-cyan), 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+.btn-tactile {
+  transition: transform 0.1s ease, filter 0.2s ease;
+}
+.btn-tactile:active {
+  transform: scale(0.96);
+  filter: brightness(0.9);
 }

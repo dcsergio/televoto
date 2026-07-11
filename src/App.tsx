@@ -584,10 +584,46 @@ export default function App() {
       event.candidates.length > 0 &&
       event.candidates.every((candidate) => myVotes[candidate.id] !== undefined)
   );
+  const progressPercent = event.candidates.length > 0 ? (judgeVotesCount / event.candidates.length) * 100 : 0;
 
   return (
     <div className="flex flex-col min-h-dvh">
       <Header />
+
+      {judgeMode && event && (judgeAccess.status === "valid" || judgeAccess.status === "used") && (
+        <div className="sticky top-14 z-40 w-full backdrop-blur-md bg-slate-950/80 border-b border-border-glass py-3 px-4 animate-fade-in-up">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider mb-2">
+                <span className="text-text-secondary">Progresso Voto</span>
+                <span className="text-accent-cyan font-bold">
+                  {judgeVotesCount} / {event.candidates.length}
+                </span>
+              </div>
+              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                <div
+                  className="h-full bg-gradient-to-r from-accent-cyan to-accent-magenta rounded-full transition-all duration-300 progress-bar-glow"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+            {allJudgeVotesCast && !isJudgeVoteLocked && (
+              <button
+                type="button"
+                onClick={() => setJudgeFinalizeOpen(true)}
+                className="flex-shrink-0 bg-accent-cyan text-slate-900 text-xs font-extrabold tracking-wide uppercase px-4 py-2 rounded-xl shadow-lg transition duration-200 hover:scale-105 active:scale-95 progress-bar-glow cursor-pointer"
+              >
+                Conferma
+              </button>
+            )}
+            {isJudgeVoteLocked && (
+              <span className="flex-shrink-0 flex items-center gap-1 text-[11px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-500/20">
+                <span>✓ Bloccato</span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 pb-8">
         {!votingClosed && !judgeMode && (
