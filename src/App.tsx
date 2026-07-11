@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import type { FormEvent } from "react";
+import type { SyntheticEvent } from "react";
 import type { EventData } from "./types";
 import {
   fetchEventByCode,
@@ -256,7 +256,7 @@ export default function App() {
   }, [judgeToken, eventCode]);
 
   const handleProtectedPageSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SyntheticEvent<HTMLFormElement>) => {
       event.preventDefault();
 
       if (passwordInput === PROTECTED_PAGE_PASSWORD) {
@@ -314,7 +314,7 @@ export default function App() {
   }, [navigateTo]);
 
   const handleEventCodeSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SyntheticEvent<HTMLFormElement>) => {
       event.preventDefault();
       const trimmedEventCode = eventCodeInput.trim();
 
@@ -332,7 +332,7 @@ export default function App() {
   );
 
   const handleManualJudgeCodeSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: SyntheticEvent<HTMLFormElement>) => {
       event.preventDefault();
       const trimmedJudgeCode = joinJudgeTokenSegments(manualJudgeCodeSegments);
 
@@ -669,7 +669,7 @@ export default function App() {
         <section className="mt-6">
           <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-text-secondary mb-4">
             <span className="text-base" aria-hidden="true">&#9835;</span>
-            Scegli il tuo candidato
+            <p>Scegli il tuo candidato</p>
           </h2>
 
           <CandidateList

@@ -3,9 +3,9 @@ interface HeroBannerProps {
   subtitle: string | null;
 }
 
-export function HeroBanner({ name, subtitle }: HeroBannerProps) {
+export function HeroBanner({ name, subtitle }: Readonly<HeroBannerProps>) {
   // Split name to highlight the main part
-  const parts = name.split(" ");
+  const parts = name.split("***");
   const lastWord = parts.pop() ?? "";
   const prefix = parts.join(" ");
 
