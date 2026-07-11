@@ -19,7 +19,7 @@ const SCORE_COLORS: { gradient: string; glow: string }[] = [
 export function ScoreSelector({ value, onChange }: Readonly<ScoreSelectorProps>) {
   return (
     <div>
-      <div className="grid grid-cols-5 md:grid-cols-10 gap-2 justify-items-center">
+      <div className="grid grid-cols-5 md:grid-cols-10 gap-3 md:gap-4 w-full">
         {Array.from({ length: 10 }, (_, i) => {
           const score = i + 1;
           const isActive = value === score;

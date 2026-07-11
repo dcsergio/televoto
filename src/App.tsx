@@ -665,27 +665,6 @@ export default function App() {
           </div>
         )}
 
-        {judgeMode && judgeAccess.status === "valid" && (
-          <div className="mb-6 rounded-3xl border border-cyan-400/40 bg-cyan-500/10 p-5 text-cyan-100 shadow-sm">
-            <p className="text-sm uppercase tracking-[0.2em] font-semibold">Modalità giudice</p>
-            <p className="mt-1 text-base">
-              Preferenze registrate: {judgeVotesCount}/{event.candidates.length}. Puoi modificare ogni voto finché non confermi il blocco.
-            </p>
-            {allJudgeVotesCast && (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-300/30 bg-cyan-950/30 px-4 py-3">
-                <span className="text-sm text-cyan-50">Tutte le preferenze sono state espresse.</span>
-                <button
-                  type="button"
-                  onClick={() => setJudgeFinalizeOpen(true)}
-                  className="rounded-2xl bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200"
-                >
-                  Conferma e blocca codice
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
         {judgeMode && isJudgeVoteLocked && (
           <div className="mb-6 rounded-3xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-emerald-100 shadow-sm">
             <p className="text-sm uppercase tracking-[0.2em] font-semibold">Codice bloccato</p>
