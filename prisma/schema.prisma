@@ -28,8 +28,18 @@ model Candidate {
   color     String   @default("#6366f1")
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   votes     Vote[]
+  templateId String?
+  template  CandidateTemplate? @relation(fields: [templateId], references: [id])
 
   @@unique([eventId, number])
+}
+
+model CandidateTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  subtitle  String?
+  color     String   @default("#6366f1")
+  candidates Candidate[]
 }
 
 model JudgeToken {
