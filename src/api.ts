@@ -193,7 +193,7 @@ export async function addCandidate(
 
 export async function updateCandidate(
   id: string,
-  data: Partial<{ name: string; subtitle: string; color: string; number: number }>
+  data: Partial<{ name: string; subtitle: string | null; color: string; number: number }>
 ): Promise<CandidateData> {
   const res = await fetch(`${BASE}/candidates/${id}`, {
     method: "PUT",

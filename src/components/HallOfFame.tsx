@@ -88,22 +88,6 @@ export function HallOfFame({
     setShowWinner(false);
   }, [eventId]);
 
-  useEffect(() => {
-    if (!presenterMode) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setPresenterMode(false);
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => undefined);
-        }
-      }
-    };
-
-    globalThis.addEventListener("keydown", handleKeyDown);
-    return () => globalThis.removeEventListener("keydown", handleKeyDown);
-  }, [presenterMode]);
-
   const getMedalEmoji = (position: number): string => {
     switch (position) {
       case 0:
@@ -130,7 +114,6 @@ export function HallOfFame({
   const visibleEntries = rankings.filter((_, index) => revealedIndices.includes(index));
   const revealDisabled =
     rankings.length === 0 || showWinner || (rankings.length < 2 && revealedIndices.length >= rankings.length);
-  const canAdvanceByPageClick = !presenterMode && rankings.length > 0 && !revealDisabled;
   const canUndo = showWinner || showFinalistsStage || revealedIndices.length > 0;
   const buttonLabel = getButtonLabel({
     showWinner,
@@ -142,7 +125,7 @@ export function HallOfFame({
   });
   const closeTelevoteLabel = votingClosed ? "Televoto chiuso" : closingTelevote ? "Chiusura..." : "Chiudi televoto";
 
-  const handleRevealNext = () => {
+  const handleRevealNext = useCallback(() => {
     if (rankings.length === 0 || showWinner) return;
 
     if (isFinalistsStage) {
@@ -160,9 +143,9 @@ export function HallOfFame({
     const nextIndex = rankings.length - 1 - revealedIndices.length;
     const nextRevealed = [...revealedIndices, nextIndex].sort((a, b) => a - b);
     setRevealedIndices(nextRevealed);
-  };
+  }, [isFinalistsStage, nonFinalistCount, rankings.length, revealedIndices, showWinner]);
 
-  const handleUndoReveal = () => {
+  const handleUndoReveal = useCallback(() => {
     if (showWinner) {
       setShowWinner(false);
       return;
@@ -177,13 +160,13 @@ export function HallOfFame({
 
     const lastRevealed = Math.min(...revealedIndices);
     setRevealedIndices(revealedIndices.filter((index) => index !== lastRevealed));
-  };
+  }, [revealedIndices, showFinalistsStage, showWinner]);
 
-  const handleRefreshRankings = async () => {
+  const handleRefreshRankings = useCallback(async () => {
     await loadRankings({ silent: true });
-  };
+  }, [loadRankings]);
 
-  const handleTogglePresenterMode = async () => {
+  const handleTogglePresenterMode = useCallback(async () => {
     if (presenterMode) {
       setPresenterMode(false);
       if (document.fullscreenElement) {
@@ -198,7 +181,41 @@ export function HallOfFame({
     } catch {
       // Fullscreen API non disponibile: usa solo la modalità presentazione CSS
     }
-  };
+  }, [presenterMode]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPresenterMode(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => undefined);
+        }
+        return;
+      }
+
+      if (rankings.length === 0) return;
+
+      if (event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        handleRevealNext();
+        return;
+      }
+
+      if (event.key === "Backspace") {
+        event.preventDefault();
+        handleUndoReveal();
+        return;
+      }
+
+      if (event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        void handleTogglePresenterMode();
+      }
+    };
+
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
+  }, [handleRevealNext, handleTogglePresenterMode, handleUndoReveal, rankings.length]);
 
   const handleCloseTelevote = async () => {
     if (votingClosed || closingTelevote) return;
@@ -209,11 +226,6 @@ export function HallOfFame({
     } finally {
       setClosingTelevote(false);
     }
-  };
-
-  const handlePageRevealClick = () => {
-    if (!canAdvanceByPageClick) return;
-    handleRevealNext();
   };
 
   if (loading) {
@@ -231,11 +243,17 @@ export function HallOfFame({
         <p className="text-lg font-semibold text-text-primary">
           Mostra la classifica dal fondo verso l'alto
         </p>
-        <p className="mt-2 text-sm text-text-secondary">
+        <p className="mt-1 text-sm text-text-secondary">
           Stato televoto: {votingClosed ? "chiuso" : "aperto"}
         </p>
+        <p className="mt-1 text-sm text-text-secondary">
+          Rivelati {showWinner ? rankings.length : revealedIndices.length}/{rankings.length}
+        </p>
+        <p className="mt-1 text-xs text-text-muted">
+          Scorciatoie: Spazio/Invio prossimo · Backspace annulla · F presentazione · Esc esci
+        </p>
       </div>
-      {presenterMode && <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={handleRefreshRankings}
@@ -275,14 +293,13 @@ export function HallOfFame({
         >
           {buttonLabel}
         </button>
-      </div>}
+      </div>
     </div>
   );
 
   return (
     <div
-      className={`min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary ${presenterMode ? "fixed inset-0 z-40 overflow-y-auto" : ""} ${canAdvanceByPageClick ? "cursor-pointer" : ""}`}
-      onClick={handlePageRevealClick}
+      className={`min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary ${presenterMode ? "fixed inset-0 z-40 overflow-y-auto" : ""}`}
     >
       <div className={`mx-auto px-4 py-8 ${presenterMode ? "max-w-6xl pt-12" : "max-w-4xl"}`}>
         {!presenterMode && !revealStarted && (
@@ -312,7 +329,7 @@ export function HallOfFame({
           </div>
         ) : (
           <>
-            {(presenterMode || !revealStarted) && controlBar}
+            {controlBar}
 
             <div className="space-y-4">
               {!presenterMode && visibleEntries.length === 0 && !showFinalists && (
@@ -320,7 +337,7 @@ export function HallOfFame({
                   className="w-full rounded-2xl border border-accent-cyan/40 bg-accent-cyan/10 p-5 text-left transition hover:bg-accent-cyan/15 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Avvio classifica</p>
-                  <p className="mt-2 text-xl font-semibold text-text-primary">Clicca qui per iniziare il reveal</p>
+                  <p className="mt-2 text-xl font-semibold text-text-primary">Premi “{buttonLabel}” per iniziare il reveal</p>
                 </div>
               )}
 

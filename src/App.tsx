@@ -97,6 +97,7 @@ export default function App() {
   const [manualJudgeCodeSegments, setManualJudgeCodeSegments] = useState<string[]>(() =>
     splitJudgeTokenSegments("")
   );
+  const [judgeCodeInlineError, setJudgeCodeInlineError] = useState<string | null>(null);
 
   const PROTECTED_PAGE_PASSWORD = "t";
 
@@ -196,12 +197,17 @@ export default function App() {
 
   const handleVote = useCallback(
     async (candidateId: string, score: number) => {
-      if (!candidateId || !judgeToken) return;
+      if (!candidateId || !judgeToken || !event) return;
       setSubmitting(true);
       try {
         await castVote(candidateId, score, judgeToken);
-        setMyVotes((prev) => ({ ...prev, [candidateId]: score }));
-        setSelectedCandidate(null);
+        const nextVotes = { ...myVotes, [candidateId]: score };
+        setMyVotes(nextVotes);
+        const nextCandidate = event.candidates.find((candidate) => nextVotes[candidate.id] === undefined);
+        setSelectedCandidate(nextCandidate?.id ?? null);
+        const votedCandidate = event.candidates.find((candidate) => candidate.id === candidateId);
+        const candidateLabel = votedCandidate ? `${votedCandidate.number}. ${votedCandidate.name}` : "Candidato";
+        setToast({ message: `Voto salvato: ${candidateLabel} - ${score}/10`, type: "success" });
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "Errore";
         setToast({ message: msg, type: "error" });
@@ -209,7 +215,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [judgeToken]
+    [event, judgeToken, myVotes]
   );
 
   useEffect(() => {
@@ -335,14 +341,19 @@ export default function App() {
     (event: SyntheticEvent<HTMLFormElement>) => {
       event.preventDefault();
       const trimmedJudgeCode = joinJudgeTokenSegments(manualJudgeCodeSegments);
+      setJudgeCodeInlineError(null);
 
       if (trimmedJudgeCode.length !== judgeTokenSegmentCount * judgeTokenSegmentLength) {
-        setToast({ message: "Inserisci un codice voto valido.", type: "error" });
+        const message = "Inserisci un codice voto completo (16 caratteri).";
+        setJudgeCodeInlineError(message);
+        setToast({ message, type: "error" });
         return;
       }
 
       if (!eventCode) {
-        setToast({ message: "Inserisci prima il codice evento.", type: "error" });
+        const message = "Inserisci prima il codice evento.";
+        setJudgeCodeInlineError(message);
+        setToast({ message, type: "error" });
         return;
       }
 
@@ -358,6 +369,7 @@ export default function App() {
 
   const handleManualJudgeCodeSegmentChange = useCallback((index: number, value: string) => {
     const normalized = normalizeJudgeTokenInput(value);
+    setJudgeCodeInlineError(null);
 
     if (normalized.length > judgeTokenSegmentLength) {
       const nextSegments = splitJudgeTokenSegments(normalized);
@@ -404,6 +416,7 @@ export default function App() {
 
   const handleManualJudgeCodeSegmentPaste = useCallback((event: React.ClipboardEvent<HTMLInputElement>) => {
     event.preventDefault();
+    setJudgeCodeInlineError(null);
     const pasted = event.clipboardData.getData("text");
     const nextSegments = splitJudgeTokenSegments(pasted);
     setManualJudgeCodeSegments(nextSegments);
@@ -419,6 +432,14 @@ export default function App() {
   const isJudgeAccessRejected = judgeMode && (judgeAccess.status === "invalid" || judgeAccess.status === "revoked");
   const isJudgeVoteLocked = judgeAccess.status === "used";
   const appLoading = loading || (judgeMode && judgeAccess.status === "loading");
+  const judgeCodeStatusLabel =
+    judgeAccess.status === "used"
+      ? "Codice bloccato"
+      : judgeAccess.status === "valid"
+        ? "Codice attivo"
+        : judgeAccess.status === "loading"
+          ? "Verifica codice..."
+          : null;
 
   if (appLoading) {
     return (
@@ -585,6 +606,7 @@ export default function App() {
       event.candidates.every((candidate) => myVotes[candidate.id] !== undefined)
   );
   const progressPercent = event.candidates.length > 0 ? (judgeVotesCount / event.candidates.length) * 100 : 0;
+  const missingVotes = Math.max(event.candidates.length - judgeVotesCount, 0);
 
   return (
     <div className="flex flex-col min-h-dvh">
@@ -606,14 +628,22 @@ export default function App() {
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
+              <p className="mt-2 text-xs text-text-secondary">
+                {missingVotes > 0 ? `Mancano ${missingVotes} voti alla conferma finale.` : "Hai completato tutte le preferenze."}
+              </p>
             </div>
+            {judgeCodeStatusLabel && (
+              <span className="flex-shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 text-[11px] font-bold text-cyan-200">
+                {judgeCodeStatusLabel}
+              </span>
+            )}
             {allJudgeVotesCast && !isJudgeVoteLocked && (
               <button
                 type="button"
                 onClick={() => setJudgeFinalizeOpen(true)}
                 className="flex-shrink-0 bg-accent-cyan text-slate-900 text-xs font-extrabold tracking-wide uppercase px-4 py-2 rounded-xl shadow-lg transition duration-200 hover:scale-105 active:scale-95 progress-bar-glow cursor-pointer"
               >
-                Conferma
+                Conferma e blocca
               </button>
             )}
             {isJudgeVoteLocked && (
@@ -645,6 +675,7 @@ export default function App() {
                     inputMode="text"
                     autoCapitalize="characters"
                     autoComplete="one-time-code"
+                    autoFocus={index === 0}
                     value={segment}
                     maxLength={judgeTokenSegmentLength}
                     onChange={(event) => handleManualJudgeCodeSegmentChange(index, event.target.value)}
@@ -655,9 +686,10 @@ export default function App() {
                   />
                 ))}
               </div>
+              {judgeCodeInlineError && <p className="text-sm text-amber-200">{judgeCodeInlineError}</p>}
               <button
                 type="submit"
-                className="self-start rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
+                className="w-full sm:w-auto self-start rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
               >
                 Vai al voto
               </button>
@@ -679,7 +711,7 @@ export default function App() {
           </div>
         )}
 
-        <HeroBanner name={event.name} subtitle={event.subtitle} />
+        <HeroBanner name={event.name} subtitle={event.subtitle} compact={judgeMode} />
 
         <section className="mt-6">
           <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-text-secondary mb-4">
@@ -738,6 +770,18 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {judgeMode && allJudgeVotesCast && !isJudgeVoteLocked && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border-glass bg-slate-950/95 px-4 py-3 backdrop-blur sm:hidden">
+          <button
+            type="button"
+            onClick={() => setJudgeFinalizeOpen(true)}
+            className="w-full rounded-2xl bg-accent-cyan px-4 py-3 text-sm font-extrabold uppercase tracking-wide text-slate-900"
+          >
+            Conferma e blocca il codice
+          </button>
         </div>
       )}
     </div>

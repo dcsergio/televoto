@@ -225,9 +225,12 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
     }
   }
 
-  async function handleUpdateCandidate(id: string, updates: Partial<CandidateData>) {
+  async function handleUpdateCandidate(
+    id: string,
+    updates: Partial<Pick<CandidateData, "name" | "subtitle" | "color" | "number">>
+  ) {
     try {
-      const updated = await updateCandidate(id, updates as any);
+      const updated = await updateCandidate(id, updates);
       setCandidates(candidates.map((candidate) => (candidate.id === id ? updated : candidate)));
       setEditing(null);
       setEditDraft(null);
@@ -397,6 +400,7 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
   const modificationsLocked = !votingClosed;
   const startLabel = votingClosed ? "Avvia gara" : "Televoto aperto";
   const currentStatus = votingClosed ? "Televoto chiuso" : "Televoto aperto";
+  const modificationLockMessage = "Disponibile solo a televoto chiuso";
 
   return (
     <div className="min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
@@ -445,27 +449,36 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
 
               <form onSubmit={handleCreateEvent} className="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
-                <input
-                  type="text"
-                  value={newEvent.name}
-                  onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
-                  placeholder="Nome evento"
-                  className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
-                />
-                <input
-                  type="text"
-                  value={newEvent.subtitle}
-                  onChange={(e) => setNewEvent({ ...newEvent, subtitle: e.target.value })}
-                  placeholder="Sottotitolo (opzionale)"
-                  className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
-                />
-                <input
-                  type="text"
-                  value={newEvent.code}
-                  onChange={(e) => setNewEvent({ ...newEvent, code: e.target.value })}
-                  placeholder="Codice (opzionale, 1-5 cifre)"
-                  className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
-                />
+                <label className="space-y-1 block">
+                  <span className="text-sm text-text-secondary">Nome evento</span>
+                  <input
+                    type="text"
+                    value={newEvent.name}
+                    onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
+                    placeholder="Es. Finale regionale"
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                </label>
+                <label className="space-y-1 block">
+                  <span className="text-sm text-text-secondary">Sottotitolo (opzionale)</span>
+                  <input
+                    type="text"
+                    value={newEvent.subtitle}
+                    onChange={(e) => setNewEvent({ ...newEvent, subtitle: e.target.value })}
+                    placeholder="Es. Edizione 2026"
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                </label>
+                <label className="space-y-1 block">
+                  <span className="text-sm text-text-secondary">Codice evento (opzionale, 1-5 cifre)</span>
+                  <input
+                    type="text"
+                    value={newEvent.code}
+                    onChange={(e) => setNewEvent({ ...newEvent, code: e.target.value })}
+                    placeholder="Es. 01234"
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                </label>
                 <button
                   type="submit"
                   disabled={creatingEvent}
@@ -541,33 +554,38 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
               </div>
             )}
 
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Operazioni amministrative</p>
-                <p className="text-lg font-semibold text-text-primary">Gestisci candidati e avvia la gara</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={confirmStartRace}
-                  disabled={!votingClosed}
-                  className="rounded-2xl bg-emerald-500/20 px-4 py-2 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50 transition"
-                >
-                  {startLabel}
-                </button>
-                {!votingClosed && (
+            <div className="sticky top-4 z-20 mb-6 rounded-2xl border border-slate-700/90 bg-slate-900/90 p-4 backdrop-blur">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Operazioni amministrative</p>
+                  <p className="text-lg font-semibold text-text-primary">Gestisci candidati e avvia la gara</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    onClick={confirmCloseTelevote}
-                    className="rounded-2xl bg-amber-500/20 px-4 py-2 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30 transition"
+                    onClick={confirmStartRace}
+                    disabled={!votingClosed}
+                    className="rounded-2xl bg-emerald-500/20 px-4 py-2 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50 transition"
                   >
-                    Chiudi televoto
+                    {startLabel}
                   </button>
-                )}
+                  {!votingClosed && (
+                    <button
+                      type="button"
+                      onClick={confirmCloseTelevote}
+                      className="rounded-2xl bg-amber-500/20 px-4 py-2 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30 transition"
+                    >
+                      Chiudi televoto
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-200">Danger zone</p>
                 <button
                   type="button"
                   onClick={confirmResetRanking}
-                  className="rounded-2xl bg-red-500/20 px-4 py-2 text-red-200 border border-red-500/30 hover:bg-red-500/30 transition"
+                  className="mt-2 rounded-2xl bg-red-500/20 px-4 py-2 text-red-200 border border-red-500/30 hover:bg-red-500/30 transition"
                 >
                   Azzera classifica
                 </button>
@@ -575,26 +593,34 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
             </div>
 
             <div className="mb-8 p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
-              <h2 className="text-xl font-semibold mb-4">Aggiungi Nuovo Candidato</h2>
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Aggiungi Nuovo Candidato</h2>
+              </div>
               <form onSubmit={handleAddCandidate} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4">
+                  <label className="space-y-1">
+                    <span className="text-sm font-medium text-text-secondary">Nome candidato</span>
                   <input
                     type="text"
-                    placeholder="Nome"
+                    placeholder="Es. Marco Rossi"
                     value={newCandidate.name}
                     onChange={(e) => setNewCandidate({ ...newCandidate, name: e.target.value })}
                     disabled={!votingClosed}
                     className="px-3 py-2 bg-slate-700 border border-slate-600 rounded text-text-primary placeholder-text-secondary disabled:cursor-not-allowed disabled:opacity-50"
                   />
+                  </label>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Nome performance"
-                  value={newCandidate.subtitle}
-                  onChange={(e) => setNewCandidate({ ...newCandidate, subtitle: e.target.value })}
-                  disabled={!votingClosed}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-text-primary placeholder-text-secondary disabled:cursor-not-allowed disabled:opacity-50"
-                />
+                <label className="space-y-1">
+                  <span className="text-sm font-medium text-text-secondary">Titolo performance (opzionale)</span>
+                  <input
+                    type="text"
+                    placeholder="Es. Brano / coreografia"
+                    value={newCandidate.subtitle}
+                    onChange={(e) => setNewCandidate({ ...newCandidate, subtitle: e.target.value })}
+                    disabled={!votingClosed}
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-text-primary placeholder-text-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </label>
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-2 rounded-2xl border border-slate-600 bg-slate-900 px-3 py-2">
@@ -651,6 +677,9 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
                   >
                     Aggiungi Candidato
                   </button>
+                  {modificationsLocked && (
+                    <p className="text-sm text-amber-200">{modificationLockMessage}</p>
+                  )}
                 </div>
               </form>
             </div>
@@ -670,64 +699,77 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
                       <div className="font-semibold">{candidate.name}</div>
                       {candidate.subtitle && <div className="text-text-secondary text-sm">{candidate.subtitle}</div>}
                     </div>
-                    {!modificationsLocked && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            editing === candidate.id ? cancelEditingCandidate() : startEditingCandidate(candidate)
-                          }
-                          className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-sm transition"
-                        >
-                          {editing === candidate.id ? "Annulla" : "Modifica"}
-                        </button>
-                        <button
-                          onClick={() => confirmDeleteCandidate(candidate.id)}
-                          className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded text-sm transition"
-                        >
-                          Elimina
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          editing === candidate.id ? cancelEditingCandidate() : startEditingCandidate(candidate)
+                        }
+                        disabled={modificationsLocked}
+                        title={modificationsLocked ? modificationLockMessage : "Modifica candidato"}
+                        className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {editing === candidate.id ? "Annulla" : "Modifica"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => confirmDeleteCandidate(candidate.id)}
+                        disabled={modificationsLocked}
+                        title={modificationsLocked ? modificationLockMessage : "Elimina candidato"}
+                        className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Elimina
+                      </button>
+                    </div>
 
                     {editing === candidate.id && editDraft && (
-                      <div className="absolute right-4 top-12 bg-slate-800 p-4 rounded-lg border border-slate-700 w-80 z-10">
-                        <div className="space-y-3">
-                          <input
-                            type="text"
-                            value={editDraft.name}
-                            onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })}
-                            className="w-full px-2 py-1 bg-slate-700 border border-slate-600 rounded text-sm"
-                            placeholder="Nome"
-                          />
-                          <input
-                            type="text"
-                            value={editDraft.subtitle}
-                            onChange={(e) => setEditDraft({ ...editDraft, subtitle: e.target.value })}
-                            className="w-full px-2 py-1 bg-slate-700 border border-slate-600 rounded text-sm"
-                            placeholder="Nome performance"
-                          />
-                          <input
-                            type="color"
-                            value={editDraft.color}
-                            onChange={(e) => setEditDraft({ ...editDraft, color: e.target.value })}
-                            className="w-full h-10 rounded cursor-pointer border-0"
-                          />
-                          <div className="flex gap-2 pt-2">
-                            <button
-                              type="button"
-                              onClick={() => saveEditingCandidate(candidate.id)}
-                              className="flex-1 rounded-2xl bg-accent-cyan px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-accent-cyan/90 transition"
-                            >
-                              Salva
-                            </button>
-                            <button
-                              type="button"
-                              onClick={cancelEditingCandidate}
-                              className="flex-1 rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
-                            >
-                              Annulla
-                            </button>
-                          </div>
+                      <div className="mt-4 w-full rounded-2xl border border-slate-600 bg-slate-900/80 p-4">
+                        <div className="grid gap-3 md:grid-cols-[1fr,1fr,auto]">
+                          <label className="space-y-1">
+                            <span className="text-xs uppercase tracking-[0.12em] text-text-secondary">Nome</span>
+                            <input
+                              type="text"
+                              value={editDraft.name}
+                              onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })}
+                              className="w-full px-2 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm"
+                              placeholder="Nome"
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs uppercase tracking-[0.12em] text-text-secondary">Performance</span>
+                            <input
+                              type="text"
+                              value={editDraft.subtitle}
+                              onChange={(e) => setEditDraft({ ...editDraft, subtitle: e.target.value })}
+                              className="w-full px-2 py-1.5 bg-slate-700 border border-slate-600 rounded text-sm"
+                              placeholder="Nome performance"
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs uppercase tracking-[0.12em] text-text-secondary">Colore</span>
+                            <input
+                              type="color"
+                              value={editDraft.color}
+                              onChange={(e) => setEditDraft({ ...editDraft, color: e.target.value })}
+                              className="h-10 w-16 rounded cursor-pointer border-0"
+                            />
+                          </label>
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => saveEditingCandidate(candidate.id)}
+                            className="rounded-2xl bg-accent-cyan px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-accent-cyan/90 transition"
+                          >
+                            Salva
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditingCandidate}
+                            className="rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
+                          >
+                            Annulla
+                          </button>
                         </div>
                       </div>
                     )}
