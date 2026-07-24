@@ -37,14 +37,15 @@ function getRandomColor() {
   return color;
 }
 
-type AdminSection = "events" | "candidates" | "voting";
+type AdminSection = "events" | "candidates" | "voting-codes" | "voting-backstage";
 
 function isAdminSection(value: string | null): value is AdminSection {
-  return value === "events" || value === "candidates" || value === "voting";
+  return value === "events" || value === "candidates" || value === "voting-codes" || value === "voting-backstage";
 }
 
 function getAdminSectionFromLocation(): AdminSection {
   const section = new URLSearchParams(globalThis.location.search).get("adminSection");
+  if (section === "voting") return "voting-codes";
   return isAdminSection(section) ? section : "events";
 }
 
@@ -596,12 +597,12 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
         <header className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
           <h1 className="text-3xl font-bold">Admin</h1>
           <p className="mt-2 text-sm text-text-secondary">
-            Pannello unico per eventi, candidati e controllo votazione.
+            Pannello per eventi, candidati, codici giuria e backstage votazioni.
           </p>
         </header>
 
         <nav className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 p-3">
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-4">
             <button
               type="button"
               onClick={() => handleSectionChange("events")}
@@ -636,15 +637,39 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
             </button>
             <button
               type="button"
-              onClick={() => handleSectionChange("voting")}
+              onClick={() => handleSectionChange("voting-codes")}
               className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                activeSection === "voting"
+                activeSection === "voting-codes"
                   ? "border border-accent-cyan/40 bg-accent-cyan/20 text-accent-cyan"
                   : "border border-slate-700 bg-slate-800 text-text-secondary hover:bg-slate-700"
               }`}
             >
               <span className="flex items-center justify-between gap-2">
-                <span>Gestione votazione</span>
+                <span>Codici giuria</span>
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-xs ${
+                    selectedEvent
+                      ? votingClosed
+                        ? "border-cyan-400/30 text-cyan-300"
+                        : "border-emerald-400/30 text-emerald-300"
+                      : "border-slate-600 text-text-secondary"
+                  }`}
+                >
+                  {selectedEvent ? (votingClosed ? "Chiuso" : "Aperto") : "-"}
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSectionChange("voting-backstage")}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                activeSection === "voting-backstage"
+                  ? "border border-accent-cyan/40 bg-accent-cyan/20 text-accent-cyan"
+                  : "border border-slate-700 bg-slate-800 text-text-secondary hover:bg-slate-700"
+              }`}
+            >
+              <span className="flex items-center justify-between gap-2">
+                <span>Backstage votazioni</span>
                 <span
                   className={`rounded-full border px-2 py-0.5 text-xs ${
                     selectedEvent
@@ -1089,21 +1114,25 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
           </section>
         )}
 
-        {activeSection === "voting" && (
+        {(activeSection === "voting-codes" || activeSection === "voting-backstage") && (
           <section className="space-y-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
             <div>
               <p className="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione votazione</p>
-              <h2 className="mt-2 text-2xl font-semibold">Controllo gara e codici giudice</h2>
+              <h2 className="mt-2 text-2xl font-semibold">
+                {activeSection === "voting-codes"
+                  ? "Generazione e validazione codici giuria"
+                  : "Backstage con progresso delle votazioni"}
+              </h2>
             </div>
 
             {!selectedEvent ? (
               <div className="rounded-2xl border border-slate-700 bg-slate-900/50 p-6 text-text-secondary">
-                Seleziona un evento per gestire stato votazione, codici giudice e progressi.
+                Seleziona un evento per accedere alla gestione votazione.
               </div>
             ) : !eventManagerToken ? (
               <form onSubmit={handleEventManagerLogin} className="rounded-2xl border border-slate-700 bg-slate-900/50 p-6 space-y-3">
                 <p className="text-sm text-text-secondary">
-                  Accesso manager evento richiesto per controllare votazione e codici giudice.
+                  Accesso manager evento richiesto.
                 </p>
                 <input
                   type="password"
@@ -1124,6 +1153,8 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
               <div className="flex items-center justify-center min-h-[240px]">
                 <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent" />
               </div>
+            ) : activeSection === "voting-codes" ? (
+              <JudgeCodeManager eventId={selectedEvent.id} eventCode={selectedEvent.code} authToken={eventManagerToken} />
             ) : (
               <>
                 <div className="rounded-2xl border border-slate-700/90 bg-slate-900/90 p-4">
@@ -1167,7 +1198,6 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
                   </div>
                 </div>
 
-                <JudgeCodeManager eventId={selectedEvent.id} eventCode={selectedEvent.code} authToken={eventManagerToken} />
                 <VotingProgressDashboard eventId={selectedEvent.id} votingClosed={votingClosed} authToken={eventManagerToken} />
               </>
             )}
