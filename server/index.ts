@@ -25,6 +25,15 @@ const opaqueTokenAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const judgeTokenLength = 16;
 const judgeTokenStreamClients = new Map<string, Set<express.Response>>();
 const eventCodeRegex = /^\d{1,5}$/;
+const rootCredentialId = "root";
+const passwordHashIterations = 210000;
+const authTokenTtlSeconds = 60 * 60 * 12;
+const configuredAdminAuthSecret = process.env["ADMIN_AUTH_SECRET"];
+
+if (!configuredAdminAuthSecret) {
+  throw new Error("Missing ADMIN_AUTH_SECRET environment variable");
+}
+const adminAuthSecret: string = configuredAdminAuthSecret;
 
 function generateRandomEventCode() {
   return String(Math.floor(Math.random() * 100000)).padStart(5, "0");
@@ -40,6 +49,140 @@ function normalizeEventName(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizePassword(value: unknown) {
+  if (typeof value !== "string") return null;
+  if (value.length < 8 || value.length > 128) return null;
+  return value;
+}
+
+function hashPassword(password: string, salt: string, iterations: number) {
+  return crypto.pbkdf2Sync(password, salt, iterations, 64, "sha512").toString("hex");
+}
+
+function createPasswordRecord(password: string) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return {
+    passwordHash: hashPassword(password, salt, passwordHashIterations),
+    passwordSalt: salt,
+    passwordIterations: passwordHashIterations,
+  };
+}
+
+function verifyPassword(password: string, record: { passwordHash: string; passwordSalt: string; passwordIterations: number }) {
+  const computed = hashPassword(password, record.passwordSalt, record.passwordIterations);
+  const expected = Buffer.from(record.passwordHash, "hex");
+  const actual = Buffer.from(computed, "hex");
+  if (expected.length !== actual.length) return false;
+  return crypto.timingSafeEqual(expected, actual);
+}
+
+type AuthRole = "root" | "event_manager";
+
+type AuthPayload = {
+  role: AuthRole;
+  eventId?: string;
+  exp: number;
+};
+
+function encodeBase64Url(value: string) {
+  return Buffer.from(value, "utf8").toString("base64url");
+}
+
+function decodeBase64Url(value: string) {
+  return Buffer.from(value, "base64url").toString("utf8");
+}
+
+function createAuthToken(payload: AuthPayload) {
+  const encodedPayload = encodeBase64Url(JSON.stringify(payload));
+  const signature = crypto.createHmac("sha256", adminAuthSecret).update(encodedPayload).digest("base64url");
+  return `${encodedPayload}.${signature}`;
+}
+
+function verifyAuthToken(token: string): AuthPayload | null {
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [encodedPayload, signature] = parts;
+  const expectedSignature = crypto.createHmac("sha256", adminAuthSecret).update(encodedPayload).digest("base64url");
+  if (signature.length !== expectedSignature.length) return null;
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) return null;
+
+  try {
+    const payload = JSON.parse(decodeBase64Url(encodedPayload)) as AuthPayload;
+    if (!payload || typeof payload.exp !== "number" || typeof payload.role !== "string") return null;
+    if (payload.exp <= Math.floor(Date.now() / 1000)) return null;
+    if (payload.role !== "root" && payload.role !== "event_manager") return null;
+    if (payload.role === "event_manager" && (!payload.eventId || typeof payload.eventId !== "string")) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function getBearerToken(req: express.Request, allowQueryToken = false) {
+  const authorization = req.header("authorization");
+  if (authorization?.startsWith("Bearer ")) {
+    return authorization.slice("Bearer ".length).trim();
+  }
+  if (allowQueryToken && typeof req.query.authToken === "string") {
+    return req.query.authToken.trim();
+  }
+  return null;
+}
+
+function requireRootAuth(req: express.Request, res: express.Response) {
+  const token = getBearerToken(req);
+  if (!token) {
+    res.status(401).json({ error: "Autenticazione root richiesta" });
+    return null;
+  }
+
+  const payload = verifyAuthToken(token);
+  if (!payload || payload.role !== "root") {
+    res.status(401).json({ error: "Sessione root non valida o scaduta" });
+    return null;
+  }
+
+  return payload;
+}
+
+function requireEventManagerAuth(req: express.Request, res: express.Response, eventId: string, allowQueryToken = false) {
+  const token = getBearerToken(req, allowQueryToken);
+  if (!token) {
+    res.status(401).json({ error: "Autenticazione manager evento richiesta" });
+    return null;
+  }
+
+  const payload = verifyAuthToken(token);
+  if (!payload) {
+    res.status(401).json({ error: "Sessione manager evento non valida o scaduta" });
+    return null;
+  }
+  if (payload.role === "root") {
+    return payload;
+  }
+  if (payload.role !== "event_manager" || payload.eventId !== eventId) {
+    res.status(401).json({ error: "Sessione manager evento non valida o scaduta" });
+    return null;
+  }
+
+  return payload;
+}
+
+async function ensureRootCredentialExists() {
+  const existing = await prisma.rootCredential.findUnique({ where: { id: rootCredentialId } });
+  if (existing) return existing;
+
+  const bootstrapPassword = normalizePassword(process.env["ROOT_ADMIN_PASSWORD"]);
+  if (!bootstrapPassword) return null;
+
+  return prisma.rootCredential.create({
+    data: {
+      id: rootCredentialId,
+      ...createPasswordRecord(bootstrapPassword),
+    },
+  });
 }
 
 async function createUniqueEventCode() {
@@ -177,7 +320,107 @@ app.disable("x-powered-by");
 app.use(cors({ origin: false }));
 app.use(express.json());
 
-app.get("/api/events", async (_req, res) => {
+app.post("/api/auth/root/login", async (req, res) => {
+  const password = normalizePassword((req.body as { password?: string })?.password);
+  if (!password) {
+    res.status(400).json({ error: "Password root non valida (minimo 8 caratteri)" });
+    return;
+  }
+
+  try {
+    const rootCredential = await ensureRootCredentialExists();
+    if (!rootCredential) {
+      res.status(503).json({ error: "Credenziale root non configurata. Imposta ROOT_ADMIN_PASSWORD e riavvia il server." });
+      return;
+    }
+
+    if (!verifyPassword(password, rootCredential)) {
+      res.status(401).json({ error: "Password root errata" });
+      return;
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + authTokenTtlSeconds;
+    const token = createAuthToken({ role: "root", exp });
+    res.json({ token, role: "root", expiresAt: new Date(exp * 1000).toISOString() });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post("/api/auth/root/password", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
+  const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+  const normalizedCurrent = normalizePassword(currentPassword);
+  const normalizedNext = normalizePassword(newPassword);
+
+  if (!normalizedCurrent || !normalizedNext) {
+    res.status(400).json({ error: "Password non valide (minimo 8 caratteri)" });
+    return;
+  }
+
+  try {
+    const rootCredential = await ensureRootCredentialExists();
+    if (!rootCredential) {
+      res.status(503).json({ error: "Credenziale root non configurata." });
+      return;
+    }
+
+    if (!verifyPassword(normalizedCurrent, rootCredential)) {
+      res.status(401).json({ error: "Password root corrente errata" });
+      return;
+    }
+
+    await prisma.rootCredential.update({
+      where: { id: rootCredentialId },
+      data: createPasswordRecord(normalizedNext),
+    });
+
+    res.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.post("/api/auth/event/login", async (req, res) => {
+  const { eventId, password } = req.body as { eventId?: string; password?: string };
+  const normalizedPassword = normalizePassword(password);
+
+  if (!eventId || !normalizedPassword) {
+    res.status(400).json({ error: "Credenziali evento non valide" });
+    return;
+  }
+
+  try {
+    const credential = await prisma.eventManagerCredential.findUnique({
+      where: { eventId },
+      select: {
+        eventId: true,
+        passwordHash: true,
+        passwordSalt: true,
+        passwordIterations: true,
+      },
+    });
+
+    if (!credential || !verifyPassword(normalizedPassword, credential)) {
+      res.status(401).json({ error: "Password evento errata" });
+      return;
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + authTokenTtlSeconds;
+    const token = createAuthToken({ role: "event_manager", eventId, exp });
+    res.json({ token, role: "event_manager", eventId, expiresAt: new Date(exp * 1000).toISOString() });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.get("/api/events", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
   try {
     const events = await prisma.event.findMany({
       orderBy: { createdAt: "desc" },
@@ -194,7 +437,7 @@ app.get("/api/events", async (_req, res) => {
     res.json(events);
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
-      res.status(500).json({ error: "Schema DB non aggiornato: esegui la migration add_event_code" });
+      res.status(500).json({ error: "Schema DB non aggiornato: applica le migration più recenti" });
       return;
     }
     const msg = e instanceof Error ? e.message : "Unknown error";
@@ -203,11 +446,19 @@ app.get("/api/events", async (_req, res) => {
 });
 
 app.post("/api/events", async (req, res) => {
-  const body = req.body as { code?: string; name?: string; subtitle?: string };
+  if (!requireRootAuth(req, res)) return;
+
+  const body = req.body as { code?: string; name?: string; subtitle?: string; managerPassword?: string };
   const name = normalizeEventName(body.name);
+  const managerPassword = normalizePassword(body.managerPassword);
 
   if (!name) {
     res.status(400).json({ error: "Il nome evento è obbligatorio" });
+    return;
+  }
+
+  if (!managerPassword) {
+    res.status(400).json({ error: "La password manager evento è obbligatoria (minimo 8 caratteri)" });
     return;
   }
 
@@ -227,6 +478,7 @@ app.post("/api/events", async (req, res) => {
 
   try {
     const code = requestedCode ?? await createUniqueEventCode();
+    const passwordRecord = createPasswordRecord(managerPassword);
     const event = await prisma.event.create({
       data: {
         code,
@@ -234,6 +486,9 @@ app.post("/api/events", async (req, res) => {
         subtitle,
         active: true,
         votingClosed: true,
+        managerCredential: {
+          create: passwordRecord,
+        },
       },
       select: {
         id: true,
@@ -249,7 +504,7 @@ app.post("/api/events", async (req, res) => {
     res.status(201).json(event);
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
-      res.status(500).json({ error: "Schema DB non aggiornato: esegui la migration add_event_code" });
+      res.status(500).json({ error: "Schema DB non aggiornato: applica le migration più recenti" });
       return;
     }
 
@@ -282,7 +537,7 @@ app.get("/api/events/by-code/:eventCode", async (req, res) => {
     });
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2022") {
-      res.status(500).json({ error: "Schema DB non aggiornato: esegui la migration add_event_code" });
+      res.status(500).json({ error: "Schema DB non aggiornato: applica le migration più recenti" });
       return;
     }
     const msg = e instanceof Error ? e.message : "Unknown error";
@@ -314,6 +569,8 @@ app.get("/api/events/:eventId", async (req, res) => {
 });
 
 app.put("/api/events/:eventId", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
   const { eventId } = req.params;
   const body = (req.body ?? {}) as { name?: string; subtitle?: string | null };
   const updateData: { name?: string; subtitle?: string | null } = {};
@@ -366,6 +623,40 @@ app.put("/api/events/:eventId", async (req, res) => {
       return;
     }
 
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.put("/api/events/:eventId/manager-password", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
+  const { eventId } = req.params;
+  const password = normalizePassword((req.body as { password?: string })?.password);
+  if (!password) {
+    res.status(400).json({ error: "Password manager evento non valida (minimo 8 caratteri)" });
+    return;
+  }
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true },
+    });
+    if (!event) {
+      res.status(404).json({ error: "Evento non trovato" });
+      return;
+    }
+
+    const passwordRecord = createPasswordRecord(password);
+    await prisma.eventManagerCredential.upsert({
+      where: { eventId },
+      update: passwordRecord,
+      create: { eventId, ...passwordRecord },
+    });
+
+    res.json({ ok: true });
+  } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     res.status(500).json({ error: msg });
   }
@@ -464,6 +755,7 @@ app.post("/api/vote", async (req, res) => {
 
 app.get("/api/events/:eventId/judge-tokens", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
 
   try {
     res.json(await getJudgeTokenSnapshot(eventId));
@@ -475,6 +767,7 @@ app.get("/api/events/:eventId/judge-tokens", async (req, res) => {
 
 app.get("/api/events/:eventId/judge-tokens/stream", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId, true)) return;
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
@@ -499,6 +792,8 @@ app.get("/api/events/:eventId/judge-tokens/stream", async (req, res) => {
 
 app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
+
   const { count, labelPrefix } = req.body as {
     count?: number;
     labelPrefix?: string;
@@ -773,6 +1068,17 @@ app.post("/api/judge-tokens/:id/revoke", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const token = await prisma.judgeToken.findUnique({
+      where: { id },
+      select: { eventId: true },
+    });
+    if (!token) {
+      res.status(404).json({ error: "Codice giudice non trovato" });
+      return;
+    }
+
+    if (!requireEventManagerAuth(req, res, token.eventId)) return;
+
     const updated = await prisma.judgeToken.update({
       where: { id },
       data: { revokedAt: new Date() },
@@ -803,6 +1109,8 @@ app.post("/api/judge-tokens/:id/revoke", async (req, res) => {
 // Admin: Get candidates for event
 app.get("/api/candidates/:eventId", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
+
   try {
     const candidates = await prisma.candidate.findMany({
       where: { eventId },
@@ -829,6 +1137,8 @@ app.post("/api/candidates", async (req, res) => {
     res.status(400).json({ error: "Missing required fields" });
     return;
   }
+
+  if (!requireEventManagerAuth(req, res, eventId)) return;
 
   try {
     const candidate = await prisma.candidate.create({
@@ -858,6 +1168,17 @@ app.put("/api/candidates/:id", async (req, res) => {
   };
 
   try {
+    const existing = await prisma.candidate.findUnique({
+      where: { id },
+      select: { eventId: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: "Candidato non trovato" });
+      return;
+    }
+
+    if (!requireEventManagerAuth(req, res, existing.eventId)) return;
+
     const candidate = await prisma.candidate.update({
       where: { id },
       data: {
@@ -879,6 +1200,17 @@ app.delete("/api/candidates/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    const existing = await prisma.candidate.findUnique({
+      where: { id },
+      select: { eventId: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: "Candidato non trovato" });
+      return;
+    }
+
+    if (!requireEventManagerAuth(req, res, existing.eventId)) return;
+
     const deletedCandidate = await prisma.candidate.delete({ where: { id } });
 
     const remainingCandidates = await prisma.candidate.findMany({
@@ -905,6 +1237,7 @@ app.delete("/api/candidates/:id", async (req, res) => {
 
 app.get("/api/events/:eventId/voting-progress", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
 
   try {
     const [candidates, judgeTokens] = await Promise.all([
@@ -987,6 +1320,8 @@ app.get("/api/events/:eventId/voting-progress", async (req, res) => {
 
 app.put("/api/events/:eventId/voting-state", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
+
   const { votingClosed } = req.body as { votingClosed: boolean };
 
   try {
@@ -1004,6 +1339,7 @@ app.put("/api/events/:eventId/voting-state", async (req, res) => {
 
 app.post("/api/events/:eventId/start", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
 
   try {
     const candidates = await prisma.candidate.findMany({
@@ -1060,6 +1396,7 @@ app.post("/api/events/:eventId/start", async (req, res) => {
 
 app.delete("/api/events/:eventId/votes", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
 
   try {
     await prisma.vote.deleteMany({

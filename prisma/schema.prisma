@@ -8,15 +8,39 @@ datasource db {
 }
 
 model Event {
-  id           String      @id @default(cuid())
-  code         String      @unique
-  name         String
-  subtitle     String?
-  active       Boolean     @default(true)
-  votingClosed Boolean     @default(false)
-  createdAt    DateTime    @default(now())
-  candidates   Candidate[]
-  judgeTokens  JudgeToken[]
+  id                String                  @id @default(cuid())
+  code              String                  @unique
+  name              String
+  subtitle          String?
+  active            Boolean                 @default(true)
+  votingClosed      Boolean                 @default(false)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  candidates        Candidate[]
+  judgeTokens       JudgeToken[]
+  managerCredential EventManagerCredential?
+}
+
+model RootCredential {
+  id                  String   @id
+  passwordHash        String
+  passwordSalt        String
+  passwordIterations  Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model EventManagerCredential {
+  id                  String   @id @default(cuid())
+  eventId             String   @unique
+  passwordHash        String
+  passwordSalt        String
+  passwordIterations  Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  event               Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
 }
 
 model Candidate {

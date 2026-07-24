@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
+import crypto from "node:crypto";
 
 const databaseUrl = process.env["DATABASE_URL"] ?? process.env["SUPABASE_DATABASE_URL"];
 
@@ -12,12 +13,33 @@ if (!databaseUrl) {
 const pool = new Pool({ connectionString: databaseUrl });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+const passwordHashIterations = 210000;
+
+function createPasswordRecord(password: string) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return {
+    passwordHash: crypto.pbkdf2Sync(password, salt, passwordHashIterations, 64, "sha512").toString("hex"),
+    passwordSalt: salt,
+    passwordIterations: passwordHashIterations,
+  };
+}
 
 async function main() {
   // Clear existing data
   await prisma.vote.deleteMany();
+  await prisma.judgeToken.deleteMany();
   await prisma.candidate.deleteMany();
+  await prisma.eventManagerCredential.deleteMany();
   await prisma.event.deleteMany();
+  await prisma.rootCredential.deleteMany();
+
+  const rootPassword = process.env["ROOT_ADMIN_PASSWORD"]?.trim() || "ChangeMeRoot2026!";
+  await prisma.rootCredential.create({
+    data: {
+      id: "root",
+      ...createPasswordRecord(rootPassword),
+    },
+  });
 
   const event = await prisma.event.create({
     data: {
@@ -25,6 +47,10 @@ async function main() {
       name: "Festival della Canzone 2026",
       subtitle: "Vota il tuo artista preferito",
       active: true,
+      votingClosed: true,
+      managerCredential: {
+        create: createPasswordRecord("Evento2026!"),
+      },
       candidates: {
         create: [
           { number: 1, name: "Luna Nera", subtitle: "Oltre le stelle", color: "#c026d3" },
@@ -39,6 +65,8 @@ async function main() {
   });
 
   console.log(`Seeded event: ${event.name} (${event.id})`);
+  console.log("Root password seed: usa ROOT_ADMIN_PASSWORD oppure default ChangeMeRoot2026!");
+  console.log("Password manager evento demo: Evento2026!");
 }
 
 main()

@@ -2,11 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import QRCode from "qrcode";
 import type { GeneratedJudgeToken, JudgeTokenRecord, JudgeTokenValidationResult } from "../api";
-import { fetchJudgeTokens, generateJudgeTokens, revokeJudgeToken, validateJudgeToken } from "../api";
+import { buildJudgeTokenStreamUrl, fetchJudgeTokens, generateJudgeTokens, revokeJudgeToken, validateJudgeToken } from "../api";
 
 interface JudgeCodeManagerProps {
   readonly eventId: string;
   readonly eventCode: string;
+  readonly authToken: string;
 }
 
 const defaultGeneratorForm = {
@@ -120,7 +121,7 @@ function QrCodePreview({ value, label }: { readonly value: string; readonly labe
   );
 }
 
-export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) {
+export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeManagerProps) {
   const [tokens, setTokens] = useState<JudgeTokenRecord[]>([]);
   const [generatedTokens, setGeneratedTokens] = useState<GeneratedJudgeToken[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +150,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
   const loadTokens = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchJudgeTokens(eventId);
+      const data = await fetchJudgeTokens(eventId, authToken);
       applyTokenSnapshot(data);
       setError(null);
     } catch (e) {
@@ -158,7 +159,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
     } finally {
       setLoading(false);
     }
-  }, [eventId, applyTokenSnapshot]);
+  }, [authToken, eventId, applyTokenSnapshot]);
 
   useEffect(() => {
     loadTokens();
@@ -168,7 +169,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
   }, [loadTokens]);
 
   useEffect(() => {
-    const stream = new EventSource(`/api/events/${eventId}/judge-tokens/stream`);
+    const stream = new EventSource(buildJudgeTokenStreamUrl(eventId, authToken));
 
     stream.onmessage = (message) => {
       try {
@@ -187,7 +188,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
     };
 
     return () => stream.close();
-  }, [eventId, applyTokenSnapshot]);
+  }, [authToken, eventId, applyTokenSnapshot]);
 
   const handleGenerate = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -211,7 +212,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
         count: generatorForm.count,
         labelPrefix: generatorForm.labelPrefix,
         origin,
-      });
+      }, authToken);
       setGeneratedTokens(result.codes);
       setValidationResult(null);
       setValidationInput("");
@@ -222,7 +223,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
     } finally {
       setGenerating(false);
     }
-  }, [eventId, generatorForm, loadTokens]);
+  }, [authToken, eventId, generatorForm, loadTokens]);
 
   const handleValidate = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -254,7 +255,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
     setError(null);
 
     try {
-      const updated = await revokeJudgeToken(id);
+      const updated = await revokeJudgeToken(id, authToken);
       setTokens((prev) => prev.map((token) => (token.id === id ? { ...token, ...updated } : token)));
       setGeneratedTokens((prev) => prev.map((token) => (token.id === id ? { ...token, ...updated } : token)));
     } catch (e) {
@@ -263,7 +264,7 @@ export function JudgeCodeManager({ eventId, eventCode }: JudgeCodeManagerProps) 
     } finally {
       setRevokingId(null);
     }
-  }, []);
+  }, [authToken]);
 
   const handleCopy = useCallback(async (value: string, successLabel: string) => {
     try {

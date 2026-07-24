@@ -2,6 +2,31 @@ import type { EventData, CandidateData } from "./types";
 
 const BASE = "/api";
 
+export interface AuthSession {
+  token: string;
+  role: "root" | "event_manager";
+  eventId?: string;
+  expiresAt: string;
+}
+
+function withAuthHeaders(authToken: string, includeJson = false): HeadersInit {
+  return {
+    ...(includeJson ? { "Content-Type": "application/json" } : {}),
+    Authorization: `Bearer ${authToken}`,
+  };
+}
+
+async function readErrorMessage(res: Response, fallback: string) {
+  const raw = await res.text().catch(() => "");
+  if (!raw) return fallback;
+  try {
+    const parsed = JSON.parse(raw) as { error?: string };
+    return typeof parsed.error === "string" && parsed.error ? parsed.error : fallback;
+  } catch {
+    return raw || fallback;
+  }
+}
+
 export async function fetchEventByCode(eventCode: string): Promise<EventData> {
   const res = await fetch(`${BASE}/events/by-code/${encodeURIComponent(eventCode)}`);
   if (!res.ok) {
@@ -23,8 +48,46 @@ export interface AdminEventSummary {
   createdAt: string;
 }
 
-export async function fetchEvents(): Promise<AdminEventSummary[]> {
-  const res = await fetch(`${BASE}/events`);
+export async function loginRoot(password: string): Promise<AuthSession> {
+  const res = await fetch(`${BASE}/auth/root/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, "Autenticazione root fallita"));
+  }
+  return res.json();
+}
+
+export async function updateRootPassword(authToken: string, currentPassword: string, newPassword: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`${BASE}/auth/root/password`, {
+    method: "POST",
+    headers: withAuthHeaders(authToken, true),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, "Aggiornamento password root non riuscito"));
+  }
+  return res.json();
+}
+
+export async function loginEventManager(eventId: string, password: string): Promise<AuthSession> {
+  const res = await fetch(`${BASE}/auth/event/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ eventId, password }),
+  });
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, "Autenticazione manager evento fallita"));
+  }
+  return res.json();
+}
+
+export async function fetchEvents(authToken: string): Promise<AdminEventSummary[]> {
+  const res = await fetch(`${BASE}/events`, {
+    headers: withAuthHeaders(authToken),
+  });
   if (!res.ok) {
     const raw = await res.text().catch(() => "");
     let serverMessage = "";
@@ -45,13 +108,14 @@ export async function fetchEvents(): Promise<AdminEventSummary[]> {
 }
 
 export async function createEvent(input: {
+  managerPassword: string;
   code?: string;
   name: string;
   subtitle?: string;
-}): Promise<AdminEventSummary> {
+}, authToken: string): Promise<AdminEventSummary> {
   const res = await fetch(`${BASE}/events`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: withAuthHeaders(authToken, true),
     body: JSON.stringify(input),
   });
   if (!res.ok) {
@@ -75,11 +139,12 @@ export async function createEvent(input: {
 
 export async function updateEvent(
   eventId: string,
-  input: Partial<{ name: string; subtitle: string | null }>
+  input: Partial<{ name: string; subtitle: string | null }>,
+  authToken: string
 ): Promise<AdminEventSummary> {
   const res = await fetch(`${BASE}/events/${eventId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: withAuthHeaders(authToken, true),
     body: JSON.stringify(input),
   });
   if (!res.ok) {
@@ -101,16 +166,28 @@ export async function updateEvent(
   return res.json();
 }
 
+export async function updateEventManagerPassword(eventId: string, password: string, authToken: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`${BASE}/events/${eventId}/manager-password`, {
+    method: "PUT",
+    headers: withAuthHeaders(authToken, true),
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    throw new Error(await readErrorMessage(res, "Aggiornamento password evento non riuscito"));
+  }
+  return res.json();
+}
+
 export async function fetchEventState(eventId: string): Promise<{ id: string; code: string; votingClosed: boolean }> {
   const res = await fetch(`${BASE}/events/${eventId}`);
   if (!res.ok) throw new Error("Errore nel caricamento stato evento");
   return res.json();
 }
 
-export async function updateEventVotingState(eventId: string, votingClosed: boolean) {
+export async function updateEventVotingState(eventId: string, votingClosed: boolean, authToken: string) {
   const res = await fetch(`${BASE}/events/${eventId}/voting-state`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: withAuthHeaders(authToken, true),
     body: JSON.stringify({ votingClosed }),
   });
   if (!res.ok) {
@@ -120,9 +197,10 @@ export async function updateEventVotingState(eventId: string, votingClosed: bool
   return res.json();
 }
 
-export async function resetEventVotes(eventId: string): Promise<{ ok: boolean }> {
+export async function resetEventVotes(eventId: string, authToken: string): Promise<{ ok: boolean }> {
   const res = await fetch(`${BASE}/events/${eventId}/votes`, {
     method: "DELETE",
+    headers: withAuthHeaders(authToken),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -131,9 +209,13 @@ export async function resetEventVotes(eventId: string): Promise<{ ok: boolean }>
   return res.json();
 }
 
-export async function startEvent(eventId: string): Promise<{ ok: boolean; votingClosed: boolean; candidates: CandidateData[] }> {
+export async function startEvent(
+  eventId: string,
+  authToken: string
+): Promise<{ ok: boolean; votingClosed: boolean; candidates: CandidateData[] }> {
   const res = await fetch(`${BASE}/events/${eventId}/start`, {
     method: "POST",
+    headers: withAuthHeaders(authToken),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
@@ -184,8 +266,10 @@ export interface VotingProgress {
   }>;
 }
 
-export async function fetchVotingProgress(eventId: string): Promise<VotingProgress> {
-  const res = await fetch(`${BASE}/events/${eventId}/voting-progress`);
+export async function fetchVotingProgress(eventId: string, authToken: string): Promise<VotingProgress> {
+  const res = await fetch(`${BASE}/events/${eventId}/voting-progress`, {
+    headers: withAuthHeaders(authToken),
+  });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || "Errore nel caricamento progresso voti");
@@ -194,8 +278,10 @@ export async function fetchVotingProgress(eventId: string): Promise<VotingProgre
 }
 
 // Admin API functions
-export async function fetchCandidates(eventId: string): Promise<CandidateData[]> {
-  const res = await fetch(`${BASE}/candidates/${eventId}`);
+export async function fetchCandidates(eventId: string, authToken: string): Promise<CandidateData[]> {
+  const res = await fetch(`${BASE}/candidates/${eventId}`, {
+    headers: withAuthHeaders(authToken),
+  });
   if (!res.ok) throw new Error("Errore nel caricamento candidati");
   return res.json();
 }
@@ -204,12 +290,13 @@ export async function addCandidate(
   eventId: string,
   number: number,
   name: string,
+  authToken: string,
   subtitle?: string,
   color?: string
 ): Promise<CandidateData> {
   const res = await fetch(`${BASE}/candidates`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: withAuthHeaders(authToken, true),
     body: JSON.stringify({ eventId, number, name, subtitle, color }),
   });
   if (!res.ok) {
@@ -221,11 +308,12 @@ export async function addCandidate(
 
 export async function updateCandidate(
   id: string,
-  data: Partial<{ name: string; subtitle: string | null; color: string; number: number }>
+  data: Partial<{ name: string; subtitle: string | null; color: string; number: number }>,
+  authToken: string
 ): Promise<CandidateData> {
   const res = await fetch(`${BASE}/candidates/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: withAuthHeaders(authToken, true),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -235,9 +323,10 @@ export async function updateCandidate(
   return res.json();
 }
 
-export async function deleteCandidate(id: string): Promise<{ ok: boolean }> {
+export async function deleteCandidate(id: string, authToken: string): Promise<{ ok: boolean }> {
   const res = await fetch(`${BASE}/candidates/${id}`, {
     method: "DELETE",
+    headers: withAuthHeaders(authToken),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -287,19 +376,27 @@ export interface JudgeTokenValidationResult {
   code?: JudgeTokenRecord & { eventId: string; votes?: Record<string, number> };
 }
 
-export async function fetchJudgeTokens(eventId: string): Promise<JudgeTokenRecord[]> {
-  const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`);
+export async function fetchJudgeTokens(eventId: string, authToken: string): Promise<JudgeTokenRecord[]> {
+  const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`, {
+    headers: withAuthHeaders(authToken),
+  });
   if (!res.ok) throw new Error("Errore nel caricamento codici giudice");
   return res.json();
 }
 
+export function buildJudgeTokenStreamUrl(eventId: string, authToken: string) {
+  const params = new URLSearchParams({ authToken });
+  return `${BASE}/events/${eventId}/judge-tokens/stream?${params.toString()}`;
+}
+
 export async function generateJudgeTokens(
   eventId: string,
-  input: { count: number; labelPrefix?: string; origin?: string }
+  input: { count: number; labelPrefix?: string; origin?: string },
+  authToken: string
 ): Promise<{ ok: boolean; codes: GeneratedJudgeToken[] }> {
   const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: withAuthHeaders(authToken, true),
     body: JSON.stringify(input),
   });
   if (!res.ok) {
@@ -339,9 +436,10 @@ export async function finalizeJudgeToken(token: string, eventCode?: string): Pro
   return res.json();
 }
 
-export async function revokeJudgeToken(id: string): Promise<JudgeTokenRecord> {
+export async function revokeJudgeToken(id: string, authToken: string): Promise<JudgeTokenRecord> {
   const res = await fetch(`${BASE}/judge-tokens/${id}/revoke`, {
     method: "POST",
+    headers: withAuthHeaders(authToken),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

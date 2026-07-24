@@ -8,6 +8,7 @@ import {
   updateEventVotingState,
   finalizeJudgeToken,
   validateJudgeToken,
+  loginRoot,
 } from "./api";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
@@ -94,12 +95,11 @@ export default function App() {
     admin: false,
     hof: false,
   });
+  const [rootAuthToken, setRootAuthToken] = useState<string | null>(null);
   const [manualJudgeCodeSegments, setManualJudgeCodeSegments] = useState<string[]>(() =>
     splitJudgeTokenSegments("")
   );
   const [judgeCodeInlineError, setJudgeCodeInlineError] = useState<string | null>(null);
-
-  const PROTECTED_PAGE_PASSWORD = "t";
 
   const currentPage = getRouteFromPath(pathname);
   const protectedPage = currentPage === "voting" ? null : currentPage;
@@ -262,34 +262,34 @@ export default function App() {
   }, [judgeToken, eventCode]);
 
   const handleProtectedPageSubmit = useCallback(
-    (event: SyntheticEvent<HTMLFormElement>) => {
+    async (event: SyntheticEvent<HTMLFormElement>) => {
       event.preventDefault();
-
-      if (passwordInput === PROTECTED_PAGE_PASSWORD) {
-        if (protectedPage) {
-          setAuthorizedProtectedPages((prev) => ({ ...prev, [protectedPage]: true }));
-        }
+      try {
+        const session = await loginRoot(passwordInput);
+        setRootAuthToken(session.token);
+        setAuthorizedProtectedPages({ admin: true, hof: true });
         setPasswordInput("");
         setPasswordError("");
-      } else {
-        setPasswordError("Password errata");
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Password root errata";
+        setPasswordError(message);
       }
     },
-    [passwordInput, protectedPage]
+    [passwordInput]
   );
 
   const handleCloseTelevote = useCallback(async () => {
-    if (!event) return;
+    if (!event || !rootAuthToken) return;
 
     try {
-      const updated = await updateEventVotingState(event.id, true);
+      const updated = await updateEventVotingState(event.id, true, rootAuthToken);
       setEvent((prev) => (prev ? { ...prev, votingClosed: updated.votingClosed } : prev));
       setToast({ message: "Televoto chiuso con successo.", type: "success" });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Errore nella chiusura del televoto";
       setToast({ message: msg, type: "error" });
     }
-  }, [event]);
+  }, [event, rootAuthToken]);
 
   const handleFinalizeJudgeCode = useCallback(async () => {
     if (!judgeToken || !eventCode) return;
@@ -517,7 +517,7 @@ export default function App() {
           </p>
           <h2 className="mt-2 text-2xl font-bold text-text-primary">{pageLabel}</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Inserisci la password per accedere a questa sezione.
+            Inserisci la password root per accedere a questa sezione.
           </p>
 
           <form className="mt-6 space-y-3" onSubmit={handleProtectedPageSubmit}>
@@ -527,7 +527,7 @@ export default function App() {
               autoFocus
               value={passwordInput}
               onChange={(event) => setPasswordInput(event.target.value)}
-              placeholder="Password"
+              placeholder="Password root"
               className="w-full rounded-lg border border-border-glass bg-slate-800 px-3 py-2 text-text-primary outline-none ring-0"
             />
 
@@ -562,6 +562,7 @@ export default function App() {
         <AdminPage
           initialEventId={event?.id}
           initialEventCode={event?.code}
+          rootAuthToken={rootAuthToken}
         />
       );
     case "hof":

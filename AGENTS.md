@@ -48,7 +48,8 @@ When adding/changing endpoints:
 - Device identity comes from `getDeviceId()` in `src/fingerprint.ts`; voting is per device.
 - Vote score must stay integer 1-10 (validated server-side).
 - Types used by UI are in `src/types.ts` (`EventData`, `CandidateData`); `RankingEntry` lives in `src/api.ts`.
-- Protected pages (admin/Hall of Fame) currently use a hardcoded client-side password in `src/App.tsx`; treat as a development convenience, not production auth.
+- Accesso admin: autenticazione root server-side con token firmato (`/api/auth/root/login`).
+- Accesso gestione candidato/giudici: autenticazione manager evento legata a `eventId` (`/api/auth/event/login`).
 
 ## Known Pitfalls
 - `DELETE /api/candidates/:id` reorders remaining candidate numbers to keep them sequential.

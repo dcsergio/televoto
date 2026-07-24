@@ -4,6 +4,7 @@ import { fetchVotingProgress, type VotingProgress } from "../api";
 interface VotingProgressDashboardProps {
   readonly eventId: string;
   readonly votingClosed: boolean;
+  readonly authToken: string;
 }
 
 function getStatusLabel(status: VotingProgress["judges"][number]["status"]) {
@@ -18,7 +19,7 @@ function getStatusClass(status: VotingProgress["judges"][number]["status"]) {
   return "border-emerald-500/30 bg-emerald-500/15 text-emerald-200";
 }
 
-export function VotingProgressDashboard({ eventId, votingClosed }: VotingProgressDashboardProps) {
+export function VotingProgressDashboard({ eventId, votingClosed, authToken }: VotingProgressDashboardProps) {
   const [progress, setProgress] = useState<VotingProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export function VotingProgressDashboard({ eventId, votingClosed }: VotingProgres
   const loadProgress = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await fetchVotingProgress(eventId);
+      const data = await fetchVotingProgress(eventId, authToken);
       setProgress(data);
       setError(null);
     } catch (e) {
@@ -35,7 +36,7 @@ export function VotingProgressDashboard({ eventId, votingClosed }: VotingProgres
     } finally {
       setLoading(false);
     }
-  }, [eventId]);
+  }, [authToken, eventId]);
 
   useEffect(() => {
     loadProgress();
