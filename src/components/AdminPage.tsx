@@ -12,8 +12,10 @@ import {
   resetEventVotes,
   fetchEvents,
   createEvent,
+  updateEvent,
   type AdminEventSummary,
 } from "../api";
+import { EVENT_NAME_SEPARATOR } from "../eventNameDisplay";
 import { JudgeCodeManager } from "./JudgeCodeManager";
 import { VotingProgressDashboard } from "./VotingProgressDashboard";
 
@@ -44,7 +46,9 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [eventsError, setEventsError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
+  const [updatingSelectedEventName, setUpdatingSelectedEventName] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(initialEventId ?? null);
+  const [selectedEventNameDraft, setSelectedEventNameDraft] = useState("");
   const [newEvent, setNewEvent] = useState({
     code: "",
     name: "",
@@ -145,6 +149,10 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
     loadCandidates();
   }, [loadCandidates]);
 
+  useEffect(() => {
+    setSelectedEventNameDraft(selectedEvent?.name ?? "");
+  }, [selectedEvent?.id, selectedEvent?.name]);
+
   async function handleCreateEvent(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -222,6 +230,43 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
       const msg = e instanceof Error ? e.message : "Errore";
       setError(msg);
       setStatusMessage(null);
+    }
+  }
+
+  async function handleRenameSelectedEvent(e: SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!selectedEvent) return;
+
+    const trimmedName = selectedEventNameDraft.trim();
+    if (!trimmedName) {
+      setError("Il nome evento è obbligatorio");
+      setStatusMessage(null);
+      return;
+    }
+
+    if (trimmedName === selectedEvent.name) {
+      setStatusMessage("Nessuna modifica da salvare.");
+      setError(null);
+      return;
+    }
+
+    try {
+      setUpdatingSelectedEventName(true);
+      const updatedEvent = await updateEvent(selectedEvent.id, { name: trimmedName });
+      setEvents((previous) =>
+        previous.map((event) =>
+          event.id === updatedEvent.id ? { ...event, name: updatedEvent.name, subtitle: updatedEvent.subtitle } : event
+        )
+      );
+      setSelectedEventNameDraft(updatedEvent.name);
+      setError(null);
+      setStatusMessage("Nome evento aggiornato con successo.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Errore";
+      setError(msg);
+      setStatusMessage(null);
+    } finally {
+      setUpdatingSelectedEventName(false);
     }
   }
 
@@ -415,8 +460,9 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
           ) : (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr,1fr]">
               <div className="space-y-3">
-                <label className="text-sm text-text-secondary">Evento da gestire</label>
+                <label htmlFor="admin-selected-event" className="text-sm text-text-secondary">Evento da gestire</label>
                 <select
+                  id="admin-selected-event"
                   value={selectedEventId ?? ""}
                   onChange={(e) => {
                     setSelectedEventId(e.target.value || null);
@@ -441,9 +487,27 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
                   Aggiorna elenco eventi
                 </button>
                 {selectedEvent && (
-                  <p className="text-sm text-text-secondary">
-                    Evento corrente: <span className="font-semibold text-text-primary">{selectedEvent.name}</span> (codice {selectedEvent.code})
-                  </p>
+                  <div className="space-y-2 rounded-2xl border border-slate-700 bg-slate-900/60 p-3">
+                    <p className="text-sm text-text-secondary">
+                      Evento corrente: <span className="font-semibold text-text-primary">{selectedEvent.name}</span> (codice {selectedEvent.code})
+                    </p>
+                    <form onSubmit={handleRenameSelectedEvent} className="flex flex-col gap-2 sm:flex-row">
+                      <input
+                        type="text"
+                        value={selectedEventNameDraft}
+                        onChange={(e) => setSelectedEventNameDraft(e.target.value)}
+                        placeholder="Nuovo nome evento"
+                        className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                      />
+                      <button
+                        type="submit"
+                        disabled={updatingSelectedEventName}
+                        className="rounded-2xl border border-accent-cyan/50 bg-accent-cyan/20 px-4 py-2 text-sm font-semibold text-accent-cyan hover:bg-accent-cyan/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {updatingSelectedEventName ? "Salvataggio..." : "Rinomina evento"}
+                      </button>
+                    </form>
+                  </div>
                 )}
               </div>
 
@@ -455,9 +519,14 @@ export function AdminPage({ initialEventId, initialEventCode, onVotingStateChang
                     type="text"
                     value={newEvent.name}
                     onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
-                    placeholder="Es. Finale regionale"
+                    placeholder={`Es. Finale regionale ${EVENT_NAME_SEPARATOR} GRAN FINALE`}
                     className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
                   />
+                  <p className="text-xs text-text-muted">
+                    Per evidenziare l'ultima parte del titolo in Hero e Hall of Fame usa il separatore
+                    {" "}<span className="font-semibold text-text-secondary">{EVENT_NAME_SEPARATOR}</span>
+                    {" "}(esempio: "Festival Regionale {EVENT_NAME_SEPARATOR} GRAN FINALE").
+                  </p>
                 </label>
                 <label className="space-y-1 block">
                   <span className="text-sm text-text-secondary">Sottotitolo (opzionale)</span>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { RankingEntry } from "../api";
 import { fetchRankings } from "../api";
+import { splitEventNameForDisplay } from "../eventNameDisplay";
 
 interface HallOfFameProps {
   readonly eventId: string;
@@ -124,6 +125,7 @@ export function HallOfFame({
     isFinalistsStage,
   });
   const closeTelevoteLabel = votingClosed ? "Televoto chiuso" : closingTelevote ? "Chiusura..." : "Chiudi televoto";
+  const { prefix: eventNamePrefix, emphasized: eventNameEmphasized } = splitEventNameForDisplay(eventName);
 
   const handleRevealNext = useCallback(() => {
     if (rankings.length === 0 || showWinner) return;
@@ -305,14 +307,18 @@ export function HallOfFame({
         {!presenterMode && !revealStarted && (
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-2">🏆 Classifica</h1>
-            <p className="text-text-secondary text-lg">{eventName}</p>
+            {eventNamePrefix && <p className="text-text-secondary text-lg">{eventNamePrefix}</p>}
+            <p className="text-2xl font-black uppercase gradient-title leading-tight">{eventNameEmphasized}</p>
             <p className="text-text-secondary text-sm mt-1">Codice evento: {eventCode}</p>
           </div>
         )}
 
         {presenterMode && (
           <div className="mb-8 text-center">
-            <h1 className="text-5xl font-bold mb-2">🏆 {eventName}</h1>
+            {eventNamePrefix && (
+              <p className="text-text-secondary text-xl font-semibold uppercase tracking-wide">{eventNamePrefix}</p>
+            )}
+            <h1 className="text-5xl font-black uppercase gradient-title leading-tight mb-2">🏆 {eventNameEmphasized}</h1>
             <p className="text-text-secondary text-lg">Classifica finale</p>
           </div>
         )}

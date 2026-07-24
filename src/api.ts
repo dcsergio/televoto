@@ -73,6 +73,34 @@ export async function createEvent(input: {
   return res.json();
 }
 
+export async function updateEvent(
+  eventId: string,
+  input: Partial<{ name: string; subtitle: string | null }>
+): Promise<AdminEventSummary> {
+  const res = await fetch(`${BASE}/events/${eventId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const raw = await res.text().catch(() => "");
+    let serverMessage = "";
+    try {
+      const parsed = raw ? JSON.parse(raw) : {};
+      serverMessage = typeof parsed.error === "string" ? parsed.error : "";
+    } catch {
+      serverMessage = raw;
+    }
+    const statusLabel = `HTTP ${res.status}`;
+    throw new Error(
+      serverMessage
+        ? `${serverMessage} (${statusLabel})`
+        : `Errore nell'aggiornamento evento (${statusLabel})`
+    );
+  }
+  return res.json();
+}
+
 export async function fetchEventState(eventId: string): Promise<{ id: string; code: string; votingClosed: boolean }> {
   const res = await fetch(`${BASE}/events/${eventId}`);
   if (!res.ok) throw new Error("Errore nel caricamento stato evento");

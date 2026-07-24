@@ -1,3 +1,5 @@
+import { splitEventNameForDisplay } from "../eventNameDisplay";
+
 interface HeroBannerProps {
   name: string;
   subtitle: string | null;
@@ -5,10 +7,7 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({ name, subtitle, compact = false }: Readonly<HeroBannerProps>) {
-  // Split name to highlight the main part
-  const parts = name.split("***");
-  const lastWord = parts.pop() ?? "";
-  const prefix = parts.join(" ");
+  const { prefix, emphasized } = splitEventNameForDisplay(name);
 
   return (
     <div className={`relative mt-6 mb-2 text-center overflow-hidden rounded-2xl px-4 ${compact ? "py-4" : "py-8"}`}>
@@ -28,7 +27,7 @@ export function HeroBanner({ name, subtitle, compact = false }: Readonly<HeroBan
         </p>
       )}
       <h2 className={`${compact ? "text-2xl md:text-3xl" : "text-4xl md:text-5xl lg:text-6xl"} font-black uppercase gradient-title leading-tight mt-1`}>
-        {lastWord}
+        {emphasized}
       </h2>
       {subtitle && (
         <p className={`text-text-muted ${compact ? "text-xs mt-1" : "text-sm mt-2"}`}>{subtitle}</p>

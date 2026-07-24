@@ -313,6 +313,64 @@ app.get("/api/events/:eventId", async (req, res) => {
   res.json(event);
 });
 
+app.put("/api/events/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+  const body = (req.body ?? {}) as { name?: string; subtitle?: string | null };
+  const updateData: { name?: string; subtitle?: string | null } = {};
+
+  if (Object.hasOwn(body, "name")) {
+    const normalizedName = normalizeEventName(body.name);
+    if (!normalizedName) {
+      res.status(400).json({ error: "Il nome evento è obbligatorio" });
+      return;
+    }
+    updateData.name = normalizedName;
+  }
+
+  if (Object.hasOwn(body, "subtitle")) {
+    if (body.subtitle === null) {
+      updateData.subtitle = null;
+    } else if (typeof body.subtitle === "string") {
+      const trimmedSubtitle = body.subtitle.trim();
+      updateData.subtitle = trimmedSubtitle.length > 0 ? trimmedSubtitle : null;
+    } else {
+      res.status(400).json({ error: "Sottotitolo non valido" });
+      return;
+    }
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    res.status(400).json({ error: "Nessun campo da aggiornare" });
+    return;
+  }
+
+  try {
+    const updatedEvent = await prisma.event.update({
+      where: { id: eventId },
+      data: updateData,
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        subtitle: true,
+        active: true,
+        votingClosed: true,
+        createdAt: true,
+      },
+    });
+
+    res.json(updatedEvent);
+  } catch (e: unknown) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
+      res.status(404).json({ error: "Evento non trovato" });
+      return;
+    }
+
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
 // Cast a vote (judge token required)
 app.post("/api/vote", async (req, res) => {
   const { candidateId, score } = req.body as {
