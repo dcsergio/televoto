@@ -106,6 +106,7 @@ La pagina admin è organizzata in una single-page app con menu:
 1. **Gestione eventi**
    - selezione evento corrente,
    - creazione nuovo evento (nome, sottotitolo, codice opzionale),
+   - cambio password root (box “Sicurezza root”),
    - rinomina evento selezionato,
    - impostazione/rotazione password manager per evento.
 

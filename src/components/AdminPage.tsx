@@ -14,6 +14,7 @@ import {
   createEvent,
   updateEvent,
   loginEventManager,
+  updateRootPassword,
   updateEventManagerPassword,
   type AdminEventSummary,
 } from "../api";
@@ -70,6 +71,7 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
   const [eventsError, setEventsError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [updatingSelectedEventName, setUpdatingSelectedEventName] = useState(false);
+  const [updatingRootPassword, setUpdatingRootPassword] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(initialEventId ?? null);
   const [selectedEventNameDraft, setSelectedEventNameDraft] = useState("");
   const [newEvent, setNewEvent] = useState({
@@ -83,6 +85,11 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
   const [authenticatingManager, setAuthenticatingManager] = useState(false);
   const [updatingManagerPassword, setUpdatingManagerPassword] = useState(false);
   const [managerPasswordDraft, setManagerPasswordDraft] = useState("");
+  const [rootPasswordDraft, setRootPasswordDraft] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -340,6 +347,42 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
       setStatusMessage(null);
     } finally {
       setUpdatingSelectedEventName(false);
+    }
+  }
+
+  async function handleUpdateRootPassword(e: SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!rootAuthToken) {
+      setError("Sessione root non valida. Rientra nell'area admin.");
+      setStatusMessage(null);
+      return;
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = rootPasswordDraft;
+    if (currentPassword.length < 8 || newPassword.length < 8) {
+      setError("Le password root devono avere almeno 8 caratteri.");
+      setStatusMessage(null);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("La conferma della nuova password root non corrisponde.");
+      setStatusMessage(null);
+      return;
+    }
+
+    try {
+      setUpdatingRootPassword(true);
+      await updateRootPassword(rootAuthToken, currentPassword, newPassword);
+      setRootPasswordDraft({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setError(null);
+      setStatusMessage("Password root aggiornata con successo.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Errore nell'aggiornamento password root";
+      setError(msg);
+      setStatusMessage(null);
+    } finally {
+      setUpdatingRootPassword(false);
     }
   }
 
@@ -795,7 +838,8 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent" />
               </div>
             ) : (
-              <div className="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
+              <>
+                <div className="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
                 <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
                   <h3 className="text-lg font-semibold">Evento corrente</h3>
                   {selectedEvent ? (
@@ -895,6 +939,43 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
                   </button>
                 </form>
               </div>
+              <form onSubmit={handleUpdateRootPassword} className="mt-4 space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
+                <p className="text-sm text-text-secondary">
+                  Aggiorna la password root usata per l'accesso alle aree protette amministrative.
+                </p>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <input
+                    type="password"
+                    value={rootPasswordDraft.currentPassword}
+                    onChange={(e) => setRootPasswordDraft((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                    placeholder="Password root attuale"
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                  />
+                  <input
+                    type="password"
+                    value={rootPasswordDraft.newPassword}
+                    onChange={(e) => setRootPasswordDraft((prev) => ({ ...prev, newPassword: e.target.value }))}
+                    placeholder="Nuova password root"
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                  />
+                  <input
+                    type="password"
+                    value={rootPasswordDraft.confirmPassword}
+                    onChange={(e) => setRootPasswordDraft((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Conferma nuova password root"
+                    className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={updatingRootPassword}
+                  className="rounded-2xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {updatingRootPassword ? "Aggiornamento..." : "Aggiorna password root"}
+                </button>
+                </form>
+              </>
             )}
           </section>
         )}
