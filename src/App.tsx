@@ -87,6 +87,7 @@ export default function App() {
   );
   const [judgeFinalizeOpen, setJudgeFinalizeOpen] = useState(false);
   const [finalizingJudgeToken, setFinalizingJudgeToken] = useState(false);
+  const [voterType, setVoterType] = useState<"QUALIFICATA" | "POPOLARE" | null>(null);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
@@ -100,6 +101,7 @@ export default function App() {
     splitJudgeTokenSegments("")
   );
   const [judgeCodeInlineError, setJudgeCodeInlineError] = useState<string | null>(null);
+  const voteDebounceTimersRef = useRef<Record<string, ReturnType<typeof globalThis.setTimeout>>>({});
 
   const currentPage = getRouteFromPath(pathname);
   const protectedPage = currentPage === "voting" ? null : currentPage;
@@ -187,6 +189,15 @@ export default function App() {
     return () => globalThis.removeEventListener("popstate", handlePopState);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      for (const timer of Object.values(voteDebounceTimersRef.current)) {
+        globalThis.clearTimeout(timer);
+      }
+      voteDebounceTimersRef.current = {};
+    };
+  }, []);
+
   // When selecting a candidate, pre-fill score if already voted
   const handleSelectCandidate = useCallback(
     (candidateId: string) => {
@@ -198,22 +209,32 @@ export default function App() {
   const handleVote = useCallback(
     async (candidateId: string, score: number) => {
       if (!candidateId || !judgeToken || !event) return;
-      setSubmitting(true);
-      try {
-        await castVote(candidateId, score, judgeToken);
-        const nextVotes = { ...myVotes, [candidateId]: score };
-        setMyVotes(nextVotes);
-        const nextCandidate = event.candidates.find((candidate) => nextVotes[candidate.id] === undefined);
-        setSelectedCandidate(nextCandidate?.id ?? null);
-        const votedCandidate = event.candidates.find((candidate) => candidate.id === candidateId);
-        const candidateLabel = votedCandidate ? `${votedCandidate.number}. ${votedCandidate.name}` : "Candidato";
-        setToast({ message: `Voto salvato: ${candidateLabel} - ${score}/10`, type: "success" });
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Errore";
-        setToast({ message: msg, type: "error" });
-      } finally {
-        setSubmitting(false);
+      const nextVotes = { ...myVotes, [candidateId]: score };
+      setMyVotes(nextVotes);
+      const nextCandidate = event.candidates.find((candidate) => nextVotes[candidate.id] === undefined);
+      setSelectedCandidate(nextCandidate?.id ?? null);
+
+      const existingTimer = voteDebounceTimersRef.current[candidateId];
+      if (existingTimer) {
+        globalThis.clearTimeout(existingTimer);
       }
+      setSubmitting(true);
+      voteDebounceTimersRef.current[candidateId] = globalThis.setTimeout(async () => {
+        try {
+          await castVote(candidateId, score, judgeToken);
+          const votedCandidate = event.candidates.find((candidate) => candidate.id === candidateId);
+          const candidateLabel = votedCandidate ? `${votedCandidate.number}. ${votedCandidate.name}` : "Candidato";
+          setToast({ message: `Voto salvato: ${candidateLabel} - ${score}/10`, type: "success" });
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "Errore";
+          setToast({ message: msg, type: "error" });
+        } finally {
+          delete voteDebounceTimersRef.current[candidateId];
+          if (Object.keys(voteDebounceTimersRef.current).length === 0) {
+            setSubmitting(false);
+          }
+        }
+      }, 300);
     },
     [event, judgeToken, myVotes]
   );
@@ -232,6 +253,7 @@ export default function App() {
   useEffect(() => {
     if (!judgeToken || !eventCode) {
       setJudgeAccess({ status: "idle" });
+      setVoterType(null);
       return;
     }
 
@@ -247,12 +269,14 @@ export default function App() {
           status: result.valid ? "valid" : result.status === "active" ? "invalid" : result.status,
           message: result.message,
         });
+        setVoterType(result.code?.type ?? null);
         setMyVotes(result.votes ?? result.code?.votes ?? {});
       })
       .catch((e: unknown) => {
         if (cancelled) return;
         const msg = e instanceof Error ? e.message : "Codice non valido";
         setJudgeAccess({ status: "invalid", message: msg });
+        setVoterType(null);
         setMyVotes({});
       });
 
@@ -600,12 +624,20 @@ export default function App() {
   const canVote = !votingClosed && judgeMode && judgeAccess.status === "valid";
   const candidateListEnabled = canVote;
   const judgeVotesCount = Object.keys(myVotes).length;
+  const isQualifiedVoter = voterType === "QUALIFICATA";
+  const isPopularVoter = voterType === "POPOLARE";
   const allJudgeVotesCast = Boolean(
     judgeMode &&
       judgeAccess.status === "valid" &&
       event.candidates.length > 0 &&
       event.candidates.every((candidate) => myVotes[candidate.id] !== undefined)
   );
+  const canFinalizeJudge =
+    judgeMode &&
+    judgeAccess.status === "valid" &&
+    !isJudgeVoteLocked &&
+    (isQualifiedVoter || isPopularVoter);
+  const finalizeDisabled = isQualifiedVoter ? !allJudgeVotesCast : judgeVotesCount === 0;
   const progressPercent = event.candidates.length > 0 ? (judgeVotesCount / event.candidates.length) * 100 : 0;
   const missingVotes = Math.max(event.candidates.length - judgeVotesCount, 0);
 
@@ -630,7 +662,9 @@ export default function App() {
                 />
               </div>
               <p className="mt-2 text-xs text-text-secondary">
-                {missingVotes > 0 ? `Mancano ${missingVotes} voti alla conferma finale.` : "Hai completato tutte le preferenze."}
+                {isQualifiedVoter
+                  ? (missingVotes > 0 ? `Mancano ${missingVotes} voti alla conferma finale.` : "Hai completato tutte le preferenze.")
+                  : `Voti popolari espressi: ${judgeVotesCount}`}
               </p>
             </div>
             {judgeCodeStatusLabel && (
@@ -638,13 +672,14 @@ export default function App() {
                 {judgeCodeStatusLabel}
               </span>
             )}
-            {allJudgeVotesCast && !isJudgeVoteLocked && (
+            {canFinalizeJudge && (
               <button
                 type="button"
                 onClick={() => setJudgeFinalizeOpen(true)}
-                className="flex-shrink-0 bg-accent-cyan text-slate-900 text-xs font-extrabold tracking-wide uppercase px-4 py-2 rounded-xl shadow-lg transition duration-200 hover:scale-105 active:scale-95 progress-bar-glow cursor-pointer"
+                disabled={finalizeDisabled}
+                className="flex-shrink-0 bg-accent-cyan text-slate-900 text-xs font-extrabold tracking-wide uppercase px-4 py-2 rounded-xl shadow-lg transition duration-200 hover:scale-105 active:scale-95 progress-bar-glow cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Conferma e blocca
+                Conferma definitiva
               </button>
             )}
             {isJudgeVoteLocked && (
@@ -774,14 +809,15 @@ export default function App() {
         </div>
       )}
 
-      {judgeMode && allJudgeVotesCast && !isJudgeVoteLocked && (
+      {judgeMode && canFinalizeJudge && (
         <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border-glass bg-slate-950/95 px-4 py-3 backdrop-blur sm:hidden">
           <button
             type="button"
             onClick={() => setJudgeFinalizeOpen(true)}
-            className="w-full rounded-2xl bg-accent-cyan px-4 py-3 text-sm font-extrabold uppercase tracking-wide text-slate-900"
+            disabled={finalizeDisabled}
+            className="w-full rounded-2xl bg-accent-cyan px-4 py-3 text-sm font-extrabold uppercase tracking-wide text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Conferma e blocca il codice
+            Conferma definitiva
           </button>
         </div>
       )}

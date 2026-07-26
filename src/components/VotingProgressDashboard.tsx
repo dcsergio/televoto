@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchVotingProgress, type VotingProgress } from "../api";
+import { PartialRankingsPanel } from "./PartialRankingsPanel";
 
 interface VotingProgressDashboardProps {
   readonly eventId: string;
@@ -96,29 +97,29 @@ export function VotingProgressDashboard({ eventId, votingClosed, authToken }: Vo
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
-          <div className="text-2xl font-bold text-emerald-300">{progress.activeJudges}</div>
-          <div className="text-sm text-text-secondary">Giudici attivi</div>
+          <div className="text-2xl font-bold text-emerald-300">{progress.qualified.activeJudges}</div>
+          <div className="text-sm text-text-secondary">Qualificata attivi</div>
         </div>
         <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
-          <div className="text-2xl font-bold text-amber-300">{progress.finalizedJudges}</div>
-          <div className="text-sm text-text-secondary">Finalizzati</div>
+          <div className="text-2xl font-bold text-amber-300">{progress.qualified.submittedJudges}</div>
+          <div className="text-sm text-text-secondary">Qualificata finalizzati</div>
         </div>
         <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
-          <div className="text-2xl font-bold text-red-300">{progress.revokedJudges}</div>
-          <div className="text-sm text-text-secondary">Revocati</div>
+          <div className="text-2xl font-bold text-cyan-300">{progress.popular.activatedTokens}</div>
+          <div className="text-sm text-text-secondary">Popolare QR attivati</div>
         </div>
         <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
           <div className="text-2xl font-bold text-accent-cyan">
-            {progress.finalizedJudges}/{progress.totalJudges}
+            {progress.popular.totalVotesCast}
           </div>
-          <div className="text-sm text-text-secondary">Progresso blocco</div>
+          <div className="text-sm text-text-secondary">Voti popolari espressi</div>
         </div>
       </div>
 
       {progress.candidateCount > 0 && progress.totalJudges > 0 && (
         <div className="mb-6 rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-4">
           <p className="text-sm text-cyan-100">
-            {progress.finalizedJudges} giudici su {progress.totalJudges} hanno bloccato il codice.
+            {progress.qualified.submittedJudges} giudici qualificati su {progress.qualified.totalJudges} hanno bloccato il codice.
             {activeIncompleteJudges.length > 0 && (
               <span> {activeIncompleteJudges.length} giudici attivi non hanno ancora completato tutti i voti.</span>
             )}
@@ -190,6 +191,8 @@ export function VotingProgressDashboard({ eventId, votingClosed, authToken }: Vo
       {progress.totalJudges === 0 && (
         <p className="text-sm text-text-secondary">Nessun codice giudice generato per questo evento.</p>
       )}
+
+      <PartialRankingsPanel eventId={eventId} authToken={authToken} />
     </div>
   );
 }

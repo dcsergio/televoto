@@ -5,6 +5,10 @@ export interface EventData {
   subtitle: string | null;
   active: boolean;
   votingClosed: boolean;
+  weightQualificata: number;
+  weightPopolare: number;
+  enableTrimmedMean: boolean;
+  trimmedMeanPercentage: number;
   candidates: CandidateData[];
 }
 

@@ -13,6 +13,7 @@ interface JudgeCodeManagerProps {
 const defaultGeneratorForm = {
   count: 5,
   labelPrefix: "Giudice",
+  voterType: "QUALIFICATA" as "QUALIFICATA" | "POPOLARE",
   baseUrl: "",
 };
 
@@ -211,6 +212,7 @@ export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeMan
       const result = await generateJudgeTokens(eventId, {
         count: generatorForm.count,
         labelPrefix: generatorForm.labelPrefix,
+        type: generatorForm.voterType,
         origin,
       }, authToken);
       setGeneratedTokens(result.codes);
@@ -437,6 +439,8 @@ export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeMan
   const activeCount = tokens.filter((token) => token.status === "active").length;
   const revokedCount = tokens.filter((token) => token.status === "revoked").length;
   const activeTokens = tokens.filter((token) => token.status === "active");
+  const qualifiedTokens = tokens.filter((token) => token.type === "QUALIFICATA");
+  const popularTokens = tokens.filter((token) => token.type === "POPOLARE");
 
   if (loading) {
     return (
@@ -455,6 +459,9 @@ export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeMan
           <p className="mt-2 max-w-2xl text-sm text-text-secondary">
             Genera codici lunghi e non prevedibili, consegnali via QR ai giudici, valida un codice
             manualmente e revoca quelli compromessi. La lista dei codici attivi si aggiorna in tempo reale dal server.
+          </p>
+          <p className="mt-2 text-xs text-text-secondary">
+            Qualificata: {qualifiedTokens.length} codici · Popolare: {popularTokens.length} codici
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3 text-sm">
@@ -520,6 +527,24 @@ export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeMan
                 placeholder="Giudice"
               />
             </label>
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Tipo giuria</span>
+              <select
+                value={generatorForm.voterType}
+                onChange={(event) => {
+                  const type = event.target.value === "POPOLARE" ? "POPOLARE" : "QUALIFICATA";
+                  setGeneratorForm((prev) => ({
+                    ...prev,
+                    voterType: type,
+                    labelPrefix: type === "QUALIFICATA" ? "Giudice tecnico" : "Giudice popolare",
+                  }));
+                }}
+                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-text-primary outline-none"
+              >
+                <option value="QUALIFICATA">Giuria Qualificata</option>
+                <option value="POPOLARE">Giuria Popolare</option>
+              </select>
+            </label>
             <label className="space-y-2 sm:col-span-2">
               <span className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Base URL</span>
               <input
@@ -569,6 +594,9 @@ export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeMan
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-text-primary">{token.label ?? "Codice giudice"}</p>
+                        <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
+                          {token.type === "QUALIFICATA" ? "Giuria qualificata" : "Giuria popolare"}
+                        </p>
                         <p className="mt-1 text-xs uppercase tracking-[0.2em] text-text-secondary">
                           Stato: {getStatusLabel(token.status)}
                         </p>
@@ -689,6 +717,9 @@ export function JudgeCodeManager({ eventId, eventCode, authToken }: JudgeCodeMan
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-semibold text-text-primary">{token.label ?? "Codice giudice"}</p>
+                        <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
+                          {token.type === "QUALIFICATA" ? "Giuria qualificata" : "Giuria popolare"}
+                        </p>
                         <p className="mt-1 text-xs font-mono tracking-[0.2em] text-text-secondary">
                           {token.tokenPreview}••••
                         </p>

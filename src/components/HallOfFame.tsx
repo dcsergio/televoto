@@ -111,7 +111,7 @@ export function HallOfFame({
   const isThirdPlaceStage = rankings.length > 2 && revealedIndices.includes(2) && !showFinalistsStage && !showWinner;
   const revealStarted = revealedIndices.length > 0 || showFinalistsStage || showWinner;
   const finalists = rankings.slice(0, 2);
-  const hasTopTie = rankings.length > 1 && rankings[0].totalScore === rankings[1].totalScore;
+  const hasTopTie = rankings.length > 1 && Math.abs(rankings[0].finalScore - rankings[1].finalScore) <= 0.001;
   const visibleEntries = rankings.filter((_, index) => revealedIndices.includes(index));
   const revealDisabled =
     rankings.length === 0 || showWinner || (rankings.length < 2 && revealedIndices.length >= rankings.length);
@@ -392,9 +392,9 @@ export function HallOfFame({
                           {showWinner && isWinnerCard ? (
                             <div>
                               <div className={`font-bold text-accent-cyan ${isWinnerCard ? "text-4xl" : "text-3xl"}`}>
-                                {entry.totalScore}
+                                {entry.finalScore.toFixed(3)}
                               </div>
-                              <div className="text-sm text-text-secondary">Punti Totali</div>
+                              <div className="text-sm text-text-secondary">Punteggio finale</div>
                             </div>
                           ) : null}
                         </div>
@@ -438,13 +438,15 @@ export function HallOfFame({
                       </div>
 
                       <div className="text-right">
-                        <div className="text-3xl font-bold text-accent-cyan">{entry.totalScore}</div>
-                        <div className="text-text-secondary text-sm">Punti Totali</div>
+                        <div className="text-3xl font-bold text-accent-cyan">{entry.finalScore.toFixed(3)}</div>
+                        <div className="text-text-secondary text-sm">Punteggio finale</div>
                         <div className="mt-2 text-text-secondary text-sm">
                           {entry.voteCount > 0 && (
                             <>
                               <div>Voti: {entry.voteCount}</div>
-                              <div>Media: {entry.avgScore.toFixed(1)}</div>
+                              <div>Media complessiva: {entry.avgScore.toFixed(1)}</div>
+                              <div>Media qualificata: {entry.avgQualificata.toFixed(2)}</div>
+                              <div>Media popolare: {entry.avgPopolare.toFixed(2)}</div>
                             </>
                           )}
                         </div>
@@ -456,7 +458,7 @@ export function HallOfFame({
                         className="h-full rounded-full transition-all"
                         style={{
                           backgroundColor: entry.color,
-                          width: `${rankings.length > 0 ? (entry.totalScore / rankings[0].totalScore) * 100 : 0}%`,
+                          width: `${rankings.length > 0 && rankings[0].finalScore > 0 ? (entry.finalScore / rankings[0].finalScore) * 100 : 0}%`,
                         }}
                       />
                     </div>
@@ -484,9 +486,9 @@ export function HallOfFame({
               </div>
               <div>
                 <div className="text-2xl font-bold text-accent-cyan">
-                  {(rankings.reduce((sum, r) => sum + r.totalScore, 0) / rankings.length).toFixed(1)}
+                  {(rankings.reduce((sum, r) => sum + r.finalScore, 0) / rankings.length).toFixed(3)}
                 </div>
-                <div className="text-text-secondary text-sm">Punti Medi</div>
+                <div className="text-text-secondary text-sm">Punteggio finale medio</div>
               </div>
             </div>
           </div>

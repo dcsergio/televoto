@@ -3,6 +3,8 @@
 
 BEGIN;
 
+DROP TYPE IF EXISTS "VoterStatus" CASCADE;
+DROP TYPE IF EXISTS "VoterType" CASCADE;
 DROP TABLE IF EXISTS "Vote" CASCADE;
 DROP TABLE IF EXISTS "JudgeToken" CASCADE;
 DROP TABLE IF EXISTS "Candidate" CASCADE;
@@ -11,6 +13,9 @@ DROP TABLE IF EXISTS "CandidateTemplate" CASCADE;
 DROP TABLE IF EXISTS "Event" CASCADE;
 DROP TABLE IF EXISTS "RootCredential" CASCADE;
 
+CREATE TYPE "VoterType" AS ENUM ('QUALIFICATA', 'POPOLARE');
+CREATE TYPE "VoterStatus" AS ENUM ('ACTIVE', 'SUBMITTED');
+
 CREATE TABLE "Event" (
   "id" TEXT PRIMARY KEY,
   "code" TEXT NOT NULL UNIQUE,
@@ -18,8 +23,14 @@ CREATE TABLE "Event" (
   "subtitle" TEXT,
   "active" BOOLEAN NOT NULL DEFAULT TRUE,
   "votingClosed" BOOLEAN NOT NULL DEFAULT FALSE,
+  "weightQualificata" INTEGER NOT NULL DEFAULT 70,
+  "weightPopolare" INTEGER NOT NULL DEFAULT 30,
+  "enableTrimmedMean" BOOLEAN NOT NULL DEFAULT FALSE,
+  "trimmedMeanPercentage" DOUBLE PRECISION NOT NULL DEFAULT 10.0,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT "Event_weight_sum_100_check" CHECK ("weightQualificata" + "weightPopolare" = 100),
+  CONSTRAINT "Event_trimmed_mean_percentage_check" CHECK ("trimmedMeanPercentage" >= 0 AND "trimmedMeanPercentage" < 50)
 );
 
 CREATE TABLE "RootCredential" (
@@ -74,6 +85,8 @@ CREATE TABLE "JudgeToken" (
   "id" TEXT PRIMARY KEY,
   "eventId" TEXT NOT NULL,
   "label" TEXT,
+  "type" "VoterType" NOT NULL DEFAULT 'QUALIFICATA',
+  "status" "VoterStatus" NOT NULL DEFAULT 'ACTIVE',
   "tokenHash" TEXT NOT NULL UNIQUE,
   "tokenPreview" TEXT NOT NULL,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -92,7 +105,7 @@ CREATE TABLE "Vote" (
   "candidateId" TEXT NOT NULL,
   "deviceId" TEXT,
   "judgeTokenId" TEXT,
-  "score" INTEGER NOT NULL,
+  "score" INTEGER,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT "Vote_candidateId_deviceId_key" UNIQUE ("candidateId", "deviceId"),
   CONSTRAINT "Vote_candidateId_judgeTokenId_key" UNIQUE ("candidateId", "judgeTokenId"),
@@ -107,6 +120,8 @@ CREATE TABLE "Vote" (
 -- Root bootstrap:
 -- password di default: ChangeMeRoot2026!
 -- Cambiarla subito via API /api/auth/root/password.
+-- Manager demo evento:
+-- password di default: Evento2026!
 INSERT INTO "RootCredential" (
   "id",
   "passwordHash",
@@ -118,5 +133,46 @@ INSERT INTO "RootCredential" (
   '8f6e5ab8c1974d9c8d21321153857624',
   210000
 );
+
+WITH seeded_event AS (
+  INSERT INTO "Event" (
+    "id",
+    "code",
+    "name",
+    "subtitle",
+    "active",
+    "votingClosed",
+    "weightQualificata",
+    "weightPopolare",
+    "enableTrimmedMean",
+    "trimmedMeanPercentage"
+  ) VALUES (
+    'ev_demo_2026',
+    '00001',
+    'Festival della Canzone 2026',
+    'Vota il tuo artista preferito',
+    TRUE,
+    TRUE,
+    70,
+    30,
+    FALSE,
+    10.0
+  )
+  RETURNING "id"
+)
+INSERT INTO "EventManagerCredential" (
+  "id",
+  "eventId",
+  "passwordHash",
+  "passwordSalt",
+  "passwordIterations"
+)
+SELECT
+  'mgr_demo_2026',
+  seeded_event."id",
+  '664840f0ccb4cd4d00d532cb354d9aeaed828be0f4a2f9290e4169dd058254a851d3f62817a3e2257ac13ab759b1e7009dde59273ba8e2b58f24d8b2a40b7467',
+  '43f325a271782253cbf4e1544c7031e3',
+  210000
+FROM seeded_event;
 
 COMMIT;

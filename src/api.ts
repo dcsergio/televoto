@@ -45,6 +45,10 @@ export interface AdminEventSummary {
   subtitle: string | null;
   active: boolean;
   votingClosed: boolean;
+  weightQualificata: number;
+  weightPopolare: number;
+  enableTrimmedMean: boolean;
+  trimmedMeanPercentage: number;
   createdAt: string;
 }
 
@@ -139,7 +143,14 @@ export async function createEvent(input: {
 
 export async function updateEvent(
   eventId: string,
-  input: Partial<{ name: string; subtitle: string | null }>,
+  input: Partial<{
+    name: string;
+    subtitle: string | null;
+    weightQualificata: number;
+    weightPopolare: number;
+    enableTrimmedMean: boolean;
+    trimmedMeanPercentage: number;
+  }>,
   authToken: string
 ): Promise<AdminEventSummary> {
   const res = await fetch(`${BASE}/events/${eventId}`, {
@@ -226,7 +237,7 @@ export async function startEvent(
 
 export async function castVote(
   candidateId: string,
-  score: number,
+  score: number | null,
   judgeToken: string
 ): Promise<{ ok: boolean }> {
   const res = await fetch(`${BASE}/vote`, {
@@ -244,6 +255,8 @@ export async function castVote(
 export interface VotingProgressJudge {
   id: string;
   label: string | null;
+  type: "QUALIFICATA" | "POPOLARE";
+  voterStatus: "ACTIVE" | "SUBMITTED";
   tokenPreview: string;
   status: "active" | "used" | "revoked";
   votesCast: number;
@@ -258,6 +271,20 @@ export interface VotingProgress {
   finalizedJudges: number;
   revokedJudges: number;
   judges: VotingProgressJudge[];
+  qualified: {
+    totalJudges: number;
+    activeJudges: number;
+    submittedJudges: number;
+    revokedJudges: number;
+  };
+  popular: {
+    totalTokens: number;
+    activeTokens: number;
+    submittedTokens: number;
+    revokedTokens: number;
+    activatedTokens: number;
+    totalVotesCast: number;
+  };
   incompleteCandidates: Array<{
     candidateId: string;
     candidateNumber: number;
@@ -341,8 +368,13 @@ export interface RankingEntry {
   name: string;
   color: string;
   totalScore: number;
+  finalScore: number;
   voteCount: number;
   avgScore: number;
+  avgQualificata: number;
+  avgPopolare: number;
+  qualifiedVoteCount: number;
+  popularVoteCount: number;
 }
 
 export async function fetchRankings(eventId: string): Promise<RankingEntry[]> {
@@ -351,11 +383,53 @@ export async function fetchRankings(eventId: string): Promise<RankingEntry[]> {
   return res.json();
 }
 
+export interface PartialRankingEntry {
+  id: string;
+  number: number;
+  name: string;
+  color: string;
+  avgQualificata: number;
+  avgPopolare: number;
+  finalScore: number;
+  qualifiedVoteCount: number;
+  popularVoteCount: number;
+  totalVoteCount: number;
+  position: number;
+}
+
+export interface PartialRankings {
+  qualified: PartialRankingEntry[];
+  popular: PartialRankingEntry[];
+  weighted: PartialRankingEntry[];
+  weights: {
+    qualificata: number;
+    popolare: number;
+  };
+  eligibleQualifiedJudges: number;
+  event: {
+    enableTrimmedMean: boolean;
+    trimmedMeanPercentage: number;
+  };
+}
+
+export async function fetchPartialRankings(eventId: string, authToken: string): Promise<PartialRankings> {
+  const res = await fetch(`${BASE}/events/${eventId}/partial-rankings`, {
+    headers: withAuthHeaders(authToken),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Errore nel caricamento classifiche parziali");
+  }
+  return res.json();
+}
+
 export type JudgeTokenStatus = "active" | "used" | "revoked" | "invalid";
 
 export interface JudgeTokenRecord {
   id: string;
   label: string | null;
+  type: "QUALIFICATA" | "POPOLARE";
+  voterStatus: "ACTIVE" | "SUBMITTED";
   tokenPreview: string;
   createdAt: string;
   usedAt: string | null;
@@ -391,7 +465,7 @@ export function buildJudgeTokenStreamUrl(eventId: string, authToken: string) {
 
 export async function generateJudgeTokens(
   eventId: string,
-  input: { count: number; labelPrefix?: string; origin?: string },
+  input: { count: number; labelPrefix?: string; origin?: string; type?: "QUALIFICATA" | "POPOLARE" },
   authToken: string
 ): Promise<{ ok: boolean; codes: GeneratedJudgeToken[] }> {
   const res = await fetch(`${BASE}/events/${eventId}/judge-tokens`, {

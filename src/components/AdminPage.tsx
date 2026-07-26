@@ -81,6 +81,13 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
     managerPassword: "",
   });
   const [eventManagerPasswordInput, setEventManagerPasswordInput] = useState("");
+  const [updatingVotingSettings, setUpdatingVotingSettings] = useState(false);
+  const [eventSettingsDraft, setEventSettingsDraft] = useState({
+    weightQualificata: 70,
+    weightPopolare: 30,
+    enableTrimmedMean: false,
+    trimmedMeanPercentage: 10,
+  });
   const [eventManagerToken, setEventManagerToken] = useState<string | null>(null);
   const [authenticatingManager, setAuthenticatingManager] = useState(false);
   const [updatingManagerPassword, setUpdatingManagerPassword] = useState(false);
@@ -205,10 +212,85 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
 
   useEffect(() => {
     setSelectedEventNameDraft(selectedEvent?.name ?? "");
+    setEventSettingsDraft({
+      weightQualificata: selectedEvent?.weightQualificata ?? 70,
+      weightPopolare: selectedEvent?.weightPopolare ?? 30,
+      enableTrimmedMean: selectedEvent?.enableTrimmedMean ?? false,
+      trimmedMeanPercentage: selectedEvent?.trimmedMeanPercentage ?? 10,
+    });
     setEventManagerToken(null);
     setEventManagerPasswordInput("");
     setManagerPasswordDraft("");
-  }, [selectedEvent?.id, selectedEvent?.name]);
+  }, [
+    selectedEvent?.id,
+    selectedEvent?.name,
+    selectedEvent?.weightQualificata,
+    selectedEvent?.weightPopolare,
+    selectedEvent?.enableTrimmedMean,
+    selectedEvent?.trimmedMeanPercentage,
+  ]);
+
+  async function handleUpdateVotingSettings(e: SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!selectedEvent || !rootAuthToken) return;
+
+    const { weightQualificata, weightPopolare, trimmedMeanPercentage } = eventSettingsDraft;
+    if (!Number.isInteger(weightQualificata) || !Number.isInteger(weightPopolare)) {
+      setError("I pesi devono essere numeri interi.");
+      setStatusMessage(null);
+      return;
+    }
+    if (weightQualificata < 0 || weightQualificata > 100 || weightPopolare < 0 || weightPopolare > 100) {
+      setError("I pesi devono essere compresi tra 0 e 100.");
+      setStatusMessage(null);
+      return;
+    }
+    if (weightQualificata + weightPopolare !== 100) {
+      setError("La somma dei pesi deve essere esattamente 100.");
+      setStatusMessage(null);
+      return;
+    }
+    if (trimmedMeanPercentage < 0 || trimmedMeanPercentage >= 50) {
+      setError("La percentuale trimmed mean deve essere tra 0 e 49.99.");
+      setStatusMessage(null);
+      return;
+    }
+
+    try {
+      setUpdatingVotingSettings(true);
+      const updated = await updateEvent(
+        selectedEvent.id,
+        {
+          weightQualificata,
+          weightPopolare,
+          enableTrimmedMean: eventSettingsDraft.enableTrimmedMean,
+          trimmedMeanPercentage,
+        },
+        rootAuthToken
+      );
+      setEvents((previous) =>
+        previous.map((event) =>
+          event.id === updated.id
+            ? {
+                ...event,
+                weightQualificata: updated.weightQualificata,
+                weightPopolare: updated.weightPopolare,
+                enableTrimmedMean: updated.enableTrimmedMean,
+                trimmedMeanPercentage: updated.trimmedMeanPercentage,
+              }
+            : event
+        )
+      );
+      setError(null);
+      setStatusMessage("Impostazioni pesatura aggiornate con successo.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Errore nell'aggiornamento impostazioni votazione";
+      setError(msg);
+      setStatusMessage(null);
+    } finally {
+      setUpdatingVotingSettings(false);
+    }
+  }
 
   useEffect(() => {
     const onPopState = () => {
@@ -877,6 +959,84 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
                           className="rounded-2xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 transition disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {updatingManagerPassword ? "Aggiornamento..." : "Aggiorna password evento"}
+                        </button>
+                      </form>
+                      <form onSubmit={handleUpdateVotingSettings} className="space-y-3 rounded-2xl border border-slate-700 bg-slate-950/50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Pesatura giurie</p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <label className="space-y-1">
+                            <span className="text-xs text-text-secondary">Peso Qualificata (%)</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={eventSettingsDraft.weightQualificata}
+                              onChange={(e) =>
+                                setEventSettingsDraft((prev) => ({
+                                  ...prev,
+                                  weightQualificata: Number(e.target.value),
+                                }))
+                              }
+                              className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                            />
+                          </label>
+                          <label className="space-y-1">
+                            <span className="text-xs text-text-secondary">Peso Popolare (%)</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={eventSettingsDraft.weightPopolare}
+                              onChange={(e) =>
+                                setEventSettingsDraft((prev) => ({
+                                  ...prev,
+                                  weightPopolare: Number(e.target.value),
+                                }))
+                              }
+                              className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                            />
+                          </label>
+                        </div>
+                        <p className="text-xs text-text-secondary">
+                          Somma attuale: {eventSettingsDraft.weightQualificata + eventSettingsDraft.weightPopolare}
+                        </p>
+                        <label className="flex items-center gap-2 text-sm text-text-secondary">
+                          <input
+                            type="checkbox"
+                            checked={eventSettingsDraft.enableTrimmedMean}
+                            onChange={(e) =>
+                              setEventSettingsDraft((prev) => ({
+                                ...prev,
+                                enableTrimmedMean: e.target.checked,
+                              }))
+                            }
+                          />
+                          Abilita trimmed mean su voti popolari
+                        </label>
+                        <label className="space-y-1">
+                          <span className="text-xs text-text-secondary">Percentuale trimmed mean (%)</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={49.99}
+                            step={0.1}
+                            value={eventSettingsDraft.trimmedMeanPercentage}
+                            onChange={(e) =>
+                              setEventSettingsDraft((prev) => ({
+                                ...prev,
+                                trimmedMeanPercentage: Number(e.target.value),
+                              }))
+                            }
+                            disabled={!eventSettingsDraft.enableTrimmedMean}
+                            className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary disabled:opacity-50"
+                          />
+                        </label>
+                        <button
+                          type="submit"
+                          disabled={updatingVotingSettings}
+                          className="rounded-2xl border border-cyan-400/40 bg-cyan-400/15 px-4 py-2 text-sm font-semibold text-cyan-200 hover:bg-cyan-400/25 transition disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {updatingVotingSettings ? "Salvataggio..." : "Salva impostazioni voto"}
                         </button>
                       </form>
                     </>

@@ -226,15 +226,25 @@ function normalizeJudgeToken(value: unknown) {
   return normalized.length > 0 ? normalized : null;
 }
 
-function getJudgeTokenStatus(record: { finalizedAt: Date | null; revokedAt: Date | null }) {
+type VoterType = "QUALIFICATA" | "POPOLARE";
+type VoterStatus = "ACTIVE" | "SUBMITTED";
+
+function normalizeVoterType(value: unknown): VoterType | null {
+  if (value === "QUALIFICATA" || value === "POPOLARE") return value;
+  return null;
+}
+
+function getJudgeTokenStatus(record: { finalizedAt: Date | null; revokedAt: Date | null; status?: VoterStatus }) {
   if (record.revokedAt) return "revoked";
-  if (record.finalizedAt) return "used";
+  if (record.finalizedAt || record.status === "SUBMITTED") return "used";
   return "active";
 }
 
 type JudgeTokenSnapshot = {
   id: string;
   label: string | null;
+  type: VoterType;
+  voterStatus: VoterStatus;
   tokenPreview: string;
   createdAt: Date;
   finalizedAt: Date | null;
@@ -250,6 +260,8 @@ async function getJudgeTokenSnapshot(eventId: string): Promise<JudgeTokenSnapsho
     select: {
       id: true,
       label: true,
+      type: true,
+      status: true,
       tokenPreview: true,
       createdAt: true,
       finalizedAt: true,
@@ -259,7 +271,14 @@ async function getJudgeTokenSnapshot(eventId: string): Promise<JudgeTokenSnapsho
   });
 
   return judgeTokens.map((token): JudgeTokenSnapshot => ({
-    ...token,
+    id: token.id,
+    label: token.label,
+    type: token.type as VoterType,
+    voterStatus: token.status as VoterStatus,
+    tokenPreview: token.tokenPreview,
+    createdAt: token.createdAt,
+    finalizedAt: token.finalizedAt,
+    revokedAt: token.revokedAt,
     usedAt: token.finalizedAt ?? null,
     status: getJudgeTokenStatus(token),
   }));
@@ -267,15 +286,17 @@ async function getJudgeTokenSnapshot(eventId: string): Promise<JudgeTokenSnapsho
 
 async function getJudgeTokenVotes(judgeTokenId: string) {
   const votes = await prisma.vote.findMany({
-    where: { judgeTokenId },
+    where: { judgeTokenId, score: { not: null } },
     select: {
       candidateId: true,
       score: true,
     },
   });
 
-  return votes.reduce<Record<string, number>>((accumulator: Record<string, number>, vote: { candidateId: string; score: number }) => {
-    accumulator[vote.candidateId] = vote.score;
+  return votes.reduce<Record<string, number>>((accumulator: Record<string, number>, vote: { candidateId: string; score: number | null }) => {
+    if (typeof vote.score === "number") {
+      accumulator[vote.candidateId] = vote.score;
+    }
     return accumulator;
   }, {});
 }
@@ -431,6 +452,10 @@ app.get("/api/events", async (req, res) => {
         subtitle: true,
         active: true,
         votingClosed: true,
+        weightQualificata: true,
+        weightPopolare: true,
+        enableTrimmedMean: true,
+        trimmedMeanPercentage: true,
         createdAt: true,
       },
     });
@@ -497,6 +522,10 @@ app.post("/api/events", async (req, res) => {
         subtitle: true,
         active: true,
         votingClosed: true,
+        weightQualificata: true,
+        weightPopolare: true,
+        enableTrimmedMean: true,
+        trimmedMeanPercentage: true,
         createdAt: true,
       },
     });
@@ -557,7 +586,18 @@ app.get("/api/events/:eventId", async (req, res) => {
   const { eventId } = req.params;
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    select: { id: true, code: true, name: true, subtitle: true, active: true, votingClosed: true },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      subtitle: true,
+      active: true,
+      votingClosed: true,
+      weightQualificata: true,
+      weightPopolare: true,
+      enableTrimmedMean: true,
+      trimmedMeanPercentage: true,
+    },
   });
 
   if (!event) {
@@ -572,8 +612,22 @@ app.put("/api/events/:eventId", async (req, res) => {
   if (!requireRootAuth(req, res)) return;
 
   const { eventId } = req.params;
-  const body = (req.body ?? {}) as { name?: string; subtitle?: string | null };
-  const updateData: { name?: string; subtitle?: string | null } = {};
+  const body = (req.body ?? {}) as {
+    name?: string;
+    subtitle?: string | null;
+    weightQualificata?: number;
+    weightPopolare?: number;
+    enableTrimmedMean?: boolean;
+    trimmedMeanPercentage?: number;
+  };
+  const updateData: {
+    name?: string;
+    subtitle?: string | null;
+    weightQualificata?: number;
+    weightPopolare?: number;
+    enableTrimmedMean?: boolean;
+    trimmedMeanPercentage?: number;
+  } = {};
 
   if (Object.hasOwn(body, "name")) {
     const normalizedName = normalizeEventName(body.name);
@@ -594,6 +648,49 @@ app.put("/api/events/:eventId", async (req, res) => {
       res.status(400).json({ error: "Sottotitolo non valido" });
       return;
     }
+
+    const hasWeightQualificata = Object.hasOwn(body, "weightQualificata");
+    const hasWeightPopolare = Object.hasOwn(body, "weightPopolare");
+    if (hasWeightQualificata || hasWeightPopolare) {
+      if (typeof body.weightQualificata !== "number" || typeof body.weightPopolare !== "number") {
+        res.status(400).json({ error: "Inserisci entrambi i pesi come numeri interi" });
+        return;
+      }
+      if (!Number.isInteger(body.weightQualificata) || !Number.isInteger(body.weightPopolare)) {
+        res.status(400).json({ error: "I pesi devono essere interi" });
+        return;
+      }
+      if (body.weightQualificata < 0 || body.weightQualificata > 100 || body.weightPopolare < 0 || body.weightPopolare > 100) {
+        res.status(400).json({ error: "I pesi devono essere compresi tra 0 e 100" });
+        return;
+      }
+      if (body.weightQualificata + body.weightPopolare !== 100) {
+        res.status(400).json({ error: "La somma dei pesi deve essere esattamente 100" });
+        return;
+      }
+      updateData.weightQualificata = body.weightQualificata;
+      updateData.weightPopolare = body.weightPopolare;
+    }
+
+    if (Object.hasOwn(body, "enableTrimmedMean")) {
+      if (typeof body.enableTrimmedMean !== "boolean") {
+        res.status(400).json({ error: "Il flag trimmed mean non è valido" });
+        return;
+      }
+      updateData.enableTrimmedMean = body.enableTrimmedMean;
+    }
+
+    if (Object.hasOwn(body, "trimmedMeanPercentage")) {
+      if (typeof body.trimmedMeanPercentage !== "number" || Number.isNaN(body.trimmedMeanPercentage)) {
+        res.status(400).json({ error: "La percentuale trimmed mean non è valida" });
+        return;
+      }
+      if (body.trimmedMeanPercentage < 0 || body.trimmedMeanPercentage >= 50) {
+        res.status(400).json({ error: "La percentuale trimmed mean deve essere tra 0 e 49.99" });
+        return;
+      }
+      updateData.trimmedMeanPercentage = body.trimmedMeanPercentage;
+    }
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -612,6 +709,10 @@ app.put("/api/events/:eventId", async (req, res) => {
         subtitle: true,
         active: true,
         votingClosed: true,
+        weightQualificata: true,
+        weightPopolare: true,
+        enableTrimmedMean: true,
+        trimmedMeanPercentage: true,
         createdAt: true,
       },
     });
@@ -667,14 +768,14 @@ app.post("/api/vote", async (req, res) => {
   const { candidateId, score } = req.body as {
     candidateId: string;
     judgeToken?: string;
-    score: number;
+    score: number | null;
   };
 
-  if (!candidateId || typeof score !== "number") {
+  if (!candidateId || (score !== null && typeof score !== "number")) {
     res.status(400).json({ error: "Missing fields" });
     return;
   }
-  if (score < 1 || score > 10 || !Number.isInteger(score)) {
+  if (typeof score === "number" && (score < 1 || score > 10 || !Number.isInteger(score))) {
     res.status(400).json({ error: "Score must be integer 1-10" });
     return;
   }
@@ -708,6 +809,8 @@ app.post("/api/vote", async (req, res) => {
       select: {
         id: true,
         eventId: true,
+        type: true,
+        status: true,
         finalizedAt: true,
         usedAt: true,
         revokedAt: true,
@@ -724,12 +827,22 @@ app.post("/api/vote", async (req, res) => {
       return;
     }
 
-    if (judgeRecord.finalizedAt) {
+    if (judgeRecord.finalizedAt || judgeRecord.status === "SUBMITTED") {
       res.status(403).json({ error: "Codice giudice bloccato" });
       return;
     }
 
-    const vote = await prisma.$transaction((tx: Prisma.TransactionClient) => {
+    const vote = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (score === null) {
+        await tx.vote.deleteMany({
+          where: {
+            candidateId,
+            judgeTokenId: judgeRecord.id,
+          },
+        });
+        return null;
+      }
+
       return tx.vote.upsert({
         where: {
           candidateId_judgeTokenId: {
@@ -797,6 +910,7 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
   const { count, labelPrefix } = req.body as {
     count?: number;
     labelPrefix?: string;
+    type?: VoterType;
     origin?: string;
   };
 
@@ -806,6 +920,7 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
   }
 
   try {
+    const voterType = normalizeVoterType(req.body?.type) ?? "QUALIFICATA";
     const fallbackOrigin = `${req.protocol}://${req.get("host")}`;
     const clientOrigin = typeof req.body.origin === "string" && req.body.origin.trim()
       ? req.body.origin.trim()
@@ -824,6 +939,8 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
     const generated: Array<{
       id: string;
       label: string | null;
+      type: VoterType;
+      voterStatus: VoterStatus;
       token: string;
       tokenPreview: string;
       createdAt: Date;
@@ -838,6 +955,8 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
         data: {
           eventId,
           label: labelPrefix ? `${labelPrefix} ${index + 1}` : null,
+          type: voterType,
+          status: "ACTIVE",
           tokenHash: hashOpaqueToken(rawToken),
           tokenPreview: rawToken.slice(0, 8),
         },
@@ -846,6 +965,8 @@ app.post("/api/events/:eventId/judge-tokens", async (req, res) => {
       generated.push({
         id: record.id,
         label: record.label,
+        type: record.type as VoterType,
+        voterStatus: record.status as VoterStatus,
         token: rawToken,
         tokenPreview: record.tokenPreview,
         createdAt: record.createdAt,
@@ -897,6 +1018,8 @@ app.post("/api/judge-tokens/validate", async (req, res) => {
         id: true,
         label: true,
         eventId: true,
+        type: true,
+        status: true,
         tokenPreview: true,
         createdAt: true,
         finalizedAt: true,
@@ -940,6 +1063,7 @@ app.post("/api/judge-tokens/validate", async (req, res) => {
       votes,
       code: {
         ...judgeToken,
+        voterStatus: judgeToken.status,
         usedAt: judgeToken.finalizedAt ?? null,
         status,
         votes,
@@ -975,6 +1099,8 @@ app.post("/api/judge-tokens/finalize", async (req, res) => {
         id: true,
         eventId: true,
         label: true,
+        type: true,
+        status: true,
         tokenPreview: true,
         createdAt: true,
         finalizedAt: true,
@@ -1008,7 +1134,7 @@ app.post("/api/judge-tokens/finalize", async (req, res) => {
     const votes = await getJudgeTokenVotes(judgeToken.id);
     const candidateCount = await prisma.candidate.count({ where: { eventId: judgeToken.eventId } });
 
-    if (judgeToken.finalizedAt) {
+    if (judgeToken.finalizedAt || judgeToken.status === "SUBMITTED") {
       res.json({
         ok: true,
         status: "used",
@@ -1016,6 +1142,7 @@ app.post("/api/judge-tokens/finalize", async (req, res) => {
         votes,
         code: {
           ...judgeToken,
+          voterStatus: judgeToken.status,
           usedAt: judgeToken.finalizedAt ?? null,
           status: "used",
           votes,
@@ -1024,18 +1151,21 @@ app.post("/api/judge-tokens/finalize", async (req, res) => {
       return;
     }
 
-    if (candidateCount > 0 && Object.keys(votes).length !== candidateCount) {
+    const requiresCompleteBallot = judgeToken.type === "QUALIFICATA";
+    if (requiresCompleteBallot && candidateCount > 0 && Object.keys(votes).length !== candidateCount) {
       res.status(400).json({ error: "Completa tutte le preferenze prima di bloccare il codice" });
       return;
     }
 
     const updated = await prisma.judgeToken.update({
       where: { id: judgeToken.id },
-      data: { finalizedAt: new Date(), usedAt: new Date() },
+      data: { finalizedAt: new Date(), usedAt: new Date(), status: "SUBMITTED" },
       select: {
         id: true,
         eventId: true,
         label: true,
+        type: true,
+        status: true,
         tokenPreview: true,
         createdAt: true,
         finalizedAt: true,
@@ -1053,6 +1183,7 @@ app.post("/api/judge-tokens/finalize", async (req, res) => {
       votes,
       code: {
         ...updated,
+        voterStatus: updated.status,
         usedAt: updated.finalizedAt ?? null,
         status: getJudgeTokenStatus(updated),
         votes,
@@ -1086,6 +1217,8 @@ app.post("/api/judge-tokens/:id/revoke", async (req, res) => {
         id: true,
         eventId: true,
         label: true,
+        type: true,
+        status: true,
         tokenPreview: true,
         createdAt: true,
         finalizedAt: true,
@@ -1096,6 +1229,7 @@ app.post("/api/judge-tokens/:id/revoke", async (req, res) => {
 
     res.json({
       ...updated,
+      voterStatus: updated.status,
       usedAt: updated.finalizedAt ?? null,
       status: getJudgeTokenStatus(updated),
     });
@@ -1252,28 +1386,36 @@ app.get("/api/events/:eventId/voting-progress", async (req, res) => {
         select: {
           id: true,
           label: true,
+          type: true,
+          status: true,
           tokenPreview: true,
           finalizedAt: true,
           revokedAt: true,
-          votes: { select: { candidateId: true } },
+          votes: { select: { candidateId: true, score: true } },
         },
       }),
     ]);
 
     const candidateCount = candidates.length;
-    const activeJudges = judgeTokens.filter((token) => !token.revokedAt && !token.finalizedAt);
-    const finalizedJudges = judgeTokens.filter((token) => token.finalizedAt && !token.revokedAt);
-    const revokedJudges = judgeTokens.filter((token) => token.revokedAt);
+    const qualifiedTokens = judgeTokens.filter((token) => token.type === "QUALIFICATA");
+    const popularTokens = judgeTokens.filter((token) => token.type === "POPOLARE");
+    const qualifiedActiveJudges = qualifiedTokens.filter((token) => !token.revokedAt && getJudgeTokenStatus(token) === "active");
+    const qualifiedSubmittedJudges = qualifiedTokens.filter((token) => !token.revokedAt && getJudgeTokenStatus(token) === "used");
+    const qualifiedRevokedJudges = qualifiedTokens.filter((token) => token.revokedAt);
 
-    const judges = judgeTokens.map((token) => {
+    const judges = qualifiedTokens.map((token) => {
       const status = getJudgeTokenStatus(token);
-      const votedCandidateIds = new Set(token.votes.map((vote) => vote.candidateId));
+      const votedCandidateIds = new Set(
+        token.votes.filter((vote) => typeof vote.score === "number").map((vote) => vote.candidateId)
+      );
       const votesCast = votedCandidateIds.size;
       const missingCandidates = candidates.filter((candidate) => !votedCandidateIds.has(candidate.id));
 
       return {
         id: token.id,
         label: token.label,
+        type: token.type,
+        voterStatus: token.status,
         tokenPreview: token.tokenPreview,
         status,
         votesCast,
@@ -1290,8 +1432,8 @@ app.get("/api/events/:eventId/voting-progress", async (req, res) => {
 
     const incompleteCandidates = candidates
       .map((candidate) => {
-        const missingJudgeCount = activeJudges.filter(
-          (judge) => !judge.votes.some((vote) => vote.candidateId === candidate.id)
+        const missingJudgeCount = qualifiedActiveJudges.filter(
+          (judge) => !judge.votes.some((vote) => vote.candidateId === candidate.id && typeof vote.score === "number")
         ).length;
 
         return {
@@ -1303,14 +1445,38 @@ app.get("/api/events/:eventId/voting-progress", async (req, res) => {
       })
       .filter((entry) => entry.missingJudgeCount > 0);
 
+    const popularValidVotes = popularTokens.flatMap((token) =>
+      token.votes.filter((vote) => typeof vote.score === "number")
+    );
+    const popularActivatedTokens = popularTokens.filter((token) =>
+      token.votes.some((vote) => typeof vote.score === "number")
+    );
+    const popularSubmittedTokens = popularTokens.filter((token) => !token.revokedAt && getJudgeTokenStatus(token) === "used");
+    const popularActiveTokens = popularTokens.filter((token) => !token.revokedAt && getJudgeTokenStatus(token) === "active");
+    const popularRevokedTokens = popularTokens.filter((token) => token.revokedAt);
+
     res.json({
       candidateCount,
-      totalJudges: judgeTokens.length,
-      activeJudges: activeJudges.length,
-      finalizedJudges: finalizedJudges.length,
-      revokedJudges: revokedJudges.length,
+      totalJudges: qualifiedTokens.length,
+      activeJudges: qualifiedActiveJudges.length,
+      finalizedJudges: qualifiedSubmittedJudges.length,
+      revokedJudges: qualifiedRevokedJudges.length,
       judges,
       incompleteCandidates,
+      qualified: {
+        totalJudges: qualifiedTokens.length,
+        activeJudges: qualifiedActiveJudges.length,
+        submittedJudges: qualifiedSubmittedJudges.length,
+        revokedJudges: qualifiedRevokedJudges.length,
+      },
+      popular: {
+        totalTokens: popularTokens.length,
+        activeTokens: popularActiveTokens.length,
+        submittedTokens: popularSubmittedTokens.length,
+        revokedTokens: popularRevokedTokens.length,
+        activatedTokens: popularActivatedTokens.length,
+        totalVotesCast: popularValidVotes.length,
+      },
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
@@ -1414,28 +1580,284 @@ app.get("/api/rankings/:eventId", async (req, res) => {
   const { eventId } = req.params;
 
   try {
-    const candidates = await prisma.candidate.findMany({
-      where: { eventId },
-      include: {
-        votes: {
-          select: { score: true },
+    const [event, candidates, qualifiedTokenIds] = await Promise.all([
+      prisma.event.findUnique({
+        where: { id: eventId },
+        select: {
+          id: true,
+          weightQualificata: true,
+          weightPopolare: true,
+          enableTrimmedMean: true,
+          trimmedMeanPercentage: true,
+        },
+      }),
+      prisma.candidate.findMany({
+        where: { eventId },
+        orderBy: { number: "asc" },
+        select: { id: true, number: true, name: true, color: true },
+      }),
+      prisma.judgeToken.findMany({
+        where: {
+          eventId,
+          type: "QUALIFICATA",
+          revokedAt: null,
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!event) {
+      res.status(404).json({ error: "Evento non trovato" });
+      return;
+    }
+    const eventSettings = event;
+
+    const eligibleQualifiedJudgeCount = qualifiedTokenIds.length;
+
+    const votes = await prisma.vote.findMany({
+      where: {
+        candidate: { eventId },
+        judgeToken: { revokedAt: null },
+        score: { not: null },
+      },
+      select: {
+        candidateId: true,
+        score: true,
+        judgeToken: {
+          select: {
+            type: true,
+          },
         },
       },
     });
 
+    function computeTrimmedMean(rawValues: number[]) {
+      if (rawValues.length === 0) return 0;
+      if (!eventSettings.enableTrimmedMean) {
+        return rawValues.reduce((sum, value) => sum + value, 0) / rawValues.length;
+      }
+
+      const sorted = [...rawValues].sort((a, b) => a - b);
+      const trimEachSide = Math.floor(sorted.length * (eventSettings.trimmedMeanPercentage / 100));
+      if (trimEachSide <= 0 || trimEachSide * 2 >= sorted.length) {
+        return sorted.reduce((sum, value) => sum + value, 0) / sorted.length;
+      }
+      const trimmed = sorted.slice(trimEachSide, sorted.length - trimEachSide);
+      if (trimmed.length === 0) return 0;
+      return trimmed.reduce((sum, value) => sum + value, 0) / trimmed.length;
+    }
+
+    const votesByCandidate = new Map<string, { qualifiedScores: number[]; popularScores: number[] }>();
+    for (const candidate of candidates) {
+      votesByCandidate.set(candidate.id, { qualifiedScores: [], popularScores: [] });
+    }
+
+    for (const vote of votes) {
+      if (typeof vote.score !== "number") continue;
+      const bucket = votesByCandidate.get(vote.candidateId);
+      if (!bucket) continue;
+      if (!vote.judgeToken) continue;
+      if (vote.judgeToken.type === "QUALIFICATA") {
+        bucket.qualifiedScores.push(vote.score);
+      } else {
+        bucket.popularScores.push(vote.score);
+      }
+    }
+
     const rankings = candidates
-      .map((c: { id: string; number: number; name: string; color: string; votes: { score: number }[] }) => ({
-        id: c.id,
-        number: c.number,
-        name: c.name,
-        color: c.color,
-        totalScore: c.votes.reduce((sum: number, v: { score: number }) => sum + v.score, 0),
-        voteCount: c.votes.length,
-        avgScore: c.votes.length > 0 ? c.votes.reduce((sum: number, v: { score: number }) => sum + v.score, 0) / c.votes.length : 0,
-      }))
-      .sort((a: { totalScore: number }, b: { totalScore: number }) => b.totalScore - a.totalScore);
+      .map((candidate) => {
+        const candidateVotes = votesByCandidate.get(candidate.id) ?? { qualifiedScores: [], popularScores: [] };
+        const qualifiedSum = candidateVotes.qualifiedScores.reduce((sum, score) => sum + score, 0);
+        const avgQualificata = eligibleQualifiedJudgeCount > 0 ? qualifiedSum / eligibleQualifiedJudgeCount : 0;
+        const avgPopolare = computeTrimmedMean(candidateVotes.popularScores);
+        const finalScore = (avgQualificata * (eventSettings.weightQualificata / 100)) + (avgPopolare * (eventSettings.weightPopolare / 100));
+        const totalValidVotes = candidateVotes.qualifiedScores.length + candidateVotes.popularScores.length;
+
+        return {
+          id: candidate.id,
+          number: candidate.number,
+          name: candidate.name,
+          color: candidate.color,
+          totalScore: finalScore,
+          finalScore,
+          voteCount: totalValidVotes,
+          avgScore: totalValidVotes > 0 ? (qualifiedSum + candidateVotes.popularScores.reduce((sum, score) => sum + score, 0)) / totalValidVotes : 0,
+          avgQualificata,
+          avgPopolare,
+          qualifiedVoteCount: candidateVotes.qualifiedScores.length,
+          popularVoteCount: candidateVotes.popularScores.length,
+        };
+      })
+      .sort((a, b) => {
+        const scoreDiff = b.finalScore - a.finalScore;
+        if (Math.abs(scoreDiff) <= 0.001) {
+          const qualifiedDiff = b.avgQualificata - a.avgQualificata;
+          if (Math.abs(qualifiedDiff) > 0.001) return qualifiedDiff;
+          return a.number - b.number;
+        }
+        return scoreDiff;
+      });
 
     res.json(rankings);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    res.status(500).json({ error: msg });
+  }
+});
+
+// Backstage partial rankings: split by jury type
+app.get("/api/events/:eventId/partial-rankings", async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!requireEventManagerAuth(req, res, eventId)) return;
+
+  try {
+    const [event, candidates, qualifiedTokenIds] = await Promise.all([
+      prisma.event.findUnique({
+        where: { id: eventId },
+        select: {
+          id: true,
+          weightQualificata: true,
+          weightPopolare: true,
+          enableTrimmedMean: true,
+          trimmedMeanPercentage: true,
+        },
+      }),
+      prisma.candidate.findMany({
+        where: { eventId },
+        orderBy: { number: "asc" },
+        select: { id: true, number: true, name: true, color: true },
+      }),
+      prisma.judgeToken.findMany({
+        where: {
+          eventId,
+          type: "QUALIFICATA",
+          revokedAt: null,
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!event) {
+      res.status(404).json({ error: "Evento non trovato" });
+      return;
+    }
+    const eventSettings = event;
+
+    const eligibleQualifiedJudgeCount = qualifiedTokenIds.length;
+
+    const votes = await prisma.vote.findMany({
+      where: {
+        candidate: { eventId },
+        judgeToken: { revokedAt: null },
+        score: { not: null },
+      },
+      select: {
+        candidateId: true,
+        score: true,
+        judgeToken: {
+          select: {
+            type: true,
+          },
+        },
+      },
+    });
+
+    function computeTrimmedMean(rawValues: number[]) {
+      if (rawValues.length === 0) return 0;
+      if (!eventSettings.enableTrimmedMean) {
+        return rawValues.reduce((sum, value) => sum + value, 0) / rawValues.length;
+      }
+
+      const sorted = [...rawValues].sort((a, b) => a - b);
+      const trimEachSide = Math.floor(sorted.length * (eventSettings.trimmedMeanPercentage / 100));
+      if (trimEachSide <= 0 || trimEachSide * 2 >= sorted.length) {
+        return sorted.reduce((sum, value) => sum + value, 0) / sorted.length;
+      }
+      const trimmed = sorted.slice(trimEachSide, sorted.length - trimEachSide);
+      if (trimmed.length === 0) return 0;
+      return trimmed.reduce((sum, value) => sum + value, 0) / trimmed.length;
+    }
+
+    const votesByCandidate = new Map<string, { qualifiedScores: number[]; popularScores: number[] }>();
+    for (const candidate of candidates) {
+      votesByCandidate.set(candidate.id, { qualifiedScores: [], popularScores: [] });
+    }
+
+    for (const vote of votes) {
+      if (typeof vote.score !== "number") continue;
+      const bucket = votesByCandidate.get(vote.candidateId);
+      if (!bucket) continue;
+      if (!vote.judgeToken) continue;
+      if (vote.judgeToken.type === "QUALIFICATA") {
+        bucket.qualifiedScores.push(vote.score);
+      } else {
+        bucket.popularScores.push(vote.score);
+      }
+    }
+
+    const baseEntries = candidates.map((candidate) => {
+      const candidateVotes = votesByCandidate.get(candidate.id) ?? { qualifiedScores: [], popularScores: [] };
+      const qualifiedSum = candidateVotes.qualifiedScores.reduce((sum, score) => sum + score, 0);
+      const avgQualificata = eligibleQualifiedJudgeCount > 0 ? qualifiedSum / eligibleQualifiedJudgeCount : 0;
+      const avgPopolare = computeTrimmedMean(candidateVotes.popularScores);
+      const finalScore = (avgQualificata * (eventSettings.weightQualificata / 100)) + (avgPopolare * (eventSettings.weightPopolare / 100));
+      return {
+        id: candidate.id,
+        number: candidate.number,
+        name: candidate.name,
+        color: candidate.color,
+        avgQualificata,
+        avgPopolare,
+        finalScore,
+        qualifiedVoteCount: candidateVotes.qualifiedScores.length,
+        popularVoteCount: candidateVotes.popularScores.length,
+        totalVoteCount: candidateVotes.qualifiedScores.length + candidateVotes.popularScores.length,
+      };
+    });
+
+    const weightedRankings = [...baseEntries]
+      .sort((a, b) => {
+        const diff = b.finalScore - a.finalScore;
+        if (Math.abs(diff) <= 0.001) {
+          const qualifiedDiff = b.avgQualificata - a.avgQualificata;
+          if (Math.abs(qualifiedDiff) > 0.001) return qualifiedDiff;
+          return a.number - b.number;
+        }
+        return diff;
+      })
+      .map((entry, index) => ({ ...entry, position: index + 1 }));
+
+    const qualifiedRankings = [...baseEntries]
+      .sort((a, b) => {
+        const diff = b.avgQualificata - a.avgQualificata;
+        if (Math.abs(diff) <= 0.001) return a.number - b.number;
+        return diff;
+      })
+      .map((entry, index) => ({ ...entry, position: index + 1 }));
+
+    const popularRankings = [...baseEntries]
+      .sort((a, b) => {
+        const diff = b.avgPopolare - a.avgPopolare;
+        if (Math.abs(diff) <= 0.001) return a.number - b.number;
+        return diff;
+      })
+      .map((entry, index) => ({ ...entry, position: index + 1 }));
+
+    res.json({
+      qualified: qualifiedRankings,
+      popular: popularRankings,
+      weighted: weightedRankings,
+      weights: {
+        qualificata: eventSettings.weightQualificata,
+        popolare: eventSettings.weightPopolare,
+      },
+      eligibleQualifiedJudges: eligibleQualifiedJudgeCount,
+      event: {
+        enableTrimmedMean: eventSettings.enableTrimmedMean,
+        trimmedMeanPercentage: eventSettings.trimmedMeanPercentage,
+      },
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     res.status(500).json({ error: msg });

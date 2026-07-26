@@ -7,6 +7,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum VoterType {
+  QUALIFICATA
+  POPOLARE
+}
+
+enum VoterStatus {
+  ACTIVE
+  SUBMITTED
+}
+
 model Event {
   id                String                  @id @default(cuid())
   code              String                  @unique
@@ -14,6 +24,10 @@ model Event {
   subtitle          String?
   active            Boolean                 @default(true)
   votingClosed      Boolean                 @default(false)
+  weightQualificata Int                     @default(70)
+  weightPopolare    Int                     @default(30)
+  enableTrimmedMean Boolean                 @default(false)
+  trimmedMeanPercentage Float               @default(10.0)
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @updatedAt
   candidates        Candidate[]
@@ -70,6 +84,8 @@ model JudgeToken {
   id           String   @id @default(cuid())
   eventId      String
   label        String?
+  type         VoterType @default(QUALIFICATA)
+  status       VoterStatus @default(ACTIVE)
   tokenHash    String   @unique
   tokenPreview String
   createdAt    DateTime @default(now())
@@ -87,7 +103,7 @@ model Vote {
   candidateId   String
   deviceId      String?
   judgeTokenId  String?
-  score         Int
+  score         Int?
   createdAt     DateTime     @default(now())
   candidate     Candidate    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   judgeToken    JudgeToken?  @relation(fields: [judgeTokenId], references: [id], onDelete: SetNull)
