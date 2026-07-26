@@ -389,13 +389,23 @@ export function HallOfFame({
                         </div>
 
                         <div className="mt-6 flex items-end justify-between gap-4">
-                          {showWinner && isWinnerCard ? (
-                            <div>
-                              <div className={`font-bold text-accent-cyan ${isWinnerCard ? "text-4xl" : "text-3xl"}`}>
-                                {entry.finalScore.toFixed(3)}
+                          {showWinner ? (
+                            <>
+                              <div>
+                                <div className={`font-bold text-accent-cyan ${isWinnerCard ? "text-4xl" : "text-3xl"}`}>
+                                  {entry.finalScore.toFixed(3)}
+                                </div>
+                                <div className="text-sm text-text-secondary">Punteggio finale</div>
                               </div>
-                              <div className="text-sm text-text-secondary">Punteggio finale</div>
-                            </div>
+                              {entry.voteCount > 0 && (
+                                <div className="text-right text-sm text-text-secondary">
+                                  <div>Voti: {entry.voteCount}</div>
+                                  <div>Media complessiva: {entry.avgScore.toFixed(1)}</div>
+                                  <div>Media qualificata: {entry.avgQualificata.toFixed(2)}</div>
+                                  <div>Media popolare: {entry.avgPopolare.toFixed(2)}</div>
+                                </div>
+                              )}
+                            </>
                           ) : null}
                         </div>
                       </div>
