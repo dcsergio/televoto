@@ -127,6 +127,12 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
     setAdminSectionInLocation(section, "pushState");
   }, []);
 
+  const handleOpenHallOfFame = useCallback(() => {
+    if (!selectedEvent) return;
+    const url = `/hof?eventCode=${encodeURIComponent(selectedEvent.code)}`;
+    globalThis.open(url, "_blank", "noopener,noreferrer");
+  }, [selectedEvent]);
+
   const loadEvents = useCallback(async () => {
     if (!rootAuthToken) {
       setEvents([]);
@@ -1425,6 +1431,13 @@ export function AdminPage({ initialEventId, initialEventCode, rootAuthToken, onV
                           Chiudi televoto
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={handleOpenHallOfFame}
+                        className="rounded-2xl bg-accent-magenta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-magenta/90 transition"
+                      >
+                        Apri Hall of Fame
+                      </button>
                     </div>
                   </div>
                   <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3">
