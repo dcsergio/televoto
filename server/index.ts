@@ -1578,6 +1578,7 @@ app.delete("/api/events/:eventId/votes", async (req, res) => {
 // Hall of Fame: Get rankings for event
 app.get("/api/rankings/:eventId", async (req, res) => {
   const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId, true)) return;
 
   try {
     const [event, candidates, qualifiedTokenIds] = await Promise.all([

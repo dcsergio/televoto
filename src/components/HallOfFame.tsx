@@ -8,6 +8,7 @@ interface HallOfFameProps {
   readonly eventCode: string;
   readonly eventName: string;
   readonly votingClosed: boolean;
+  readonly authToken: string;
   readonly onCloseTelevote: () => Promise<void>;
 }
 
@@ -47,6 +48,7 @@ export function HallOfFame({
   eventCode,
   eventName,
   votingClosed,
+  authToken,
   onCloseTelevote,
 }: HallOfFameProps) {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
@@ -67,7 +69,7 @@ export function HallOfFame({
       } else {
         setLoading(true);
       }
-      const data = await fetchRankings(eventId);
+      const data = await fetchRankings(eventId, authToken);
       setRankings(data);
       setError(null);
     } catch (e) {
@@ -77,7 +79,7 @@ export function HallOfFame({
       setLoading(false);
       setRefreshing(false);
     }
-  }, [eventId]);
+  }, [eventId, authToken]);
 
   useEffect(() => {
     loadRankings();

@@ -377,8 +377,10 @@ export interface RankingEntry {
   popularVoteCount: number;
 }
 
-export async function fetchRankings(eventId: string): Promise<RankingEntry[]> {
-  const res = await fetch(`${BASE}/rankings/${eventId}`);
+export async function fetchRankings(eventId: string, authToken?: string): Promise<RankingEntry[]> {
+  const res = await fetch(`${BASE}/rankings/${eventId}`, {
+    headers: authToken ? withAuthHeaders(authToken) : {},
+  });
   if (!res.ok) throw new Error("Errore nel caricamento classifica");
   return res.json();
 }

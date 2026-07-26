@@ -9,6 +9,7 @@ import {
   finalizeJudgeToken,
   validateJudgeToken,
   loginRoot,
+  loginEventManager,
 } from "./api";
 import { Header } from "./components/Header";
 import { HeroBanner } from "./components/HeroBanner";
@@ -97,6 +98,7 @@ export default function App() {
     hof: false,
   });
   const [rootAuthToken, setRootAuthToken] = useState<string | null>(null);
+  const [eventManagerAuthToken, setEventManagerAuthToken] = useState<string | null>(null);
   const [manualJudgeCodeSegments, setManualJudgeCodeSegments] = useState<string[]>(() =>
     splitJudgeTokenSegments("")
   );
@@ -286,34 +288,47 @@ export default function App() {
   }, [judgeToken, eventCode]);
 
   const handleProtectedPageSubmit = useCallback(
-    async (event: SyntheticEvent<HTMLFormElement>) => {
-      event.preventDefault();
+    async (submitEvent: SyntheticEvent<HTMLFormElement>) => {
+      submitEvent.preventDefault();
+      if (!protectedPage) return;
+
       try {
-        const session = await loginRoot(passwordInput);
-        setRootAuthToken(session.token);
-        setAuthorizedProtectedPages({ admin: true, hof: true });
+        if (protectedPage === "admin") {
+          const session = await loginRoot(passwordInput);
+          setRootAuthToken(session.token);
+          setEventManagerAuthToken(null);
+          setAuthorizedProtectedPages({ admin: true, hof: false });
+        } else {
+          if (!event) {
+            setPasswordError("Evento non disponibile");
+            return;
+          }
+          const session = await loginEventManager(event.id, passwordInput);
+          setEventManagerAuthToken(session.token);
+          setAuthorizedProtectedPages((prev) => ({ ...prev, hof: true }));
+        }
         setPasswordInput("");
         setPasswordError("");
       } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : "Password root errata";
+        const message = e instanceof Error ? e.message : "Password errata";
         setPasswordError(message);
       }
     },
-    [passwordInput]
+    [passwordInput, protectedPage, event]
   );
 
   const handleCloseTelevote = useCallback(async () => {
-    if (!event || !rootAuthToken) return;
+    if (!event || !eventManagerAuthToken) return;
 
     try {
-      const updated = await updateEventVotingState(event.id, true, rootAuthToken);
+      const updated = await updateEventVotingState(event.id, true, eventManagerAuthToken);
       setEvent((prev) => (prev ? { ...prev, votingClosed: updated.votingClosed } : prev));
       setToast({ message: "Televoto chiuso con successo.", type: "success" });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Errore nella chiusura del televoto";
       setToast({ message: msg, type: "error" });
     }
-  }, [event, rootAuthToken]);
+  }, [event, eventManagerAuthToken]);
 
   const handleFinalizeJudgeCode = useCallback(async () => {
     if (!judgeToken || !eventCode) return;
@@ -532,6 +547,11 @@ export default function App() {
 
   if (needsProtectedAccess && protectedPage) {
     const pageLabel = protectedPage === "admin" ? "Admin" : "Classifica";
+    const passwordPrompt =
+      protectedPage === "admin"
+        ? "Inserisci la password root per accedere a questa sezione."
+        : "Inserisci la password dell'evento per accedere alla classifica.";
+    const passwordPlaceholder = protectedPage === "admin" ? "Password root" : "Password evento";
 
     return (
       <div className="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
@@ -541,7 +561,7 @@ export default function App() {
           </p>
           <h2 className="mt-2 text-2xl font-bold text-text-primary">{pageLabel}</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Inserisci la password root per accedere a questa sezione.
+            {passwordPrompt}
           </p>
 
           <form className="mt-6 space-y-3" onSubmit={handleProtectedPageSubmit}>
@@ -551,7 +571,7 @@ export default function App() {
               autoFocus
               value={passwordInput}
               onChange={(event) => setPasswordInput(event.target.value)}
-              placeholder="Password root"
+              placeholder={passwordPlaceholder}
               className="w-full rounded-lg border border-border-glass bg-slate-800 px-3 py-2 text-text-primary outline-none ring-0"
             />
 
@@ -590,7 +610,7 @@ export default function App() {
         />
       );
     case "hof":
-      if (!event) {
+      if (!event || !eventManagerAuthToken) {
         return (
           <div className="flex items-center justify-center min-h-dvh px-4">
             <p className="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
@@ -603,6 +623,7 @@ export default function App() {
           eventCode={event.code}
           eventName={event.name}
           votingClosed={event.votingClosed}
+          authToken={eventManagerAuthToken}
           onCloseTelevote={handleCloseTelevote}
         />
       );
