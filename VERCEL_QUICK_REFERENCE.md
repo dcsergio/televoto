@@ -38,7 +38,7 @@ Dashboard → Add New → Project → Select GitHub Repo (televoto)
 ### 3️⃣ Configurazione Build
 | Campo | Valore |
 |-------|--------|
-| Framework | Vite |
+| Framework | Other (build/output espliciti in `vercel.json`) |
 | Build Command | `npm run build` |
 | Output Dir | `dist` |
 | Node Version | 20.x |

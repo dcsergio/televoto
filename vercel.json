@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "framework": "vite",
+  "framework": null,
   "regions": ["iad1"],
   "functions": {
     "api/[...path].ts": {

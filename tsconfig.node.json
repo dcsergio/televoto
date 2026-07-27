@@ -19,5 +19,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "prisma.config.ts", "server/**/*", "prisma/**/*"]
+  "include": ["prisma.config.ts", "server/**/*", "prisma/**/*"]
 }

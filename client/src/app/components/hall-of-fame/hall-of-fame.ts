@@ -1,0 +1,311 @@
+import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { RankingEntry, RankingsApi } from '../../api/rankings.api';
+import { AuthStateService } from '../../state/auth-state.service';
+import { VotingStateService } from '../../state/voting-state.service';
+import { splitEventNameForDisplay } from '../../shared/event-name-display.util';
+import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
+import { ProtectedPageGateComponent } from '../protected-page-gate/protected-page-gate';
+import { getButtonLabel, getFinalistLabel, getMedalEmoji } from './hall-of-fame.util';
+
+@Component({
+  selector: 'app-hall-of-fame',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgClass, EventCodeGateComponent, ProtectedPageGateComponent],
+  templateUrl: './hall-of-fame.html',
+})
+export class HallOfFameComponent {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly rankingsApi = inject(RankingsApi);
+  protected readonly votingState = inject(VotingStateService);
+  protected readonly authState = inject(AuthStateService);
+
+  private readonly queryParamMap = toSignal(this.route.queryParamMap, { requireSync: true });
+  protected readonly eventCode = computed(() => this.queryParamMap().get('eventCode'));
+
+  protected readonly event = this.votingState.event;
+  protected readonly loading = this.votingState.loading;
+
+  protected readonly passwordError = signal('');
+
+  protected readonly rankings = signal<RankingEntry[]>([]);
+  protected readonly rankingsLoading = signal(true);
+  protected readonly refreshing = signal(false);
+  protected readonly error = signal<string | null>(null);
+  protected readonly revealedIndices = signal<number[]>([]);
+  protected readonly showFinalistsStage = signal(false);
+  protected readonly showWinner = signal(false);
+  protected readonly closingTelevote = signal(false);
+  protected readonly presenterMode = signal(false);
+
+  protected readonly getMedalEmoji = getMedalEmoji;
+  protected readonly getFinalistLabel = getFinalistLabel;
+
+  protected readonly nonFinalistCount = computed(() => Math.max(this.rankings().length - 2, 0));
+  protected readonly nextRevealIndex = computed(() => this.rankings().length - 1 - this.revealedIndices().length);
+  protected readonly showFinalists = computed(() => this.showFinalistsStage() || this.showWinner());
+  protected readonly isFinalistsStage = computed(() => this.showFinalistsStage() && !this.showWinner());
+  protected readonly isAboutToRevealThirdPlace = computed(
+    () => this.rankings().length > 2 && this.nextRevealIndex() === 2 && !this.showFinalistsStage() && !this.showWinner(),
+  );
+  protected readonly isThirdPlaceStage = computed(
+    () =>
+      this.rankings().length > 2 &&
+      this.revealedIndices().includes(2) &&
+      !this.showFinalistsStage() &&
+      !this.showWinner(),
+  );
+  protected readonly revealStarted = computed(
+    () => this.revealedIndices().length > 0 || this.showFinalistsStage() || this.showWinner(),
+  );
+  protected readonly finalists = computed(() => this.rankings().slice(0, 2));
+  protected readonly hasTopTie = computed(() => {
+    const r = this.rankings();
+    return r.length > 1 && Math.abs(r[0].finalScore - r[1].finalScore) <= 0.001;
+  });
+  protected readonly visibleEntries = computed(() =>
+    this.rankings().filter((_, index) => this.revealedIndices().includes(index)),
+  );
+  protected readonly revealDisabled = computed(() => {
+    const r = this.rankings();
+    return r.length === 0 || this.showWinner() || (r.length < 2 && this.revealedIndices().length >= r.length);
+  });
+  protected readonly canUndo = computed(
+    () => this.showWinner() || this.showFinalistsStage() || this.revealedIndices().length > 0,
+  );
+  protected readonly buttonLabel = computed(() =>
+    getButtonLabel({
+      showWinner: this.showWinner(),
+      revealedCount: this.revealedIndices().length,
+      rankingsLength: this.rankings().length,
+      isAboutToRevealThirdPlace: this.isAboutToRevealThirdPlace(),
+      isThirdPlaceStage: this.isThirdPlaceStage(),
+      isFinalistsStage: this.isFinalistsStage(),
+    }),
+  );
+  protected readonly closeTelevoteLabel = computed(() => {
+    if (this.event()?.votingClosed) return 'Televoto chiuso';
+    return this.closingTelevote() ? 'Chiusura...' : 'Chiudi televoto';
+  });
+  protected readonly eventNameParts = computed(() => splitEventNameForDisplay(this.event()?.name ?? ''));
+
+  private lastRankingsEventId: string | null = null;
+
+  constructor() {
+    effect(() => {
+      const code = this.eventCode();
+      void this.votingState.loadEventByCode(code, false);
+    });
+
+    effect(() => {
+      const ev = this.event();
+      const token = this.authState.eventManagerAuthToken();
+      if (!ev || !token) return;
+      if (ev.id === this.lastRankingsEventId) return;
+      this.lastRankingsEventId = ev.id;
+      this.revealedIndices.set([]);
+      this.showFinalistsStage.set(false);
+      this.showWinner.set(false);
+      void this.loadRankings();
+    });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  protected handleKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.presenterMode.set(false);
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => undefined);
+      }
+      return;
+    }
+
+    if (this.rankings().length === 0) return;
+
+    if (event.key === ' ' || event.key === 'Enter') {
+      event.preventDefault();
+      this.handleRevealNext();
+      return;
+    }
+
+    if (event.key === 'Backspace') {
+      event.preventDefault();
+      this.handleUndoReveal();
+      return;
+    }
+
+    if (event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      void this.handleTogglePresenterMode();
+    }
+  }
+
+  private async loadRankings(silent = false): Promise<void> {
+    const ev = this.event();
+    const token = this.authState.eventManagerAuthToken();
+    if (!ev || !token) return;
+    if (silent) {
+      this.refreshing.set(true);
+    } else {
+      this.rankingsLoading.set(true);
+    }
+    try {
+      const data = await firstValueFrom(this.rankingsApi.fetchRankings(ev.id, token));
+      this.rankings.set(data);
+      this.error.set(null);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Errore nel caricamento');
+    } finally {
+      this.rankingsLoading.set(false);
+      this.refreshing.set(false);
+    }
+  }
+
+  protected handleEventCodeSubmit(code: string): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { eventCode: code }, queryParamsHandling: 'merge' });
+  }
+
+  protected async handleLoginSubmit(password: string): Promise<void> {
+    const ev = this.event();
+    if (!ev) {
+      this.passwordError.set('Evento non disponibile');
+      return;
+    }
+    try {
+      await this.authState.loginEventManager(ev.id, password);
+      this.passwordError.set('');
+    } catch (err) {
+      this.passwordError.set(err instanceof Error ? err.message : 'Password errata');
+    }
+  }
+
+  protected handleLoginCancel(): void {
+    this.router.navigate(['/']);
+  }
+
+  protected handleRevealNext(): void {
+    if (this.rankings().length === 0 || this.showWinner()) return;
+
+    if (this.isFinalistsStage()) {
+      this.showWinner.set(true);
+      return;
+    }
+
+    if (this.rankings().length >= 2 && this.revealedIndices().length >= this.nonFinalistCount()) {
+      this.showFinalistsStage.set(true);
+      return;
+    }
+
+    if (this.revealedIndices().length >= this.rankings().length) return;
+
+    const nextIndex = this.rankings().length - 1 - this.revealedIndices().length;
+    this.revealedIndices.update((prev) => [...prev, nextIndex].sort((a, b) => a - b));
+  }
+
+  protected handleUndoReveal(): void {
+    if (this.showWinner()) {
+      this.showWinner.set(false);
+      return;
+    }
+    if (this.showFinalistsStage()) {
+      this.showFinalistsStage.set(false);
+      return;
+    }
+    if (this.revealedIndices().length === 0) return;
+
+    const lastRevealed = Math.min(...this.revealedIndices());
+    this.revealedIndices.update((prev) => prev.filter((index) => index !== lastRevealed));
+  }
+
+  protected async handleRefreshRankings(): Promise<void> {
+    await this.loadRankings(true);
+  }
+
+  protected async handleTogglePresenterMode(): Promise<void> {
+    if (this.presenterMode()) {
+      this.presenterMode.set(false);
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(() => undefined);
+      }
+      return;
+    }
+
+    this.presenterMode.set(true);
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch {
+      // Fullscreen API non disponibile: usa solo la modalita presentazione CSS
+    }
+  }
+
+  protected async handleCloseTelevote(): Promise<void> {
+    const token = this.authState.eventManagerAuthToken();
+    if (this.event()?.votingClosed || this.closingTelevote() || !token) return;
+
+    this.closingTelevote.set(true);
+    try {
+      await this.votingState.closeVoting(token);
+    } finally {
+      this.closingTelevote.set(false);
+    }
+  }
+
+  protected finalistCardClasses(index: number): Record<string, boolean> {
+    const isWinnerCard = this.showWinner() && (this.hasTopTie() || index === 0);
+    return {
+      'scale-[1.05]': isWinnerCard,
+      'border-amber-400/80': isWinnerCard,
+      'bg-gradient-to-br': isWinnerCard,
+      'from-amber-500/30': isWinnerCard,
+      'via-slate-800': isWinnerCard,
+      'to-slate-900': isWinnerCard,
+      'shadow-[0_0_40px_rgba(251,191,36,0.35)]': isWinnerCard,
+      'border-slate-700': !isWinnerCard,
+      'bg-slate-800/70': !isWinnerCard,
+    };
+  }
+
+  protected isFinalistWinnerCard(index: number): boolean {
+    return this.showWinner() && (this.hasTopTie() || index === 0);
+  }
+
+  protected entryCardClasses(entry: RankingEntry): Record<string, boolean> {
+    const isThirdPlaceCard = this.isThirdPlaceStage() && this.rankingIndex(entry) === 2;
+    return {
+      'bg-gradient-to-br': isThirdPlaceCard,
+      'from-amber-500/20': isThirdPlaceCard,
+      'via-slate-800': isThirdPlaceCard,
+      'to-slate-900': isThirdPlaceCard,
+      'shadow-[0_0_30px_rgba(251,191,36,0.18)]': isThirdPlaceCard,
+      'bg-gradient-to-r': !isThirdPlaceCard,
+    };
+  }
+
+  protected entryBackgroundColor(entry: RankingEntry): string | null {
+    const isThirdPlaceCard = this.isThirdPlaceStage() && this.rankingIndex(entry) === 2;
+    return isThirdPlaceCard ? null : `${entry.color}15`;
+  }
+
+  protected rankingIndex(entry: RankingEntry): number {
+    return this.rankings().findIndex((item) => item.id === entry.id);
+  }
+
+  protected barWidth(entry: RankingEntry): number {
+    const top = this.rankings()[0];
+    return top && top.finalScore > 0 ? (entry.finalScore / top.finalScore) * 100 : 0;
+  }
+
+  protected totalVotes(): number {
+    return this.rankings().reduce((sum, r) => sum + r.voteCount, 0);
+  }
+
+  protected averageFinalScore(): number {
+    const r = this.rankings();
+    if (r.length === 0) return 0;
+    return r.reduce((sum, entry) => sum + entry.finalScore, 0) / r.length;
+  }
+}

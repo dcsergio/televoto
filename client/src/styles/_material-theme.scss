@@ -1,0 +1,51 @@
+// Angular Material M3 theme, recolored to match the app's existing
+// "Neon Dark" design tokens (see the @theme block in styles.scss) rather than
+// left at Material's default azure/blue palette. Highly custom elements
+// (score buttons, candidate cards, hero title, Hall of Fame reveal) stay
+// plain CSS and are not themed through Material at all.
+@use '@angular/material' as mat;
+
+@mixin neon-dark-theme() {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$cyan-palette,
+        tertiary: mat.$violet-palette,
+      ),
+      typography: Inter,
+      density: 0,
+    )
+  );
+
+  // Re-point Material's system-level CSS variables at the same hex values
+  // already defined in the app's Neon Dark token set, so colors are shared
+  // rather than duplicated.
+  --mat-sys-surface: #111128;
+  --mat-sys-surface-container: rgba(20, 20, 50, 0.6);
+  --mat-sys-surface-container-high: rgba(30, 30, 70, 0.7);
+  --mat-sys-surface-container-highest: rgba(40, 40, 100, 0.8);
+  --mat-sys-on-surface: #f0f0ff;
+  --mat-sys-on-surface-variant: #9ca3c0;
+  --mat-sys-outline: rgba(100, 100, 255, 0.3);
+  --mat-sys-outline-variant: rgba(100, 100, 255, 0.15);
+  --mat-sys-primary: #38bdf8;
+  --mat-sys-on-primary: #0a0a1a;
+  --mat-sys-tertiary: #8b5cf6;
+  --mat-sys-on-tertiary: #f0f0ff;
+  --mat-sys-error: #f43f5e;
+
+  // Dialogs and menus get the same glassmorphism as the rest of the app.
+  @include mat.dialog-overrides(
+    (
+      container-color: rgba(17, 17, 40, 0.92),
+      container-shape: 24px,
+    )
+  );
+  @include mat.button-overrides(
+    (
+      filled-container-shape: 16px,
+      outlined-container-shape: 16px,
+    )
+  );
+}

@@ -3,14 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "client"
+  ],
   "scripts": {
-    "dev": "concurrently \"vite\" \"tsx server/index.ts\"",
-    "dev:client": "vite",
+    "dev": "concurrently \"npm run start --workspace client\" \"tsx server/index.ts\"",
+    "dev:client": "npm run start --workspace client",
     "dev:server": "tsx server/index.ts",
     "prebuild": "npx prisma generate",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && npm run build --workspace client",
     "lint": "oxlint",
-    "preview": "vite preview",
+    "test:client": "npm run test --workspace client",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "npx prisma migrate deploy",
     "db:migrate:pooler": "set PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1&& npx prisma migrate deploy",
@@ -18,34 +21,23 @@
     "db:studio": "npx prisma studio"
   },
   "dependencies": {
-    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@tailwindcss/vite": "^4.3.2",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.11.3",
-    "prisma": "^7.8.0",
-    "qrcode": "^1.5.4",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "tailwindcss": "^4.3.2"
+    "prisma": "^7.8.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.13.2",
     "@types/pg": "^8.11.2",
-    "@types/qrcode": "^1.5.6",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.3",
     "concurrently": "^10.0.3",
     "oxlint": "^1.71.0",
     "tsx": "^4.23.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "typescript": "~6.0.2"
   },
   "allowScripts": {
     "@prisma/engines@7.8.0": true,

@@ -1,7 +1,7 @@
 # Guida Deployment Televoto su Vercel
 
 ## 🎯 Panoramica
-Il progetto Televoto è una app full-stack con React frontend e Express backend. Vercel supporta entrambi in un singolo deployment usando Serverless Functions.
+Il progetto Televoto è una app full-stack con Angular frontend (in `client/`) e Express backend. Vercel supporta entrambi in un singolo deployment usando Serverless Functions.
 
 **Cambiamenti necessari:**
 1. Database PostgreSQL su Supabase (hosting cloud)
@@ -86,7 +86,7 @@ Nella schermata **"Configure Project"**, aggiungi:
 | `DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.cowzpxxpvizcxamyizhg.supabase.co:5432/postgres` |
 
 ### 5.4 Seleziona framework e directory
-- **Framework Preset**: Vite
+- **Framework Preset**: Other (rilevamento generico — `vercel.json` imposta già `buildCommand`/`outputDirectory` espliciti per la build Angular)
 - **Root Directory**: `/` (root)
 - **Build Command**: `npm run build`
 - **Output Directory**: `dist`

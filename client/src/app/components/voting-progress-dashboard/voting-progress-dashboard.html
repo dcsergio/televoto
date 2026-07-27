@@ -1,0 +1,111 @@
+@if (loading() && !progress()) {
+  <div class="mt-8 flex items-center justify-center py-8">
+    <div class="w-8 h-8 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
+  </div>
+} @else if (error() && !progress()) {
+  <div class="mt-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">{{ error() }}</div>
+} @else if (progress(); as p) {
+  <div class="mt-8 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Backstage</p>
+        <h2 class="text-xl font-semibold text-text-primary">Progresso voti giudici</h2>
+      </div>
+      <button
+        type="button"
+        (click)="loadProgress()"
+        [disabled]="loading()"
+        class="rounded-2xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-text-secondary hover:bg-slate-700 transition disabled:opacity-50"
+      >
+        {{ loading() ? 'Aggiornamento...' : 'Aggiorna' }}
+      </button>
+    </div>
+
+    @if (error()) {
+      <div class="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{{ error() }}</div>
+    }
+
+    <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+        <div class="text-2xl font-bold text-emerald-300">{{ p.qualified.activeJudges }}</div>
+        <div class="text-sm text-text-secondary">Qualificata attivi</div>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+        <div class="text-2xl font-bold text-amber-300">{{ p.qualified.submittedJudges }}</div>
+        <div class="text-sm text-text-secondary">Qualificata finalizzati</div>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+        <div class="text-2xl font-bold text-cyan-300">{{ p.popular.activatedTokens }}</div>
+        <div class="text-sm text-text-secondary">Popolare QR attivati</div>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
+        <div class="text-2xl font-bold text-accent-cyan">{{ p.popular.totalVotesCast }}</div>
+        <div class="text-sm text-text-secondary">Voti popolari espressi</div>
+      </div>
+    </div>
+
+    @if (p.candidateCount > 0 && p.totalJudges > 0) {
+      <div class="mb-6 rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-4">
+        <p class="text-sm text-cyan-100">
+          {{ p.qualified.submittedJudges }} giudici qualificati su {{ p.qualified.totalJudges }} hanno bloccato il codice.
+          @if (activeIncompleteJudges().length > 0) {
+            <span> {{ activeIncompleteJudges().length }} giudici attivi non hanno ancora completato tutti i voti.</span>
+          }
+        </p>
+      </div>
+    }
+
+    @if (p.incompleteCandidates.length > 0) {
+      <div class="mb-6">
+        <h3 class="mb-3 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">
+          Candidati con voti incompleti
+        </h3>
+        <div class="space-y-2">
+          @for (candidate of p.incompleteCandidates; track candidate.candidateId) {
+            <div class="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm">
+              <span class="text-text-primary">#{{ candidate.candidateNumber }} {{ candidate.candidateName }}</span>
+              <span class="text-amber-200">Mancano {{ candidate.missingJudgeCount }} giudici</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeIncompleteJudges().length > 0) {
+      <div>
+        <h3 class="mb-3 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">Giudici attivi incompleti</h3>
+        <div class="space-y-2">
+          @for (judge of activeIncompleteJudges(); track judge.id) {
+            <div class="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span class="font-mono text-sm text-text-primary">{{ judge.tokenPreview }}&hellip;</span>
+                  @if (judge.label) {
+                    <span class="ml-2 text-sm text-text-secondary">{{ judge.label }}</span>
+                  }
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="rounded-full border px-2 py-0.5 text-xs" [ngClass]="getStatusClass(judge.status)">
+                    {{ getStatusLabel(judge.status) }}
+                  </span>
+                  <span class="text-sm text-text-secondary">{{ judge.votesCast }}/{{ judge.votesRequired }} voti</span>
+                </div>
+              </div>
+              @if (judge.missingCandidates.length > 0) {
+                <p class="mt-2 text-xs text-text-secondary">
+                  Mancano: {{ joinNames(judge.missingCandidates) }}
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (p.totalJudges === 0) {
+      <p class="text-sm text-text-secondary">Nessun codice giudice generato per questo evento.</p>
+    }
+
+    <app-partial-rankings-panel [eventId]="eventId()" [authToken]="authToken()" />
+  </div>
+}

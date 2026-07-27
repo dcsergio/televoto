@@ -5,7 +5,7 @@ Applicazione web per gestire eventi di voto con:
 - pannello admin,
 - Hall of Fame (classifica finale).
 
-Frontend: React + Vite.  
+Frontend: Angular + Angular Material (in `client/`).  
 Backend: Express + Prisma.  
 Database: PostgreSQL.
 
@@ -34,7 +34,6 @@ Variabili principali:
 - `SUPABASE_DIRECT_URL`: URL diretta DB (porta 5432), usata per migration Prisma.
 - `SUPABASE_DATABASE_URL`: URL pooled (porta 6543), usata a runtime dal server.
 - `PRISMA_CLI_URL` (opzionale): override per i comandi Prisma CLI.
-- `VITE_API_URL`: URL API in sviluppo (default: `http://localhost:3001`).
 - `ADMIN_AUTH_SECRET`: segreto usato dal backend per firmare i token di sessione admin/manager.
 - `ROOT_ADMIN_PASSWORD`: password root iniziale usata solo se la tabella credenziali root è vuota.
 
@@ -83,8 +82,9 @@ npm run build
 ```
 
 Note:
-- `npm run build` esegue prima TypeScript (`tsc -b`) e poi build Vite.
+- `npm run build` esegue prima il typecheck del backend (`tsc -b`) e poi la build Angular (`ng build` in `client/`), il cui output finisce in `dist/` alla root del repo.
 - `prebuild` genera automaticamente il client Prisma.
+- `npm run lint` copre solo il backend (`oxlint`); il frontend Angular non ha ancora un linter configurato.
 
 ---
 
@@ -125,7 +125,7 @@ La pagina admin è organizzata in una single-page app con menu:
    - dashboard progresso voti giudici.
    - Accesso protetto da password manager evento.
 
-La sezione admin corrente è persistita nella query string (`adminSection=events|candidates|voting`), quindi i link condivisi possono aprire direttamente la vista desiderata.
+La sezione admin corrente è persistita nella query string (`adminSection=events|candidates|voting-codes|voting-backstage`), quindi i link condivisi possono aprire direttamente la vista desiderata.
 
 ## 5.3 Flusso giudici
 
@@ -156,9 +156,9 @@ La sezione admin corrente è persistita nella query string (`adminSection=events
 
 ## 7) Struttura progetto (riferimenti)
 
-- Frontend app: [src/](C:/Users/sergi/workspace_js/televoto/src)
-- API client frontend: [src/api.ts](C:/Users/sergi/workspace_js/televoto/src/api.ts)
-- Pagina admin: [src/components/AdminPage.tsx](C:/Users/sergi/workspace_js/televoto/src/components/AdminPage.tsx)
+- Frontend app Angular: [client/src/app/](C:/Users/sergi/workspace_js/televoto/client/src/app)
+- API client frontend: [client/src/app/api/](C:/Users/sergi/workspace_js/televoto/client/src/app/api)
+- Pagina admin: [client/src/app/pages/admin-shell/](C:/Users/sergi/workspace_js/televoto/client/src/app/pages/admin-shell)
 - Backend Express: [server/index.ts](C:/Users/sergi/workspace_js/televoto/server/index.ts)
 - Schema Prisma: [prisma/schema.prisma](C:/Users/sergi/workspace_js/televoto/prisma/schema.prisma)
 - Config Prisma CLI: [prisma.config.ts](C:/Users/sergi/workspace_js/televoto/prisma.config.ts)

@@ -1,0 +1,657 @@
+@if (!authState.isRootAuthenticated()) {
+  <app-protected-page-gate
+    pageLabel="Admin"
+    passwordPrompt="Inserisci la password root per accedere a questa sezione."
+    passwordPlaceholder="Password root"
+    [error]="passwordError()"
+    (submitPassword)="handleLoginSubmit($event)"
+    (cancel)="handleLoginCancel()"
+  />
+} @else {
+  <div class="min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <header class="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+        <h1 class="text-3xl font-bold">Admin</h1>
+        <p class="mt-2 text-sm text-text-secondary">Pannello per eventi, candidati, codici giuria e backstage votazioni.</p>
+      </header>
+
+      <nav class="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 p-3">
+        <div class="grid gap-2 sm:grid-cols-4">
+          <button
+            type="button"
+            (click)="handleSectionChange('events')"
+            class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            [class]="activeSection() === 'events' ? 'border border-accent-cyan/40 bg-accent-cyan/20 text-accent-cyan' : 'border border-slate-700 bg-slate-800 text-text-secondary hover:bg-slate-700'"
+          >
+            <span class="flex items-center justify-between gap-2">
+              <span>Gestione eventi</span>
+              <span class="rounded-full border border-slate-600 px-2 py-0.5 text-xs text-text-secondary">{{ events().length }}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            (click)="handleSectionChange('candidates')"
+            class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            [class]="activeSection() === 'candidates' ? 'border border-accent-cyan/40 bg-accent-cyan/20 text-accent-cyan' : 'border border-slate-700 bg-slate-800 text-text-secondary hover:bg-slate-700'"
+          >
+            <span class="flex items-center justify-between gap-2">
+              <span>Gestione candidati</span>
+              <span class="rounded-full border border-slate-600 px-2 py-0.5 text-xs text-text-secondary">{{ selectedEvent() ? candidates().length : '-' }}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            (click)="handleSectionChange('voting-codes')"
+            class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            [class]="activeSection() === 'voting-codes' ? 'border border-accent-cyan/40 bg-accent-cyan/20 text-accent-cyan' : 'border border-slate-700 bg-slate-800 text-text-secondary hover:bg-slate-700'"
+          >
+            <span class="flex items-center justify-between gap-2">
+              <span>Codici giuria</span>
+              <span
+                class="rounded-full border px-2 py-0.5 text-xs"
+                [class]="selectedEvent() ? (votingClosed() ? 'border-cyan-400/30 text-cyan-300' : 'border-emerald-400/30 text-emerald-300') : 'border-slate-600 text-text-secondary'"
+              >
+                {{ selectedEvent() ? (votingClosed() ? 'Chiuso' : 'Aperto') : '-' }}
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            (click)="handleSectionChange('voting-backstage')"
+            class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            [class]="activeSection() === 'voting-backstage' ? 'border border-accent-cyan/40 bg-accent-cyan/20 text-accent-cyan' : 'border border-slate-700 bg-slate-800 text-text-secondary hover:bg-slate-700'"
+          >
+            <span class="flex items-center justify-between gap-2">
+              <span>Backstage votazioni</span>
+              <span
+                class="rounded-full border px-2 py-0.5 text-xs"
+                [class]="selectedEvent() ? (votingClosed() ? 'border-cyan-400/30 text-cyan-300' : 'border-emerald-400/30 text-emerald-300') : 'border-slate-600 text-text-secondary'"
+              >
+                {{ selectedEvent() ? (votingClosed() ? 'Chiuso' : 'Aperto') : '-' }}
+              </span>
+            </span>
+          </button>
+        </div>
+      </nav>
+
+      <section class="mb-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-4">
+        <div class="grid gap-3 lg:grid-cols-[1fr,auto] lg:items-end">
+          <div class="space-y-2">
+            <label for="admin-selected-event-global" class="text-sm text-text-secondary">Evento selezionato</label>
+            <select
+              id="admin-selected-event-global"
+              [ngModel]="selectedEventId() ?? ''"
+              (ngModelChange)="selectEvent($event)"
+              name="selectedEventId"
+              class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+            >
+              <option value="">Seleziona evento</option>
+              @for (ev of events(); track ev.id) {
+                <option [value]="ev.id">{{ ev.code }} - {{ ev.name }}</option>
+              }
+            </select>
+            @if (selectedEvent(); as ev) {
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="rounded-full border border-slate-600 px-2 py-0.5 text-text-secondary">{{ selectedEventBadge() }}</span>
+                <span class="rounded-full border border-slate-600 px-2 py-0.5 text-text-secondary">Candidati: {{ candidates().length }}</span>
+                <span
+                  class="rounded-full border px-2 py-0.5"
+                  [class]="votingClosed() ? 'border-cyan-400/30 text-cyan-300' : 'border-emerald-400/30 text-emerald-300'"
+                >
+                  Stato: {{ currentStatus() }}
+                </span>
+              </div>
+            }
+          </div>
+          <button
+            type="button"
+            (click)="handleSectionChange(activeSection())"
+            class="rounded-2xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
+          >
+            Aggiorna eventi
+          </button>
+        </div>
+        @if (eventsError()) {
+          <div class="mt-4 rounded-lg border border-red-500 bg-red-500/20 p-3 text-red-300">{{ eventsError() }}</div>
+        }
+      </section>
+
+      @if (statusMessage()) {
+        <div class="mb-6 rounded-lg border border-emerald-500 bg-emerald-500/10 p-4 text-emerald-200">{{ statusMessage() }}</div>
+      }
+      @if (error()) {
+        <div class="mb-6 rounded-lg border border-red-500 bg-red-500/20 p-4 text-red-300">{{ error() }}</div>
+      }
+
+      @if (activeSection() === 'events') {
+        <section class="space-y-4 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+          <div>
+            <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+            <h2 class="mt-2 text-2xl font-semibold">Anagrafica eventi</h2>
+          </div>
+
+          @if (loadingEvents()) {
+            <div class="flex items-center justify-center py-8">
+              <div class="h-8 w-8 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent"></div>
+            </div>
+          } @else {
+            <div class="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
+              <div class="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+                <h3 class="text-lg font-semibold">Evento corrente</h3>
+                @if (selectedEvent(); as ev) {
+                  <p class="text-sm text-text-secondary">{{ ev.code }} - <span class="font-semibold text-text-primary">{{ ev.name }}</span></p>
+
+                  <form (ngSubmit)="handleRenameSelectedEvent()" class="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="text"
+                      [ngModel]="selectedEventNameDraft()"
+                      (ngModelChange)="selectedEventNameDraft.set($event)"
+                      name="selectedEventNameDraft"
+                      placeholder="Nuovo nome evento"
+                      class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                    />
+                    <button
+                      type="submit"
+                      [disabled]="updatingSelectedEventName()"
+                      class="rounded-2xl border border-accent-cyan/50 bg-accent-cyan/20 px-4 py-2 text-sm font-semibold text-accent-cyan hover:bg-accent-cyan/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Rinomina' }}
+                    </button>
+                  </form>
+
+                  <form (ngSubmit)="handleRotateEventManagerPassword()" class="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="password"
+                      [ngModel]="managerPasswordDraft()"
+                      (ngModelChange)="managerPasswordDraft.set($event)"
+                      name="managerPasswordDraft"
+                      placeholder="Nuova password manager evento"
+                      class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                    />
+                    <button
+                      type="submit"
+                      [disabled]="updatingManagerPassword()"
+                      class="rounded-2xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {{ updatingManagerPassword() ? 'Aggiornamento...' : 'Aggiorna password evento' }}
+                    </button>
+                  </form>
+
+                  <form (ngSubmit)="handleUpdateVotingSettings()" class="space-y-3 rounded-2xl border border-slate-700 bg-slate-950/50 p-3">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Pesatura giurie</p>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                      <label class="space-y-1">
+                        <span class="text-xs text-text-secondary">Peso Qualificata (%)</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          [ngModel]="eventSettingsDraft().weightQualificata"
+                          (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightQualificata: $event })"
+                          name="weightQualificata"
+                          class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                        />
+                      </label>
+                      <label class="space-y-1">
+                        <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          [ngModel]="eventSettingsDraft().weightPopolare"
+                          (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightPopolare: $event })"
+                          name="weightPopolare"
+                          class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                        />
+                      </label>
+                    </div>
+                    <p class="text-xs text-text-secondary">
+                      Somma attuale: {{ eventSettingsDraft().weightQualificata + eventSettingsDraft().weightPopolare }}
+                    </p>
+                    <label class="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        type="checkbox"
+                        [ngModel]="eventSettingsDraft().enableTrimmedMean"
+                        (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), enableTrimmedMean: $event })"
+                        name="enableTrimmedMean"
+                      />
+                      Abilita trimmed mean su voti popolari
+                    </label>
+                    <label class="space-y-1">
+                      <span class="text-xs text-text-secondary">Percentuale trimmed mean (%)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="49.99"
+                        step="0.1"
+                        [ngModel]="eventSettingsDraft().trimmedMeanPercentage"
+                        (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), trimmedMeanPercentage: $event })"
+                        name="trimmedMeanPercentage"
+                        [disabled]="!eventSettingsDraft().enableTrimmedMean"
+                        class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary disabled:opacity-50"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      [disabled]="updatingVotingSettings()"
+                      class="rounded-2xl border border-cyan-400/40 bg-cyan-400/15 px-4 py-2 text-sm font-semibold text-cyan-200 hover:bg-cyan-400/25 transition disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva impostazioni voto' }}
+                    </button>
+                  </form>
+                } @else {
+                  <p class="text-sm text-text-secondary">Seleziona prima un evento.</p>
+                }
+              </div>
+
+              <form (ngSubmit)="handleCreateEvent()" class="space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
+                <label class="block space-y-1">
+                  <span class="text-sm text-text-secondary">Nome evento</span>
+                  <input
+                    type="text"
+                    [ngModel]="newEvent().name"
+                    (ngModelChange)="newEvent.set({ ...newEvent(), name: $event })"
+                    name="newEventName"
+                    [placeholder]="'Es. Finale regionale ' + eventNameSeparator + ' GRAN FINALE'"
+                    class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                  <p class="text-xs text-text-muted">
+                    Separatore titolo evidenziato: <span class="font-semibold text-text-secondary">{{ eventNameSeparator }}</span>
+                  </p>
+                </label>
+                <label class="block space-y-1">
+                  <span class="text-sm text-text-secondary">Sottotitolo (opzionale)</span>
+                  <input
+                    type="text"
+                    [ngModel]="newEvent().subtitle"
+                    (ngModelChange)="newEvent.set({ ...newEvent(), subtitle: $event })"
+                    name="newEventSubtitle"
+                    placeholder="Es. Edizione 2026"
+                    class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                </label>
+                <label class="block space-y-1">
+                  <span class="text-sm text-text-secondary">Codice evento (opzionale, 1-5 cifre)</span>
+                  <input
+                    type="text"
+                    [ngModel]="newEvent().code"
+                    (ngModelChange)="newEvent.set({ ...newEvent(), code: $event })"
+                    name="newEventCode"
+                    placeholder="Es. 01234"
+                    class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                </label>
+                <label class="block space-y-1">
+                  <span class="text-sm text-text-secondary">Password manager evento (min. 8 caratteri)</span>
+                  <input
+                    type="password"
+                    [ngModel]="newEvent().managerPassword"
+                    (ngModelChange)="newEvent.set({ ...newEvent(), managerPassword: $event })"
+                    name="newEventManagerPassword"
+                    placeholder="Password dedicata al manager dell'evento"
+                    class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  [disabled]="creatingEvent()"
+                  class="w-full rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {{ creatingEvent() ? 'Creazione...' : 'Crea evento' }}
+                </button>
+              </form>
+            </div>
+
+            <form (ngSubmit)="handleUpdateRootPassword()" class="mt-4 space-y-3 rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
+              <p class="text-sm text-text-secondary">Aggiorna la password root usata per l'accesso alle aree protette amministrative.</p>
+              <div class="grid gap-3 md:grid-cols-3">
+                <input
+                  type="password"
+                  [ngModel]="rootPasswordDraft().currentPassword"
+                  (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), currentPassword: $event })"
+                  name="rootCurrentPassword"
+                  placeholder="Password root attuale"
+                  class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                />
+                <input
+                  type="password"
+                  [ngModel]="rootPasswordDraft().newPassword"
+                  (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), newPassword: $event })"
+                  name="rootNewPassword"
+                  placeholder="Nuova password root"
+                  class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                />
+                <input
+                  type="password"
+                  [ngModel]="rootPasswordDraft().confirmPassword"
+                  (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), confirmPassword: $event })"
+                  name="rootConfirmPassword"
+                  placeholder="Conferma nuova password root"
+                  class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                />
+              </div>
+              <button
+                type="submit"
+                [disabled]="updatingRootPassword()"
+                class="rounded-2xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {{ updatingRootPassword() ? 'Aggiornamento...' : 'Aggiorna password root' }}
+              </button>
+            </form>
+          }
+        </section>
+      }
+
+      @if (activeSection() === 'candidates') {
+        <section class="space-y-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+          <div>
+            <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione candidati</p>
+            <h2 class="mt-2 text-2xl font-semibold">Candidati per evento selezionato</h2>
+          </div>
+
+          @if (!selectedEvent()) {
+            <div class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6 text-text-secondary">
+              Seleziona o crea un evento per iniziare la gestione candidati.
+            </div>
+          } @else if (!eventManagerToken()) {
+            <form (ngSubmit)="handleEventManagerLogin()" class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6 space-y-3">
+              <p class="text-sm text-text-secondary">Inserisci la password manager dell'evento selezionato per gestire candidati e giudici.</p>
+              <input
+                type="password"
+                [ngModel]="eventManagerPasswordInput()"
+                (ngModelChange)="eventManagerPasswordInput.set($event)"
+                name="eventManagerPasswordInputCandidates"
+                placeholder="Password manager evento"
+                class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+              />
+              <button
+                type="submit"
+                [disabled]="authenticatingManager()"
+                class="rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {{ authenticatingManager() ? 'Accesso...' : 'Sblocca gestione evento' }}
+              </button>
+            </form>
+          } @else if (loading()) {
+            <div class="flex items-center justify-center min-h-[240px]">
+              <div class="h-10 w-10 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent"></div>
+            </div>
+          } @else {
+            <div class="inline-flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-sm">
+              <span class="font-semibold">Stato evento:</span>
+              <span [class]="votingClosed() ? 'text-cyan-300' : 'text-emerald-300'">{{ currentStatus() }}</span>
+              <span class="text-text-secondary">
+                {{ votingClosed() ? 'Modifiche abilitate.' : 'Modifiche bloccate finché il televoto è aperto.' }}
+              </span>
+            </div>
+
+            <div class="rounded-lg border border-slate-700 bg-slate-800/50 p-6">
+              <h3 class="mb-4 text-xl font-semibold">Aggiungi nuovo candidato</h3>
+              <form (ngSubmit)="handleAddCandidate()" class="space-y-4">
+                <label class="space-y-1">
+                  <span class="text-sm font-medium text-text-secondary">Nome candidato</span>
+                  <input
+                    type="text"
+                    placeholder="Es. Marco Rossi"
+                    [ngModel]="newCandidate().name"
+                    (ngModelChange)="newCandidate.set({ ...newCandidate(), name: $event })"
+                    name="newCandidateName"
+                    [disabled]="!votingClosed()"
+                    class="w-full rounded bg-slate-700 px-3 py-2 text-text-primary placeholder-text-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </label>
+                <label class="space-y-1">
+                  <span class="text-sm font-medium text-text-secondary">Titolo performance (opzionale)</span>
+                  <input
+                    type="text"
+                    placeholder="Es. Brano / coreografia"
+                    [ngModel]="newCandidate().subtitle"
+                    (ngModelChange)="newCandidate.set({ ...newCandidate(), subtitle: $event })"
+                    name="newCandidateSubtitle"
+                    [disabled]="!votingClosed()"
+                    class="w-full rounded bg-slate-700 px-3 py-2 text-text-primary placeholder-text-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </label>
+                <div class="space-y-4">
+                  <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2 rounded-2xl border border-slate-600 bg-slate-900 px-3 py-2">
+                      <div class="h-6 w-6 rounded" [style.background-color]="newCandidate().color"></div>
+                      <span class="text-sm text-text-secondary">Colore assegnato automaticamente</span>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="regenerateNewCandidateColor()"
+                      [disabled]="!votingClosed()"
+                      class="rounded-2xl border border-slate-600 px-4 py-2 text-sm text-text-primary hover:bg-slate-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Rigenera colore
+                    </button>
+                    <label class="flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-600 bg-slate-900 px-3 py-2">
+                      <span class="text-sm text-text-secondary">Palette personalizzata</span>
+                      <input
+                        type="color"
+                        [ngModel]="newCandidate().color"
+                        (ngModelChange)="newCandidate.set({ ...newCandidate(), color: $event })"
+                        name="newCandidateColor"
+                        [disabled]="!votingClosed()"
+                        class="h-10 w-12 cursor-pointer border-0 p-0 disabled:cursor-not-allowed"
+                      />
+                    </label>
+                  </div>
+                  <div class="grid grid-cols-5 gap-2">
+                    @for (paletteColor of candidateColorPalette; track paletteColor) {
+                      <button
+                        type="button"
+                        (click)="newCandidate.set({ ...newCandidate(), color: paletteColor })"
+                        [disabled]="!votingClosed()"
+                        class="h-10 rounded-full border-2 transition disabled:cursor-not-allowed disabled:opacity-50"
+                        [style.background-color]="paletteColor"
+                        [style.border-color]="newCandidate().color === paletteColor ? '#fff' : 'transparent'"
+                      ></button>
+                    }
+                  </div>
+                  <button
+                    type="submit"
+                    [disabled]="!votingClosed()"
+                    class="w-full rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-slate-900 hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Aggiungi candidato
+                  </button>
+                  @if (modificationsLocked()) {
+                    <p class="text-sm text-amber-200">{{ modificationLockMessage }}</p>
+                  }
+                </div>
+              </form>
+            </div>
+
+            <div class="space-y-4">
+              <h3 class="text-xl font-semibold">Candidati attuali ({{ candidates().length }})</h3>
+              @if (candidates().length === 0) {
+                <p class="text-text-secondary">Nessun candidato ancora.</p>
+              } @else {
+                @for (candidate of candidates(); track candidate.id) {
+                  <div class="relative flex items-center gap-4 rounded-lg border border-slate-700 bg-slate-800/50 p-4">
+                    <div class="h-6 w-6 rounded" [style.background-color]="candidate.color"></div>
+                    <div class="flex-1">
+                      <div class="font-semibold">{{ candidate.number }}. {{ candidate.name }}</div>
+                      @if (candidate.subtitle) {
+                        <div class="text-sm text-text-secondary">{{ candidate.subtitle }}</div>
+                      }
+                    </div>
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        (click)="editing() === candidate.id ? cancelEditingCandidate() : startEditingCandidate(candidate)"
+                        [disabled]="modificationsLocked()"
+                        [title]="modificationsLocked() ? modificationLockMessage : 'Modifica candidato'"
+                        class="rounded bg-slate-700 px-3 py-1 text-sm transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {{ editing() === candidate.id ? 'Annulla' : 'Modifica' }}
+                      </button>
+                      <button
+                        type="button"
+                        (click)="confirmDeleteCandidate(candidate.id)"
+                        [disabled]="modificationsLocked()"
+                        [title]="modificationsLocked() ? modificationLockMessage : 'Elimina candidato'"
+                        class="rounded bg-red-500/20 px-3 py-1 text-sm text-red-300 transition hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Elimina
+                      </button>
+                    </div>
+
+                    @if (editing() === candidate.id && editDraft(); as draft) {
+                      <div class="mt-4 w-full rounded-2xl border border-slate-600 bg-slate-900/80 p-4">
+                        <div class="grid gap-3 md:grid-cols-[1fr,1fr,auto]">
+                          <label class="space-y-1">
+                            <span class="text-xs uppercase tracking-[0.12em] text-text-secondary">Nome</span>
+                            <input
+                              type="text"
+                              [ngModel]="draft.name"
+                              (ngModelChange)="editDraft.set({ ...draft, name: $event })"
+                              name="editDraftName"
+                              class="w-full rounded border border-slate-600 bg-slate-700 px-2 py-1.5 text-sm"
+                              placeholder="Nome"
+                            />
+                          </label>
+                          <label class="space-y-1">
+                            <span class="text-xs uppercase tracking-[0.12em] text-text-secondary">Performance</span>
+                            <input
+                              type="text"
+                              [ngModel]="draft.subtitle"
+                              (ngModelChange)="editDraft.set({ ...draft, subtitle: $event })"
+                              name="editDraftSubtitle"
+                              class="w-full rounded border border-slate-600 bg-slate-700 px-2 py-1.5 text-sm"
+                              placeholder="Nome performance"
+                            />
+                          </label>
+                          <label class="space-y-1">
+                            <span class="text-xs uppercase tracking-[0.12em] text-text-secondary">Colore</span>
+                            <input
+                              type="color"
+                              [ngModel]="draft.color"
+                              (ngModelChange)="editDraft.set({ ...draft, color: $event })"
+                              name="editDraftColor"
+                              class="h-10 w-16 cursor-pointer rounded border-0"
+                            />
+                          </label>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                          <button
+                            type="button"
+                            (click)="saveEditingCandidate(candidate.id)"
+                            class="rounded-2xl bg-accent-cyan px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-accent-cyan/90 transition"
+                          >
+                            Salva
+                          </button>
+                          <button
+                            type="button"
+                            (click)="cancelEditingCandidate()"
+                            class="rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
+                          >
+                            Annulla
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (activeSection() === 'voting-codes' || activeSection() === 'voting-backstage') {
+        <section class="space-y-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+          <div>
+            <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione votazione</p>
+            <h2 class="mt-2 text-2xl font-semibold">
+              {{ activeSection() === 'voting-codes' ? 'Generazione e validazione codici giuria' : 'Backstage con progresso delle votazioni' }}
+            </h2>
+          </div>
+
+          @if (!selectedEvent()) {
+            <div class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6 text-text-secondary">
+              Seleziona un evento per accedere alla gestione votazione.
+            </div>
+          } @else if (!eventManagerToken()) {
+            <form (ngSubmit)="handleEventManagerLogin()" class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6 space-y-3">
+              <p class="text-sm text-text-secondary">Accesso manager evento richiesto.</p>
+              <input
+                type="password"
+                [ngModel]="eventManagerPasswordInput()"
+                (ngModelChange)="eventManagerPasswordInput.set($event)"
+                name="eventManagerPasswordInputVoting"
+                placeholder="Password manager evento"
+                class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-text-primary"
+              />
+              <button
+                type="submit"
+                [disabled]="authenticatingManager()"
+                class="rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {{ authenticatingManager() ? 'Accesso...' : 'Sblocca gestione evento' }}
+              </button>
+            </form>
+          } @else if (loading()) {
+            <div class="flex items-center justify-center min-h-[240px]">
+              <div class="h-10 w-10 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent"></div>
+            </div>
+          } @else if (activeSection() === 'voting-codes') {
+            <app-judge-code-manager [eventId]="selectedEvent()!.id" [eventCode]="selectedEvent()!.code" [authToken]="eventManagerToken()!" />
+          } @else {
+            <div class="rounded-2xl border border-slate-700/90 bg-slate-900/90 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Operazioni amministrative</p>
+                  <p class="text-lg font-semibold text-text-primary">{{ selectedEvent()!.code }} - {{ selectedEvent()!.name }}</p>
+                  <p class="text-sm text-text-secondary">Stato: {{ currentStatus() }}</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="confirmStartRace()"
+                    [disabled]="!votingClosed()"
+                    class="rounded-2xl border border-emerald-500/30 bg-emerald-500/20 px-4 py-2 text-emerald-200 hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50 transition"
+                  >
+                    {{ startLabel() }}
+                  </button>
+                  @if (!votingClosed()) {
+                    <button
+                      type="button"
+                      (click)="confirmCloseTelevote()"
+                      class="rounded-2xl border border-amber-500/30 bg-amber-500/20 px-4 py-2 text-amber-200 hover:bg-amber-500/30 transition"
+                    >
+                      Chiudi televoto
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    (click)="handleOpenHallOfFame()"
+                    class="rounded-2xl bg-accent-magenta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-magenta/90 transition"
+                  >
+                    Apri Hall of Fame
+                  </button>
+                </div>
+              </div>
+              <div class="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3">
+                <p class="text-xs font-semibold uppercase tracking-[0.15em] text-red-200">Danger zone</p>
+                <button
+                  type="button"
+                  (click)="confirmResetRanking()"
+                  class="mt-2 rounded-2xl border border-red-500/30 bg-red-500/20 px-4 py-2 text-red-200 hover:bg-red-500/30 transition"
+                >
+                  Azzera classifica
+                </button>
+              </div>
+            </div>
+
+            <app-voting-progress-dashboard [eventId]="selectedEvent()!.id" [votingClosed]="votingClosed()" [authToken]="eventManagerToken()!" />
+          }
+        </section>
+      }
+    </div>
+  </div>
+}

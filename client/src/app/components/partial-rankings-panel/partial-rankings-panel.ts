@@ -1,0 +1,100 @@
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { PartialRankingEntry, PartialRankings, RankingsApi } from '../../api/rankings.api';
+
+function getMedalEmoji(position: number): string {
+  if (position === 1) return '\u{1F947}';
+  if (position === 2) return '\u{1F948}';
+  if (position === 3) return '\u{1F949}';
+  return '  ';
+}
+
+interface RankingColumn {
+  title: string;
+  entries: PartialRankingEntry[];
+  scoreLabel: string;
+  scoreKey: 'avgQualificata' | 'avgPopolare' | 'finalScore';
+  voteCountKey: 'qualifiedVoteCount' | 'popularVoteCount' | 'totalVoteCount';
+  scoreDecimals: number;
+  emptyMessage: string;
+}
+
+@Component({
+  selector: 'app-partial-rankings-panel',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './partial-rankings-panel.html',
+})
+export class PartialRankingsPanelComponent {
+  private readonly rankingsApi = inject(RankingsApi);
+
+  readonly eventId = input.required<string>();
+  readonly authToken = input.required<string>();
+
+  protected readonly rankings = signal<PartialRankings | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+  protected readonly getMedalEmoji = getMedalEmoji;
+
+  constructor() {
+    effect(() => {
+      void this.loadRankings(this.eventId(), this.authToken());
+    });
+  }
+
+  protected async loadRankings(eventId?: string, authToken?: string): Promise<void> {
+    const id = eventId ?? this.eventId();
+    const token = authToken ?? this.authToken();
+    this.loading.set(true);
+    try {
+      const data = await firstValueFrom(this.rankingsApi.fetchPartialRankings(id, token));
+      this.rankings.set(data);
+      this.error.set(null);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Errore');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  protected columns(): RankingColumn[] {
+    const r = this.rankings();
+    if (!r) return [];
+    return [
+      {
+        title: 'Giuria Qualificata',
+        entries: r.qualified,
+        scoreLabel: 'Media',
+        scoreKey: 'avgQualificata',
+        voteCountKey: 'qualifiedVoteCount',
+        scoreDecimals: 2,
+        emptyMessage: 'Nessun voto qualificato registrato.',
+      },
+      {
+        title: 'Giuria Popolare',
+        entries: r.popular,
+        scoreLabel: 'Media',
+        scoreKey: 'avgPopolare',
+        voteCountKey: 'popularVoteCount',
+        scoreDecimals: 2,
+        emptyMessage: 'Nessun voto popolare registrato.',
+      },
+      {
+        title: 'Classifica Ponderata',
+        entries: r.weighted,
+        scoreLabel: 'Punteggio',
+        scoreKey: 'finalScore',
+        voteCountKey: 'totalVoteCount',
+        scoreDecimals: 3,
+        emptyMessage: 'Nessun voto registrato.',
+      },
+    ];
+  }
+
+  protected scoreOf(entry: PartialRankingEntry, key: RankingColumn['scoreKey']): number {
+    return entry[key];
+  }
+
+  protected voteCountOf(entry: PartialRankingEntry, key: RankingColumn['voteCountKey']): number {
+    return entry[key];
+  }
+}
