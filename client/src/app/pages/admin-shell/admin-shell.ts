@@ -59,7 +59,7 @@ export class AdminShellComponent {
   );
 
   protected readonly events = signal<AdminEventSummary[]>([]);
-  protected readonly loadingEvents = signal(true);
+  protected readonly loadingEvents = signal(false);
   protected readonly eventsError = signal<string | null>(null);
   protected readonly creatingEvent = signal(false);
   protected readonly updatingSelectedEventName = signal(false);
