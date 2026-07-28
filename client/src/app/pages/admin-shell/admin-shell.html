@@ -59,7 +59,7 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="flex h-full flex-col">
-      <mat-toolbar class="!bg-slate-900/90 gap-3 border-b border-slate-700 backdrop-blur-xl">
+      <mat-toolbar class="!h-auto !min-h-16 gap-2 !bg-slate-900/90 border-b border-slate-700 py-2 backdrop-blur-xl sm:gap-3">
         @if (isHandset()) {
           <button type="button" mat-icon-button (click)="toggleSidenav()" aria-label="Apri menu">
             <mat-icon>menu</mat-icon>
@@ -68,22 +68,36 @@
 
         <span class="hidden text-sm font-bold uppercase tracking-wide text-text-secondary sm:inline">Admin</span>
 
-        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-event-select min-w-[200px] flex-1 max-w-sm">
-          <mat-label>Evento selezionato</mat-label>
-          <mat-select [value]="selectedEventId()" (selectionChange)="selectEvent($event.value)" data-testid="admin-event-select">
-            @if (events().length === 0) {
-              <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
-            }
-            @for (ev of events(); track ev.id) {
-              <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        @if (isHandset()) {
+          <!-- Narrow viewports: a compact read-only badge instead of the full
+               selector (which doesn't have room to show event name + arrow).
+               Switching events on mobile happens via the "Eventi" section or
+               the Dashboard's per-event "Gestisci" shortcut. -->
+          @if (selectedEvent(); as ev) {
+            <span class="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary" [title]="selectedEventBadge()">
+              {{ ev.code }}
+            </span>
+          } @else {
+            <span class="flex-1 text-sm text-text-secondary">Nessun evento</span>
+          }
+        } @else {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-event-select min-w-[200px] flex-1 max-w-sm">
+            <mat-label>Evento selezionato</mat-label>
+            <mat-select [value]="selectedEventId()" (selectionChange)="selectEvent($event.value)" data-testid="admin-event-select">
+              @if (events().length === 0) {
+                <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
+              }
+              @for (ev of events(); track ev.id) {
+                <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
 
-        @if (selectedEvent()) {
-          <mat-chip-set class="hidden md:flex">
-            <mat-chip [class]="votingClosed() ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
-              {{ currentStatus() }}
+        @if (!isHandset() && selectedEvent()) {
+          <mat-chip-set>
+            <mat-chip [class]="selectedEventVotingClosed() ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
+              {{ selectedEventStatusLabel() }}
             </mat-chip>
           </mat-chip-set>
         }
@@ -182,8 +196,8 @@
                           <mat-chip [class]="ev.active ? '!bg-emerald-400/15 !text-emerald-200' : '!bg-slate-700 !text-text-secondary'" disabled>
                             {{ ev.active ? 'Attivo' : 'Non attivo' }}
                           </mat-chip>
-                          <mat-chip [class]="votingClosed() ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
-                            {{ currentStatus() }}
+                          <mat-chip [class]="ev.votingClosed ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
+                            {{ ev.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
                           </mat-chip>
                         </mat-chip-set>
                       </div>

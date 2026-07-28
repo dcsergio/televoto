@@ -29,6 +29,6 @@ test.describe('Admin root login', () => {
 
     // Dashboard overview cards (all-events snapshot) should be present.
     await expect(page.getByText('Eventi totali')).toBeVisible();
-    await expect(page.getByText('Televoto aperto')).toBeVisible();
+    await expect(page.getByText('Televoto aperto').first()).toBeVisible();
   });
 });

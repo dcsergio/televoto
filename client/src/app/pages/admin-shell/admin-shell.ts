@@ -143,6 +143,20 @@ export class AdminShellComponent {
     return ev ? `${ev.code} - ${ev.name}` : 'Nessun evento selezionato';
   });
 
+  /**
+   * Voting-state label sourced straight from the events list (root-scoped,
+   * no event-manager auth required, kept in sync by every mutation that also
+   * patches `events`). Used for chrome shown before/without unlocking event
+   * management (toolbar, Dashboard). The `votingClosed`/`currentStatus`
+   * signals above stay reserved for the candidates/voting-codes/backstage
+   * sections, where they're fetched together with the manager-token-gated
+   * data they control (edit locks, start/close actions).
+   */
+  protected readonly selectedEventVotingClosed = computed(() => this.selectedEvent()?.votingClosed ?? true);
+  protected readonly selectedEventStatusLabel = computed(() =>
+    this.selectedEventVotingClosed() ? 'Televoto chiuso' : 'Televoto aperto',
+  );
+
   /** Cross-event snapshot for the Dashboard "overview" cards. */
   protected readonly eventsOverview = computed(() => {
     const list = this.events();
