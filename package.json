@@ -14,6 +14,7 @@
     "build": "tsc -b && npm run build --workspace client",
     "lint": "oxlint",
     "test:client": "npm run test --workspace client",
+    "test:e2e": "playwright test",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "npx prisma migrate deploy",
     "db:migrate:pooler": "set PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1&& npx prisma migrate deploy",
@@ -30,6 +31,7 @@
     "prisma": "^7.8.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.13.2",
