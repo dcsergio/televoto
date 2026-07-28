@@ -13,7 +13,7 @@
         primary: mat.$cyan-palette,
         tertiary: mat.$violet-palette,
       ),
-      typography: Inter,
+      typography: 'Inter, system-ui, -apple-system, sans-serif',
       density: 0,
     )
   );

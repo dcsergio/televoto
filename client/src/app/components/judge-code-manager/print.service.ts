@@ -53,7 +53,7 @@ export class PrintService {
             * { box-sizing: border-box; }
             body {
               margin: 0;
-              font-family: "Segoe UI", Arial, sans-serif;
+              font-family: "Inter", system-ui, -apple-system, sans-serif;
               color: #0f172a;
               background: #ffffff;
             }
