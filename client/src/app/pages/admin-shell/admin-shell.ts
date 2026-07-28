@@ -24,6 +24,7 @@ import { CandidatesApi } from '../../api/candidates.api';
 import { JudgeTokensApi, JudgeTokenRecord } from '../../api/judge-tokens.api';
 import { CandidateData } from '../../models/types';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
+import { ToastService } from '../../shared/toast.service';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
@@ -75,6 +76,7 @@ export class AdminShellComponent {
   private readonly candidatesApi = inject(CandidatesApi);
   private readonly judgeTokensApi = inject(JudgeTokensApi);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly toast = inject(ToastService);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
 
@@ -122,7 +124,6 @@ export class AdminShellComponent {
   protected readonly candidates = signal<CandidateData[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly statusMessage = signal<string | null>(null);
   protected readonly editing = signal<string | null>(null);
   protected readonly editDraft = signal<EditDraft | null>(null);
   protected readonly votingClosed = signal(true);
@@ -374,7 +375,6 @@ export class AdminShellComponent {
     this.selectedEventId.set(eventId || null);
     this.editing.set(null);
     this.editDraft.set(null);
-    this.statusMessage.set(null);
   }
 
   protected handleOpenHallOfFame(): void {
@@ -387,7 +387,6 @@ export class AdminShellComponent {
     const token = this.authState.rootAuthToken();
     if (!token) {
       this.error.set("Sessione root non valida. Rientra nell'area admin.");
-      this.statusMessage.set(null);
       return;
     }
     const draft = this.newEvent();
@@ -397,17 +396,14 @@ export class AdminShellComponent {
 
     if (!trimmedName) {
       this.error.set('Il nome evento è obbligatorio');
-      this.statusMessage.set(null);
       return;
     }
     if (trimmedCode && !EVENT_CODE_REGEX.test(trimmedCode)) {
       this.error.set('Il codice evento deve contenere da 1 a 5 cifre');
-      this.statusMessage.set(null);
       return;
     }
     if (draft.managerPassword.length < 8) {
       this.error.set('La password manager evento deve avere almeno 8 caratteri');
-      this.statusMessage.set(null);
       return;
     }
 
@@ -428,11 +424,10 @@ export class AdminShellComponent {
       this.selectedEventId.set(created.id);
       this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '' });
       this.error.set(null);
-      this.statusMessage.set(`Evento creato con codice ${created.code}.`);
+      this.toast.success(`Evento creato con codice ${created.code}.`);
       this.handleSectionChange('candidates');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
-      this.statusMessage.set(null);
     } finally {
       this.creatingEvent.set(false);
     }
@@ -445,11 +440,10 @@ export class AdminShellComponent {
     const trimmedName = this.selectedEventNameDraft().trim();
     if (!trimmedName) {
       this.error.set('Il nome evento è obbligatorio');
-      this.statusMessage.set(null);
       return;
     }
     if (trimmedName === ev.name) {
-      this.statusMessage.set('Nessuna modifica da salvare.');
+      this.toast.success('Nessuna modifica da salvare.');
       this.error.set(null);
       return;
     }
@@ -461,10 +455,9 @@ export class AdminShellComponent {
       );
       this.selectedEventNameDraft.set(updated.name);
       this.error.set(null);
-      this.statusMessage.set('Nome evento aggiornato con successo.');
+      this.toast.success('Nome evento aggiornato con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
-      this.statusMessage.set(null);
     } finally {
       this.updatingSelectedEventName.set(false);
     }
@@ -478,22 +471,18 @@ export class AdminShellComponent {
     const { weightQualificata, weightPopolare, trimmedMeanPercentage, enableTrimmedMean } = this.eventSettingsDraft();
     if (!Number.isInteger(weightQualificata) || !Number.isInteger(weightPopolare)) {
       this.error.set('I pesi devono essere numeri interi.');
-      this.statusMessage.set(null);
       return;
     }
     if (weightQualificata < 0 || weightQualificata > 100 || weightPopolare < 0 || weightPopolare > 100) {
       this.error.set('I pesi devono essere compresi tra 0 e 100.');
-      this.statusMessage.set(null);
       return;
     }
     if (weightQualificata + weightPopolare !== 100) {
       this.error.set('La somma dei pesi deve essere esattamente 100.');
-      this.statusMessage.set(null);
       return;
     }
     if (trimmedMeanPercentage < 0 || trimmedMeanPercentage >= 50) {
       this.error.set('La percentuale trimmed mean deve essere tra 0 e 49.99.');
-      this.statusMessage.set(null);
       return;
     }
 
@@ -520,10 +509,9 @@ export class AdminShellComponent {
         ),
       );
       this.error.set(null);
-      this.statusMessage.set('Impostazioni pesatura aggiornate con successo.');
+      this.toast.success('Impostazioni pesatura aggiornate con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento impostazioni votazione");
-      this.statusMessage.set(null);
     } finally {
       this.updatingVotingSettings.set(false);
     }
@@ -533,18 +521,15 @@ export class AdminShellComponent {
     const token = this.authState.rootAuthToken();
     if (!token) {
       this.error.set("Sessione root non valida. Rientra nell'area admin.");
-      this.statusMessage.set(null);
       return;
     }
     const { currentPassword, newPassword, confirmPassword } = this.rootPasswordDraft();
     if (currentPassword.length < 8 || newPassword.length < 8) {
       this.error.set('Le password root devono avere almeno 8 caratteri.');
-      this.statusMessage.set(null);
       return;
     }
     if (newPassword !== confirmPassword) {
       this.error.set('La conferma della nuova password root non corrisponde.');
-      this.statusMessage.set(null);
       return;
     }
     this.updatingRootPassword.set(true);
@@ -552,10 +537,9 @@ export class AdminShellComponent {
       await firstValueFrom(this.authApi.updateRootPassword(token, currentPassword, newPassword));
       this.rootPasswordDraft.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
       this.error.set(null);
-      this.statusMessage.set('Password root aggiornata con successo.');
+      this.toast.success('Password root aggiornata con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password root");
-      this.statusMessage.set(null);
     } finally {
       this.updatingRootPassword.set(false);
     }
@@ -567,7 +551,6 @@ export class AdminShellComponent {
     const password = this.eventManagerPasswordInput();
     if (password.length < 8) {
       this.error.set('La password evento deve avere almeno 8 caratteri.');
-      this.statusMessage.set(null);
       return;
     }
     this.authenticatingManager.set(true);
@@ -575,11 +558,10 @@ export class AdminShellComponent {
       const session = await firstValueFrom(this.authApi.loginEventManager(ev.id, password));
       this.eventManagerToken.set(session.token);
       this.error.set(null);
-      this.statusMessage.set('Accesso manager evento effettuato.');
+      this.toast.success('Gestione evento sbloccata.');
       this.eventManagerPasswordInput.set('');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore autenticazione manager evento');
-      this.statusMessage.set(null);
       this.eventManagerToken.set(null);
     } finally {
       this.authenticatingManager.set(false);
@@ -593,7 +575,6 @@ export class AdminShellComponent {
     const password = this.managerPasswordDraft();
     if (password.length < 8) {
       this.error.set('La nuova password evento deve avere almeno 8 caratteri.');
-      this.statusMessage.set(null);
       return;
     }
     this.updatingManagerPassword.set(true);
@@ -602,10 +583,9 @@ export class AdminShellComponent {
       this.managerPasswordDraft.set('');
       this.eventManagerToken.set(null);
       this.error.set(null);
-      this.statusMessage.set('Password manager evento aggiornata con successo.');
+      this.toast.success('Password manager evento aggiornata con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
-      this.statusMessage.set(null);
     } finally {
       this.updatingManagerPassword.set(false);
     }
@@ -619,7 +599,6 @@ export class AdminShellComponent {
     this.editing.set(candidate.id);
     this.editDraft.set({ name: candidate.name, subtitle: candidate.subtitle ?? '', color: candidate.color });
     this.error.set(null);
-    this.statusMessage.set(null);
   }
 
   protected cancelEditingCandidate(): void {
@@ -643,10 +622,9 @@ export class AdminShellComponent {
       this.editing.set(null);
       this.editDraft.set(null);
       this.error.set(null);
-      this.statusMessage.set('Candidato aggiornato con successo.');
+      this.toast.success('Candidato aggiornato con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
-      this.statusMessage.set(null);
     }
   }
 
@@ -657,7 +635,6 @@ export class AdminShellComponent {
     const draft = this.newCandidate();
     if (!draft.name) {
       this.error.set('Il nome del candidato è obbligatorio');
-      this.statusMessage.set(null);
       return;
     }
     try {
@@ -668,10 +645,9 @@ export class AdminShellComponent {
       this.candidates.update((prev) => [...prev, candidate].sort((a, b) => a.number - b.number));
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
       this.error.set(null);
-      this.statusMessage.set('Nuovo candidato aggiunto correttamente.');
+      this.toast.success('Nuovo candidato aggiunto correttamente.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
-      this.statusMessage.set(null);
     }
   }
 
@@ -695,10 +671,9 @@ export class AdminShellComponent {
       this.candidates.set(renumbered);
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
       this.error.set(null);
-      this.statusMessage.set('Candidato eliminato e numerazione aggiornata.');
+      this.toast.success('Candidato eliminato e numerazione aggiornata.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
-      this.statusMessage.set(null);
     }
   }
 
@@ -732,10 +707,9 @@ export class AdminShellComponent {
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
       this.editing.set(null);
       this.error.set(null);
-      this.statusMessage.set('Gara avviata: voti azzerati e televoto sbloccato.');
+      this.toast.success('Gara avviata: voti azzerati e televoto sbloccato.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'avvio della gara");
-      this.statusMessage.set(null);
     }
   }
 
@@ -764,10 +738,9 @@ export class AdminShellComponent {
       this.votingClosed.set(result.votingClosed);
       this.events.update((prev) => prev.map((e) => (e.id === ev.id ? { ...e, votingClosed: result.votingClosed } : e)));
       this.error.set(null);
-      this.statusMessage.set('Televoto chiuso con successo. Puoi modificare nuovamente i candidati.');
+      this.toast.success('Televoto chiuso con successo. Puoi modificare nuovamente i candidati.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella chiusura del televoto');
-      this.statusMessage.set(null);
     }
   }
 
@@ -790,10 +763,9 @@ export class AdminShellComponent {
       if (!token) throw new Error('Accesso manager evento richiesto');
       await firstValueFrom(this.eventsApi.resetEventVotes(ev.id, token));
       this.error.set(null);
-      this.statusMessage.set('Classifica azzerata con successo.');
+      this.toast.success('Classifica azzerata con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'azzeramento della classifica");
-      this.statusMessage.set(null);
     }
   }
 }
