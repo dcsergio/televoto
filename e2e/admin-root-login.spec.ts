@@ -20,8 +20,12 @@ test.describe('Admin root login', () => {
     await page.getByPlaceholder('Password root').fill(ROOT_PASSWORD);
     await page.getByRole('button', { name: 'Accedi' }).click();
 
+    // Dashboard is the default landing section - no explicit navigation
+    // happens on initial login, so the URL stays plain /admin here (the
+    // adminSection query param is written once the user actually navigates,
+    // see admin-navigation.spec.ts).
     await expect(page.getByRole('heading', { name: 'Panoramica generale' })).toBeVisible();
-    await expect(page).toHaveURL(/adminSection=dashboard/);
+    expect(new URL(page.url()).pathname).toBe('/admin');
 
     // Dashboard overview cards (all-events snapshot) should be present.
     await expect(page.getByText('Eventi totali')).toBeVisible();

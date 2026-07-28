@@ -45,7 +45,9 @@ test.describe('Event manager login', () => {
 
     await page.getByTestId('admin-nav-dashboard').click();
     await expect(page.getByRole('heading', { name: 'Panoramica generale' })).toBeVisible();
-    await expect(page.getByText('Evento selezionato')).toBeVisible();
+    // Judge-token + candidate stats only render once the event manager token
+    // is present (see admin-shell.ts loadDashboardJudgeTokens()).
     await expect(page.getByText('Codici giuria emessi')).toBeVisible();
+    await expect(page.getByText('Stato voti giuria')).toBeVisible();
   });
 });
