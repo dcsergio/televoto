@@ -3,12 +3,25 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { firstValueFrom, map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
 import { CandidatesApi } from '../../api/candidates.api';
+import { JudgeTokensApi, JudgeTokenRecord } from '../../api/judge-tokens.api';
 import { CandidateData } from '../../models/types';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
@@ -16,6 +29,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
 import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
 import {
+  ADMIN_SECTION_NAV,
   AdminSection,
   CANDIDATE_COLOR_PALETTE,
   EVENT_CODE_REGEX,
@@ -38,6 +52,17 @@ interface EditDraft {
     ProtectedPageGateComponent,
     JudgeCodeManagerComponent,
     VotingProgressDashboardComponent,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatListModule,
+    MatIconModule,
+    MatButtonModule,
+    MatCardModule,
+    MatChipsModule,
+    MatDividerModule,
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatSelectModule,
   ],
   templateUrl: './admin-shell.html',
 })
@@ -48,6 +73,8 @@ export class AdminShellComponent {
   private readonly authApi = inject(AuthApi);
   private readonly eventsApi = inject(EventsApi);
   private readonly candidatesApi = inject(CandidatesApi);
+  private readonly judgeTokensApi = inject(JudgeTokensApi);
+  private readonly breakpointObserver = inject(BreakpointObserver);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
 
@@ -57,6 +84,17 @@ export class AdminShellComponent {
   protected readonly activeSection = signal<AdminSection>(
     adminSectionFromQueryParam(this.route.snapshot.queryParamMap.get('adminSection')),
   );
+
+  protected readonly adminSectionNav = ADMIN_SECTION_NAV;
+  protected readonly isHandset = toSignal(
+    this.breakpointObserver.observe(Breakpoints.Handset).pipe(map((result) => result.matches)),
+    { initialValue: false },
+  );
+  protected readonly sidenavMode = computed<'over' | 'side'>(() => (this.isHandset() ? 'over' : 'side'));
+  protected readonly sidenavOpened = signal(true);
+
+  protected readonly dashboardJudgeTokens = signal<JudgeTokenRecord[]>([]);
+  protected readonly dashboardJudgeTokensLoading = signal(false);
 
   protected readonly events = signal<AdminEventSummary[]>([]);
   protected readonly loadingEvents = signal(false);
@@ -105,10 +143,40 @@ export class AdminShellComponent {
     return ev ? `${ev.code} - ${ev.name}` : 'Nessun evento selezionato';
   });
 
+  /** Cross-event snapshot for the Dashboard "overview" cards. */
+  protected readonly eventsOverview = computed(() => {
+    const list = this.events();
+    return {
+      total: list.length,
+      active: list.filter((e) => e.active).length,
+      votingOpen: list.filter((e) => !e.votingClosed).length,
+      votingClosed: list.filter((e) => e.votingClosed).length,
+    };
+  });
+
+  /** Judge-token breakdown for the currently selected event, shown on the Dashboard. */
+  protected readonly judgeTokenStats = computed(() => {
+    const tokens = this.dashboardJudgeTokens();
+    return {
+      total: tokens.length,
+      qualificata: tokens.filter((t) => t.type === 'QUALIFICATA').length,
+      popolare: tokens.filter((t) => t.type === 'POPOLARE').length,
+      active: tokens.filter((t) => t.status === 'active').length,
+      used: tokens.filter((t) => t.status === 'used').length,
+      revoked: tokens.filter((t) => t.status === 'revoked').length,
+    };
+  });
+
   private lastEventCode: string | null = null;
   private lastCandidatesKey: string | null = null;
 
   constructor() {
+    // Sidenav starts closed on handset (opened via the toolbar menu button)
+    // and always open in "side" mode on larger viewports.
+    effect(() => {
+      this.sidenavOpened.set(!this.isHandset());
+    });
+
     effect(() => {
       const code = this.queryParamMap().get('eventCode');
       if (code === this.lastEventCode) return;
@@ -151,12 +219,14 @@ export class AdminShellComponent {
       if (!ev || !token) {
         this.candidates.set([]);
         this.votingClosed.set(true);
+        this.dashboardJudgeTokens.set([]);
         return;
       }
       const key = `${ev.id}:${token}`;
       if (key === this.lastCandidatesKey) return;
       this.lastCandidatesKey = key;
       void this.loadCandidates();
+      void this.loadDashboardJudgeTokens();
     });
   }
 
@@ -213,6 +283,53 @@ export class AdminShellComponent {
     }
   }
 
+  private async loadDashboardJudgeTokens(): Promise<void> {
+    const ev = this.selectedEvent();
+    const token = this.eventManagerToken();
+    if (!ev || !token) return;
+    this.dashboardJudgeTokensLoading.set(true);
+    try {
+      const data = await firstValueFrom(this.judgeTokensApi.fetchJudgeTokens(ev.id, token));
+      this.dashboardJudgeTokens.set(data);
+    } catch {
+      this.dashboardJudgeTokens.set([]);
+    } finally {
+      this.dashboardJudgeTokensLoading.set(false);
+    }
+  }
+
+  protected refreshEvents(): void {
+    void this.loadEvents();
+  }
+
+  protected toggleSidenav(): void {
+    this.sidenavOpened.update((opened) => !opened);
+  }
+
+  protected handleNavSelect(section: AdminSection): void {
+    this.handleSectionChange(section);
+    if (this.isHandset()) {
+      this.sidenavOpened.set(false);
+    }
+  }
+
+  /** Jump straight into a section for a given event, used by Dashboard quick-manage shortcuts. */
+  protected goToEventSection(eventId: string, section: AdminSection): void {
+    this.selectEvent(eventId);
+    this.handleNavSelect(section);
+  }
+
+  protected handleOpenPublicVoting(): void {
+    const ev = this.selectedEvent();
+    if (!ev) return;
+    window.open(`/?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+  }
+
+  protected handleLogout(): void {
+    this.authState.logoutRoot();
+    this.authState.logoutEventManager();
+  }
+
   protected async handleLoginSubmit(password: string): Promise<void> {
     try {
       await this.authState.loginRoot(password);
@@ -234,6 +351,9 @@ export class AdminShellComponent {
       queryParams: { adminSection: section },
       queryParamsHandling: 'merge',
     });
+    if (section === 'dashboard' && this.eventManagerToken()) {
+      void this.loadDashboardJudgeTokens();
+    }
   }
 
   protected selectEvent(eventId: string): void {
