@@ -1,0 +1,116 @@
+import { prisma } from "../db/prisma.js";
+import type { PasswordRecord } from "../lib/password.js";
+
+const eventSummarySelect = {
+  id: true,
+  code: true,
+  name: true,
+  subtitle: true,
+  active: true,
+  votingClosed: true,
+  weightQualificata: true,
+  weightPopolare: true,
+  enableTrimmedMean: true,
+  trimmedMeanPercentage: true,
+  createdAt: true,
+} as const;
+
+export function findEventIdByCode(code: string) {
+  return prisma.event.findUnique({ where: { code }, select: { id: true } });
+}
+
+export function findManyEventsSummary() {
+  return prisma.event.findMany({ orderBy: { createdAt: "desc" }, select: eventSummarySelect });
+}
+
+export type CreateEventRepoInput = {
+  code: string;
+  name: string;
+  subtitle: string | null;
+  managerPasswordRecord: PasswordRecord;
+};
+
+export function createEvent(input: CreateEventRepoInput) {
+  return prisma.event.create({
+    data: {
+      code: input.code,
+      name: input.name,
+      subtitle: input.subtitle,
+      active: true,
+      votingClosed: true,
+      managerCredential: { create: input.managerPasswordRecord },
+    },
+    select: eventSummarySelect,
+  });
+}
+
+export function findEventByCodeWithCandidates(code: string) {
+  return prisma.event.findUnique({
+    where: { code },
+    include: { candidates: { orderBy: { number: "asc" } } },
+  });
+}
+
+export function findEventPublicDetail(eventId: string) {
+  return prisma.event.findUnique({
+    where: { id: eventId },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      subtitle: true,
+      active: true,
+      votingClosed: true,
+      weightQualificata: true,
+      weightPopolare: true,
+      enableTrimmedMean: true,
+      trimmedMeanPercentage: true,
+    },
+  });
+}
+
+export type EventUpdateData = {
+  name?: string;
+  subtitle?: string | null;
+  weightQualificata?: number;
+  weightPopolare?: number;
+  enableTrimmedMean?: boolean;
+  trimmedMeanPercentage?: number;
+};
+
+export function updateEventSummary(eventId: string, data: EventUpdateData) {
+  return prisma.event.update({ where: { id: eventId }, data, select: eventSummarySelect });
+}
+
+export function findEventBasic(eventId: string) {
+  return prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
+}
+
+export function updateVotingState(eventId: string, votingClosed: boolean) {
+  return prisma.event.update({
+    where: { id: eventId },
+    data: { votingClosed },
+    select: { id: true, votingClosed: true },
+  });
+}
+
+export function reopenEventForStart(eventId: string) {
+  return prisma.event.update({ where: { id: eventId }, data: { active: true, votingClosed: false } });
+}
+
+export function findEventCodeById(eventId: string) {
+  return prisma.event.findUnique({ where: { id: eventId }, select: { code: true } });
+}
+
+export function findEventRankingSettings(eventId: string) {
+  return prisma.event.findUnique({
+    where: { id: eventId },
+    select: {
+      id: true,
+      weightQualificata: true,
+      weightPopolare: true,
+      enableTrimmedMean: true,
+      trimmedMeanPercentage: true,
+    },
+  });
+}
