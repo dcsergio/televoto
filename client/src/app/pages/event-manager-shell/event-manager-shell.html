@@ -1,0 +1,171 @@
+@if (loading()) {
+  <div class="flex items-center justify-center min-h-dvh">
+    <div class="w-10 h-10 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
+  </div>
+} @else if (!eventCode()) {
+  <app-event-code-gate (submitCode)="handleEventCodeSubmit($event)" />
+} @else if (!event()) {
+  <div class="flex items-center justify-center min-h-dvh px-4">
+    <p class="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
+  </div>
+} @else if (!isAuthenticated()) {
+  <app-protected-page-gate
+    pageLabel="Gestione evento"
+    passwordPrompt="Inserisci la password manager per gestire questo evento."
+    passwordPlaceholder="Password evento"
+    [error]="passwordError()"
+    (submitPassword)="handleLoginSubmit($event)"
+    (cancel)="handleLoginCancel()"
+  />
+} @else {
+  <mat-sidenav-container class="h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
+    <mat-sidenav
+      #sidenav
+      class="w-72 border-r border-slate-700 !bg-slate-900/95"
+      [mode]="sidenavMode()"
+      [opened]="sidenavOpened()"
+      (openedChange)="sidenavOpened.set($event)"
+    >
+      <div class="flex h-full flex-col">
+        <div class="px-5 py-6">
+          <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
+          <p class="mt-1 text-[10px] uppercase tracking-[0.2em] text-text-muted">Gestione evento</p>
+        </div>
+
+        <mat-nav-list class="flex-1 px-2">
+          @for (item of sectionNav; track item.section) {
+            <a
+              mat-list-item
+              (click)="handleNavSelect(item.section)"
+              [attr.data-testid]="'event-manager-nav-' + item.section"
+              class="mb-1 cursor-pointer rounded-xl transition"
+              [class.bg-accent-cyan/15]="activeSection() === item.section"
+              [class.text-accent-cyan]="activeSection() === item.section"
+            >
+              <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+              <span matListItemTitle>{{ item.label }}</span>
+            </a>
+          }
+        </mat-nav-list>
+
+        <mat-divider></mat-divider>
+
+        <div class="space-y-2 px-4 py-4">
+          <p class="truncate text-xs text-text-secondary" [title]="event()!.code + ' - ' + event()!.name">
+            {{ event()!.code }} - {{ event()!.name }}
+          </p>
+          <button type="button" mat-stroked-button class="w-full" data-testid="event-manager-sidenav-logout" (click)="handleLogout()">
+            <mat-icon>logout</mat-icon>
+            Esci
+          </button>
+        </div>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="flex h-full flex-col">
+      <mat-toolbar class="!h-auto !min-h-16 gap-2 !bg-slate-900/90 border-b border-slate-700 py-2 backdrop-blur-xl sm:gap-3">
+        @if (isHandset()) {
+          <button type="button" mat-icon-button (click)="toggleSidenav()" aria-label="Apri menu">
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+
+        <span class="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary" [title]="event()!.code + ' - ' + event()!.name">
+          {{ event()!.code }} - {{ event()!.name }}
+        </span>
+
+        <mat-chip-set>
+          <mat-chip [class]="event()!.votingClosed ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
+            {{ event()!.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
+          </mat-chip>
+        </mat-chip-set>
+
+        <span class="flex-1"></span>
+
+        <button type="button" mat-icon-button matTooltip="Apri pagina voto pubblico" data-testid="event-manager-open-voting" (click)="handleOpenPublicVoting()">
+          <mat-icon>how_to_vote</mat-icon>
+        </button>
+        <button type="button" mat-icon-button matTooltip="Apri Hall of Fame" data-testid="event-manager-open-hof" (click)="handleOpenHallOfFame()">
+          <mat-icon>emoji_events</mat-icon>
+        </button>
+        <button type="button" mat-icon-button matTooltip="Esci" data-testid="event-manager-toolbar-logout" (click)="handleLogout()">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </mat-toolbar>
+
+      <div class="flex-1 overflow-y-auto px-4 py-6 md:px-8">
+        <div class="mx-auto max-w-6xl space-y-6">
+          @if (activeSection() === 'dashboard') {
+            <div class="space-y-6">
+              <div>
+                <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Dashboard</p>
+                <h2 class="mt-2 text-2xl font-semibold">{{ event()!.code }} - {{ event()!.name }}</h2>
+              </div>
+
+              <mat-card appearance="outlined" class="!bg-slate-900/70">
+                <mat-card-content class="space-y-4">
+                  <div class="grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-2xl border border-slate-700 bg-slate-950/50 p-3">
+                      <p class="text-xs text-text-secondary">Candidati</p>
+                      <p class="text-2xl font-bold text-text-primary">{{ event()!.candidates.length }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-700 bg-slate-950/50 p-3">
+                      <p class="text-xs text-text-secondary">Codici giuria emessi</p>
+                      <p class="text-2xl font-bold text-text-primary">
+                        {{ judgeTokensLoading() ? '...' : judgeTokenStats().total }}
+                      </p>
+                      <p class="mt-1 text-[11px] text-text-secondary">
+                        Qualificata {{ judgeTokenStats().qualificata }} - Popolare {{ judgeTokenStats().popolare }}
+                      </p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-700 bg-slate-950/50 p-3">
+                      <p class="text-xs text-text-secondary">Stato voti giuria</p>
+                      <p class="text-sm text-text-primary">
+                        <span class="text-emerald-300">{{ judgeTokenStats().active }} attivi</span> ·
+                        <span class="text-amber-300">{{ judgeTokenStats().used }} finalizzati</span> ·
+                        <span class="text-red-300">{{ judgeTokenStats().revoked }} revocati</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2 pt-1">
+                    @for (item of sectionNav; track item.section) {
+                      @if (item.section !== 'dashboard') {
+                        <button type="button" mat-stroked-button (click)="handleNavSelect(item.section)">
+                          <mat-icon>{{ item.icon }}</mat-icon>
+                          {{ item.label }}
+                        </button>
+                      }
+                    }
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          }
+
+          @if (activeSection() === 'candidates') {
+            <app-event-candidates-manager [eventId]="event()!.id" [authToken]="activeToken()!" [votingClosed]="event()!.votingClosed" />
+          }
+
+          @if (activeSection() === 'voting-codes') {
+            <app-judge-code-manager [eventId]="event()!.id" [eventCode]="event()!.code" [authToken]="activeToken()!" />
+          }
+
+          @if (activeSection() === 'voting-backstage') {
+            <div class="space-y-6">
+              <app-event-lifecycle-controls
+                [eventId]="event()!.id"
+                [eventCode]="event()!.code"
+                [eventName]="event()!.name"
+                [authToken]="activeToken()!"
+                [votingClosed]="event()!.votingClosed"
+                (votingStateChange)="handleVotingStateChange($event)"
+              />
+              <app-voting-progress-dashboard [eventId]="event()!.id" [votingClosed]="event()!.votingClosed" [authToken]="activeToken()!" />
+            </div>
+          }
+        </div>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+}

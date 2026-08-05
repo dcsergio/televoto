@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -20,30 +19,10 @@ import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
-import { CandidatesApi } from '../../api/candidates.api';
-import { JudgeTokensApi, JudgeTokenRecord } from '../../api/judge-tokens.api';
-import { CandidateData } from '../../models/types';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
 import { ToastService } from '../../shared/toast.service';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
-import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
-import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
-import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
-import {
-  ADMIN_SECTION_NAV,
-  AdminSection,
-  CANDIDATE_COLOR_PALETTE,
-  EVENT_CODE_REGEX,
-  adminSectionFromQueryParam,
-  getNextCandidateNumber,
-  getRandomColor,
-} from './admin.util';
-
-interface EditDraft {
-  name: string;
-  subtitle: string;
-  color: string;
-}
+import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
 @Component({
   selector: 'app-admin-shell',
@@ -51,8 +30,6 @@ interface EditDraft {
   imports: [
     FormsModule,
     ProtectedPageGateComponent,
-    JudgeCodeManagerComponent,
-    VotingProgressDashboardComponent,
     MatSidenavModule,
     MatToolbarModule,
     MatListModule,
@@ -70,11 +47,8 @@ interface EditDraft {
 export class AdminShellComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly dialog = inject(MatDialog);
   private readonly authApi = inject(AuthApi);
   private readonly eventsApi = inject(EventsApi);
-  private readonly candidatesApi = inject(CandidatesApi);
-  private readonly judgeTokensApi = inject(JudgeTokensApi);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly toast = inject(ToastService);
   protected readonly authState = inject(AuthStateService);
@@ -95,9 +69,6 @@ export class AdminShellComponent {
   protected readonly sidenavMode = computed<'over' | 'side'>(() => (this.isHandset() ? 'over' : 'side'));
   protected readonly sidenavOpened = signal(true);
 
-  protected readonly dashboardJudgeTokens = signal<JudgeTokenRecord[]>([]);
-  protected readonly dashboardJudgeTokensLoading = signal(false);
-
   protected readonly events = signal<AdminEventSummary[]>([]);
   protected readonly loadingEvents = signal(false);
   protected readonly eventsError = signal<string | null>(null);
@@ -107,7 +78,6 @@ export class AdminShellComponent {
   protected readonly selectedEventId = signal<string | null>(null);
   protected readonly selectedEventNameDraft = signal('');
   protected readonly newEvent = signal({ code: '', name: '', subtitle: '', managerPassword: '' });
-  protected readonly eventManagerPasswordInput = signal('');
   protected readonly updatingVotingSettings = signal(false);
   protected readonly eventSettingsDraft = signal({
     weightQualificata: 70,
@@ -115,44 +85,21 @@ export class AdminShellComponent {
     enableTrimmedMean: false,
     trimmedMeanPercentage: 10,
   });
-  protected readonly eventManagerToken = signal<string | null>(null);
-  protected readonly authenticatingManager = signal(false);
   protected readonly updatingManagerPassword = signal(false);
   protected readonly managerPasswordDraft = signal('');
   protected readonly rootPasswordDraft = signal({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
-  protected readonly candidates = signal<CandidateData[]>([]);
-  protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly editing = signal<string | null>(null);
-  protected readonly editDraft = signal<EditDraft | null>(null);
-  protected readonly votingClosed = signal(true);
-  protected readonly newCandidate = signal({ name: '', subtitle: '', color: getRandomColor() });
 
   protected readonly eventNameSeparator = EVENT_NAME_SEPARATOR;
-  protected readonly candidateColorPalette = CANDIDATE_COLOR_PALETTE;
 
   protected readonly selectedEvent = computed(
     () => this.events().find((event) => event.id === this.selectedEventId()) ?? null,
   );
-  protected readonly modificationsLocked = computed(() => !this.votingClosed());
-  protected readonly startLabel = computed(() => (this.votingClosed() ? 'Avvia gara' : 'Televoto aperto'));
-  protected readonly currentStatus = computed(() => (this.votingClosed() ? 'Televoto chiuso' : 'Televoto aperto'));
-  protected readonly modificationLockMessage = 'Disponibile solo a televoto chiuso';
   protected readonly selectedEventBadge = computed(() => {
     const ev = this.selectedEvent();
     return ev ? `${ev.code} - ${ev.name}` : 'Nessun evento selezionato';
   });
-
-  /**
-   * Voting-state label sourced straight from the events list (root-scoped,
-   * no event-manager auth required, kept in sync by every mutation that also
-   * patches `events`). Used for chrome shown before/without unlocking event
-   * management (toolbar, Dashboard). The `votingClosed`/`currentStatus`
-   * signals above stay reserved for the candidates/voting-codes/backstage
-   * sections, where they're fetched together with the manager-token-gated
-   * data they control (edit locks, start/close actions).
-   */
   protected readonly selectedEventVotingClosed = computed(() => this.selectedEvent()?.votingClosed ?? true);
   protected readonly selectedEventStatusLabel = computed(() =>
     this.selectedEventVotingClosed() ? 'Televoto chiuso' : 'Televoto aperto',
@@ -169,21 +116,7 @@ export class AdminShellComponent {
     };
   });
 
-  /** Judge-token breakdown for the currently selected event, shown on the Dashboard. */
-  protected readonly judgeTokenStats = computed(() => {
-    const tokens = this.dashboardJudgeTokens();
-    return {
-      total: tokens.length,
-      qualificata: tokens.filter((t) => t.type === 'QUALIFICATA').length,
-      popolare: tokens.filter((t) => t.type === 'POPOLARE').length,
-      active: tokens.filter((t) => t.status === 'active').length,
-      used: tokens.filter((t) => t.status === 'used').length,
-      revoked: tokens.filter((t) => t.status === 'revoked').length,
-    };
-  });
-
   private lastEventCode: string | null = null;
-  private lastCandidatesKey: string | null = null;
 
   constructor() {
     // Sidenav starts closed on handset (opened via the toolbar menu button)
@@ -223,25 +156,7 @@ export class AdminShellComponent {
         enableTrimmedMean: ev?.enableTrimmedMean ?? false,
         trimmedMeanPercentage: ev?.trimmedMeanPercentage ?? 10,
       });
-      this.eventManagerToken.set(null);
-      this.eventManagerPasswordInput.set('');
       this.managerPasswordDraft.set('');
-    });
-
-    effect(() => {
-      const ev = this.selectedEvent();
-      const token = this.eventManagerToken();
-      if (!ev || !token) {
-        this.candidates.set([]);
-        this.votingClosed.set(true);
-        this.dashboardJudgeTokens.set([]);
-        return;
-      }
-      const key = `${ev.id}:${token}`;
-      if (key === this.lastCandidatesKey) return;
-      this.lastCandidatesKey = key;
-      void this.loadCandidates();
-      void this.loadDashboardJudgeTokens();
     });
   }
 
@@ -277,42 +192,6 @@ export class AdminShellComponent {
     }
   }
 
-  private async loadCandidates(): Promise<void> {
-    const ev = this.selectedEvent();
-    const token = this.eventManagerToken();
-    if (!ev || !token) return;
-    this.loading.set(true);
-    try {
-      const [data, eventState] = await Promise.all([
-        firstValueFrom(this.candidatesApi.fetchCandidates(ev.id, token)),
-        firstValueFrom(this.eventsApi.fetchEventState(ev.id)),
-      ]);
-      this.candidates.set(data);
-      this.votingClosed.set(eventState.votingClosed);
-      this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
-      this.error.set(null);
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore');
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  private async loadDashboardJudgeTokens(): Promise<void> {
-    const ev = this.selectedEvent();
-    const token = this.eventManagerToken();
-    if (!ev || !token) return;
-    this.dashboardJudgeTokensLoading.set(true);
-    try {
-      const data = await firstValueFrom(this.judgeTokensApi.fetchJudgeTokens(ev.id, token));
-      this.dashboardJudgeTokens.set(data);
-    } catch {
-      this.dashboardJudgeTokens.set([]);
-    } finally {
-      this.dashboardJudgeTokensLoading.set(false);
-    }
-  }
-
   protected refreshEvents(): void {
     void this.loadEvents();
   }
@@ -328,16 +207,24 @@ export class AdminShellComponent {
     }
   }
 
-  /** Jump straight into a section for a given event, used by Dashboard quick-manage shortcuts. */
-  protected goToEventSection(eventId: string, section: AdminSection): void {
-    this.selectEvent(eventId);
-    this.handleNavSelect(section);
-  }
-
   protected handleOpenPublicVoting(): void {
     const ev = this.selectedEvent();
     if (!ev) return;
     window.open(`/?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+  }
+
+  protected handleOpenHallOfFame(): void {
+    const ev = this.selectedEvent();
+    if (!ev) return;
+    window.open(`/hof?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+  }
+
+  /** Opens the dedicated single-event workspace (candidati, codici voto, backstage). Root's session in this tab is reused there, no extra password prompt. */
+  protected handleManageEvent(eventId: string): void {
+    this.selectEvent(eventId);
+    const ev = this.events().find((e) => e.id === eventId);
+    if (!ev) return;
+    window.open(`/manager?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
   protected handleLogout(): void {
@@ -366,21 +253,10 @@ export class AdminShellComponent {
       queryParams: { adminSection: section },
       queryParamsHandling: 'merge',
     });
-    if (section === 'dashboard' && this.eventManagerToken()) {
-      void this.loadDashboardJudgeTokens();
-    }
   }
 
   protected selectEvent(eventId: string): void {
     this.selectedEventId.set(eventId || null);
-    this.editing.set(null);
-    this.editDraft.set(null);
-  }
-
-  protected handleOpenHallOfFame(): void {
-    const ev = this.selectedEvent();
-    if (!ev) return;
-    window.open(`/hof?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
   protected async handleCreateEvent(): Promise<void> {
@@ -425,7 +301,6 @@ export class AdminShellComponent {
       this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '' });
       this.error.set(null);
       this.toast.success(`Evento creato con codice ${created.code}.`);
-      this.handleSectionChange('candidates');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -545,29 +420,6 @@ export class AdminShellComponent {
     }
   }
 
-  protected async handleEventManagerLogin(): Promise<void> {
-    const ev = this.selectedEvent();
-    if (!ev) return;
-    const password = this.eventManagerPasswordInput();
-    if (password.length < 8) {
-      this.error.set('La password evento deve avere almeno 8 caratteri.');
-      return;
-    }
-    this.authenticatingManager.set(true);
-    try {
-      const session = await firstValueFrom(this.authApi.loginEventManager(ev.id, password));
-      this.eventManagerToken.set(session.token);
-      this.error.set(null);
-      this.toast.success('Gestione evento sbloccata.');
-      this.eventManagerPasswordInput.set('');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore autenticazione manager evento');
-      this.eventManagerToken.set(null);
-    } finally {
-      this.authenticatingManager.set(false);
-    }
-  }
-
   protected async handleRotateEventManagerPassword(): Promise<void> {
     const ev = this.selectedEvent();
     const token = this.authState.rootAuthToken();
@@ -581,191 +433,12 @@ export class AdminShellComponent {
     try {
       await firstValueFrom(this.eventsApi.updateEventManagerPassword(ev.id, password, token));
       this.managerPasswordDraft.set('');
-      this.eventManagerToken.set(null);
       this.error.set(null);
       this.toast.success('Password manager evento aggiornata con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
     } finally {
       this.updatingManagerPassword.set(false);
-    }
-  }
-
-  protected regenerateNewCandidateColor(): void {
-    this.newCandidate.update((prev) => ({ ...prev, color: getRandomColor() }));
-  }
-
-  protected startEditingCandidate(candidate: CandidateData): void {
-    this.editing.set(candidate.id);
-    this.editDraft.set({ name: candidate.name, subtitle: candidate.subtitle ?? '', color: candidate.color });
-    this.error.set(null);
-  }
-
-  protected cancelEditingCandidate(): void {
-    this.editing.set(null);
-    this.editDraft.set(null);
-  }
-
-  protected async saveEditingCandidate(id: string): Promise<void> {
-    const draft = this.editDraft();
-    const token = this.eventManagerToken();
-    if (!draft || !token) return;
-    try {
-      const updated = await firstValueFrom(
-        this.candidatesApi.updateCandidate(
-          id,
-          { name: draft.name, subtitle: draft.subtitle || null, color: draft.color },
-          token,
-        ),
-      );
-      this.candidates.update((prev) => prev.map((c) => (c.id === id ? updated : c)));
-      this.editing.set(null);
-      this.editDraft.set(null);
-      this.error.set(null);
-      this.toast.success('Candidato aggiornato con successo.');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore');
-    }
-  }
-
-  protected async handleAddCandidate(): Promise<void> {
-    const ev = this.selectedEvent();
-    const token = this.eventManagerToken();
-    if (!ev || !token) return;
-    const draft = this.newCandidate();
-    if (!draft.name) {
-      this.error.set('Il nome del candidato è obbligatorio');
-      return;
-    }
-    try {
-      const nextNumber = getNextCandidateNumber(this.candidates());
-      const candidate = await firstValueFrom(
-        this.candidatesApi.addCandidate(ev.id, nextNumber, draft.name, token, draft.subtitle || undefined, draft.color),
-      );
-      this.candidates.update((prev) => [...prev, candidate].sort((a, b) => a.number - b.number));
-      this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
-      this.error.set(null);
-      this.toast.success('Nuovo candidato aggiunto correttamente.');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore');
-    }
-  }
-
-  protected confirmDeleteCandidate(id: string): void {
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Elimina candidato', message: 'Sei sicuro di voler eliminare questo candidato?', confirmLabel: 'Elimina' },
-    });
-    ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) void this.deleteCandidate(id);
-    });
-  }
-
-  private async deleteCandidate(id: string): Promise<void> {
-    const token = this.eventManagerToken();
-    try {
-      if (!token) throw new Error('Accesso manager evento richiesto');
-      await firstValueFrom(this.candidatesApi.deleteCandidate(id, token));
-      const remaining = this.candidates().filter((c) => c.id !== id);
-      const ordered = [...remaining].sort((a, b) => a.number - b.number);
-      const renumbered = ordered.map((c, index) => ({ ...c, number: index + 1 }));
-      this.candidates.set(renumbered);
-      this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
-      this.error.set(null);
-      this.toast.success('Candidato eliminato e numerazione aggiornata.');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore');
-    }
-  }
-
-  protected confirmStartRace(): void {
-    const ev = this.selectedEvent();
-    if (!ev) return;
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Avvia gara',
-        message: 'Vuoi avviare la gara? I voti precedenti saranno azzerati e i candidati verranno rinumerati progressivamente.',
-        confirmLabel: 'Avvia',
-      },
-    });
-    ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) void this.startRace();
-    });
-  }
-
-  private async startRace(): Promise<void> {
-    const ev = this.selectedEvent();
-    const token = this.eventManagerToken();
-    if (!ev) return;
-    try {
-      if (!token) throw new Error('Accesso manager evento richiesto');
-      const result = await firstValueFrom(this.eventsApi.startEvent(ev.id, token));
-      this.candidates.set(result.candidates);
-      this.votingClosed.set(result.votingClosed);
-      this.events.update((prev) =>
-        prev.map((e) => (e.id === ev.id ? { ...e, votingClosed: result.votingClosed, active: true } : e)),
-      );
-      this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
-      this.editing.set(null);
-      this.error.set(null);
-      this.toast.success('Gara avviata: voti azzerati e televoto sbloccato.');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'avvio della gara");
-    }
-  }
-
-  protected confirmCloseTelevote(): void {
-    const ev = this.selectedEvent();
-    if (!ev) return;
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Chiudi televoto',
-        message: 'Vuoi chiudere il televoto? I voti non saranno più accettati e le modifiche torneranno disponibili.',
-        confirmLabel: 'Chiudi',
-      },
-    });
-    ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) void this.closeTelevote();
-    });
-  }
-
-  private async closeTelevote(): Promise<void> {
-    const ev = this.selectedEvent();
-    const token = this.eventManagerToken();
-    if (!ev) return;
-    try {
-      if (!token) throw new Error('Accesso manager evento richiesto');
-      const result = await firstValueFrom(this.eventsApi.updateEventVotingState(ev.id, true, token));
-      this.votingClosed.set(result.votingClosed);
-      this.events.update((prev) => prev.map((e) => (e.id === ev.id ? { ...e, votingClosed: result.votingClosed } : e)));
-      this.error.set(null);
-      this.toast.success('Televoto chiuso con successo. Puoi modificare nuovamente i candidati.');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore nella chiusura del televoto');
-    }
-  }
-
-  protected confirmResetRanking(): void {
-    const ev = this.selectedEvent();
-    if (!ev) return;
-    const ref = this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Azzera classifica', message: 'Vuoi azzerare tutti i voti e ricominciare da capo?', confirmLabel: 'Azzera' },
-    });
-    ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) void this.resetRanking();
-    });
-  }
-
-  private async resetRanking(): Promise<void> {
-    const ev = this.selectedEvent();
-    const token = this.eventManagerToken();
-    if (!ev) return;
-    try {
-      if (!token) throw new Error('Accesso manager evento richiesto');
-      await firstValueFrom(this.eventsApi.resetEventVotes(ev.id, token));
-      this.error.set(null);
-      this.toast.success('Classifica azzerata con successo.');
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'azzeramento della classifica");
     }
   }
 }

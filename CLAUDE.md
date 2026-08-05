@@ -46,8 +46,10 @@ The frontend has no separate API-base-URL env var — `client/src/app/api/*.api.
 
 ### Two-tier auth model
 There is no user-account system — instead two independent, password-based auth layers, both implemented in `server/index.ts`:
-1. **Root auth** (`requireRootAuth`) — one global root password (`RootCredential` table), gates `/admin` and `/hof` pages and event-management endpoints. Login: `POST /api/auth/root/login`.
-2. **Event manager auth** (`requireEventManagerAuth`) — one password per event (`EventManagerCredential`, unique on `eventId`), gates candidate management, judge-code management, and rankings for that specific event. Login: `POST /api/auth/event/login`.
+1. **Root auth** (`requireRootAuth`) — one global root password (`RootCredential` table), gates `/admin` and cross-event endpoints (list/create events, root/event-manager password rotation). Login: `POST /api/auth/root/login`.
+2. **Event manager auth** (`requireEventManagerAuth`) — one password per event (`EventManagerCredential`, unique on `eventId`), gates candidate management, judge-code management, voting lifecycle (start/close/reset), and rankings for that specific event. Login: `POST /api/auth/event/login`. This is what gates `/manager` (and, separately, the rankings view on `/hof`).
+
+The backend accepts a root token wherever an event-manager token is expected (`requireEventManagerAuth` lets `payload.role === "root"` bypass the per-event `eventId` check) — a deliberate superuser escalation, not a leak. `/manager` (`EventManagerShellComponent`) takes advantage of this on the frontend too: it tries `rootAuthToken() ?? eventManagerAuthToken()`, so root can open any event's workspace from `/admin` without a separate manager-password prompt. `/hof` (`HallOfFameComponent`) does not do this — it only checks `isEventManagerAuthenticated()`, so root still has to enter that event's manager password there.
 
 Both issue signed, self-contained bearer tokens (`createAuthToken`/`verifyAuthToken`, HMAC via `ADMIN_AUTH_SECRET`, TTL `authTokenTtlSeconds` = 12h) — there is no server-side session store. Passwords are stored as PBKDF2 hash+salt (`hashPassword`/`verifyPassword`, 210000 iterations), never plaintext.
 
@@ -71,11 +73,11 @@ Implemented in `GET /api/rankings/:eventId` (`server/index.ts`) — not derivabl
 `POST /api/events/:eventId/start` runs a transaction that renumbers candidates sequentially, clears all votes, and reopens voting — treat it as a destructive reset, not an incremental update. `DELETE /api/candidates/:id` also renumbers remaining candidates to keep numbers contiguous. Voting itself is gated by `Event.votingClosed`/`PUT /api/events/:eventId/voting-state`, and candidate edits are blocked while voting is open (enforced in the admin UI).
 
 ### Frontend routing
-Angular Router (`client/src/app/app.routes.ts`) with exactly three flat top-level routes: `''` (voting, `VotingShellComponent`), `admin` (`AdminShellComponent`), `hof` (`HallOfFameComponent`) — no nested path segments. This mirrors a hard backend constraint: `server/index.ts` only serves the SPA's `index.html` as a fallback for the exact paths `GET /`, `GET /admin`, `GET /hof` (no wildcard), so a real Angular child route like `/admin/candidates` would 404 on direct load or refresh.
+Angular Router (`client/src/app/app.routes.ts`) with exactly four flat top-level routes: `''` (voting, `VotingShellComponent`), `admin` (`AdminShellComponent`, root-only cross-event management), `manager` (`EventManagerShellComponent`, single-event operational management), `hof` (`HallOfFameComponent`) — no nested path segments. This mirrors a hard backend constraint: `server/index.ts` only serves the SPA's `index.html` as a fallback for the exact paths `GET /`, `GET /admin`, `GET /manager`, `GET /hof` (no wildcard), so a real Angular child route like `/admin/events` would 404 on direct load or refresh. Adding a fifth flat route means updating three places in lockstep: `app.routes.ts`, this `server/index.ts` fallback list, and `vercel.json`'s `rewrites`.
 
-Event context flows via `?eventCode=` query param; judge access via `?judgeToken=` (16-char opaque token, displayed/entered in 4x4 segments — see `client/src/app/shared/judge-token.util.ts`). The admin SPA persists its active section in `?adminSection=events|candidates|voting-codes|voting-backstage` via `router.navigate` with `queryParamsHandling: 'merge'` (not real child routes, for the same reason) — see `client/src/app/pages/admin-shell/admin-shell.ts`.
+Event context flows via `?eventCode=` query param; judge access via `?judgeToken=` (16-char opaque token, displayed/entered in 4x4 segments — see `client/src/app/shared/judge-token.util.ts`). Both `admin` and `manager` persist their active section in `?adminSection=` via `router.navigate` with `queryParamsHandling: 'merge'` (not real child routes, for the same reason) — `admin` only has `dashboard|events` (see `client/src/app/pages/admin-shell/admin.util.ts`); `manager` has its own `dashboard|candidates|voting-codes|voting-backstage` (see `client/src/app/pages/event-manager-shell/event-manager-shell.util.ts`).
 
-Auth gating for `/admin` and `/hof` is inline (no `canActivate` guard/redirect): each shell component checks `AuthStateService`'s signals and renders either a password-prompt form (`ProtectedPageGateComponent`) or the real content.
+Auth gating for `/admin`, `/manager` and `/hof` is inline (no `canActivate` guard/redirect): each shell component checks `AuthStateService`'s signals and renders either a password-prompt form (`ProtectedPageGateComponent`) or the real content. `/manager` additionally requires an `?eventCode=` query param first (via `EventCodeGateComponent`, same pattern as `/hof`) to resolve which event's manager password to prompt for — there is no cross-event switcher on that page, by design (an event manager must never be able to see or reach another event).
 
 ### API layer boundary
 `client/src/app/api/*.api.ts` — one Angular service per backend resource area (`auth`, `events`, `candidates`, `voting`, `rankings`, `judge-tokens`) wrapping `HttpClient` — is the only place that should call the backend; components/pages go through these services, not `HttpClient` directly. When adding/changing a backend endpoint: update `server/index.ts`, add/update the matching method in the relevant `*.api.ts`, then wire it into the page/component. A functional `HttpInterceptorFn` (`client/src/app/api/auth.interceptor.ts`) attaches the `Authorization: Bearer` header for requests tagged with the `AUTH_TOKEN` `HttpContext` token (see `withAuth()`); errors are normalized via `client/src/app/api/http-error.util.ts`. Shared types live in `client/src/app/models/types.ts` (`EventData`, `CandidateData`); API-only shapes like `RankingEntry` live alongside their `*.api.ts` file.
@@ -83,7 +85,7 @@ Auth gating for `/admin` and `/hof` is inline (no `canActivate` guard/redirect):
 ### Deployment duality (Vercel serverless vs long-running server)
 The same Express app (`server/index.ts`) runs two ways:
 - Locally / self-hosted: `tsx server/index.ts` as a normal long-running process (serves the built SPA itself when `NODE_ENV=production` or `SERVE_CLIENT=true`).
-- On Vercel: `api/[...path].ts` is a catch-all serverless function that rewrites the request path to `/api/...` and lazily imports the compiled `server/index.js`, passing the request/response straight through. `vercel.json` rewrites all `/api/*`, `/admin`, and `/hof` traffic accordingly, and bundles `server/**` and `src/generated/prisma/**` as included files for the function. `vercel.json`'s `framework` is `null` (generic build detection) since the build is Angular-driven, not Vite-driven.
+- On Vercel: `api/[...path].ts` is a catch-all serverless function that rewrites the request path to `/api/...` and lazily imports the compiled `server/index.js`, passing the request/response straight through. `vercel.json` rewrites all `/api/*`, `/admin`, `/manager`, and `/hof` traffic accordingly, and bundles `server/**` and `src/generated/prisma/**` as included files for the function. `vercel.json`'s `framework` is `null` (generic build detection) since the build is Angular-driven, not Vite-driven.
 
 Do not fork logic between these two entry points — `api/[...path].ts` should stay a thin adapter.
 
@@ -98,12 +100,14 @@ Do not fork logic between these two entry points — `api/[...path].ts` should s
 
 ## Key files
 
-- `server/index.ts` — entire backend: routes, auth, scoring, SSE. Single file, ~1900 lines; read the section you need rather than the whole file.
-- `client/src/app/app.routes.ts` — the three top-level routes.
+- `server/index.ts` — backend bootstrap (mounts `server/routes/*.ts`, static SPA fallback for the four top-level routes). Route handlers, auth, scoring, and SSE logic live in `server/routes/`, `server/middleware/`, `server/services/`, `server/repositories/`.
+- `client/src/app/app.routes.ts` — the four top-level routes.
 - `client/src/app/pages/voting-shell/` — public voting page (event-code gate, judge-code entry, candidate voting, 7s voting-state poll).
-- `client/src/app/pages/admin-shell/` — admin SPA (events/candidates/voting-codes/voting-backstage sections).
+- `client/src/app/pages/admin-shell/` — root-only SPA, cross-event concerns only (dashboard overview, event CRUD, weights, root/manager password rotation). Links out to `/manager?eventCode=` for day-to-day event operation.
+- `client/src/app/pages/event-manager-shell/` — single-event SPA (`/manager`), reachable via event code + manager password (or a root session). Hosts the components below; never exposes other events.
 - `client/src/app/components/hall-of-fame/` — final rankings display and reveal presentation flow.
-- `client/src/app/components/judge-code-manager/`, `voting-progress-dashboard/` — judge-token issuance (SSE + QR + print) and live progress UI.
+- `client/src/app/components/event-candidates-manager/`, `event-lifecycle-controls/` — candidates CRUD and start/close/reset-ranking controls used by `event-manager-shell`; input/output-driven (`eventId`/`authToken`/`votingClosed`), not tied to a specific parent shell.
+- `client/src/app/components/judge-code-manager/`, `voting-progress-dashboard/` — judge-token issuance (SSE + QR + print) and live progress UI, same input-driven pattern, used by `event-manager-shell`.
 - `client/src/app/api/*.api.ts` — the only fetch boundary (see "API layer boundary" above).
 - `client/src/app/state/*.service.ts` — signal-based shared app state (`AuthStateService`, `VotingStateService`).
 - `prisma/schema.prisma` — data model.
