@@ -1,5 +1,5 @@
 @use './styles/material-theme' as material-theme;
-@import "tailwindcss";
+@use './styles/tailwind.css';
 
 /* ── Neon Dark Theme tokens (ported from the former src/index.css) ── */
 @theme {
