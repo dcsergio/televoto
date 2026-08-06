@@ -5,10 +5,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class ToastService {
   private readonly snackBar = inject(MatSnackBar);
 
-  success(message: string): void {
-    this.show(message, 'toast-success');
-  }
-
   error(message: string): void {
     this.show(message, 'toast-error');
   }

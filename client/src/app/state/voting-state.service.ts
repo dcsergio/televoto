@@ -126,9 +126,6 @@ export class VotingStateService {
     const timer = setTimeout(async () => {
       try {
         await firstValueFrom(this.votingApi.castVote(candidateId, score, judgeToken));
-        const votedCandidate = ev.candidates.find((candidate) => candidate.id === candidateId);
-        const label = votedCandidate ? `${votedCandidate.number}. ${votedCandidate.name}` : 'Candidato';
-        this.toast.success(`Voto salvato: ${label} - ${score}/10`);
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Errore';
         this.toast.error(msg);
@@ -151,7 +148,6 @@ export class VotingStateService {
       });
       this.myVotes.set(result.votes ?? result.code?.votes ?? this.myVotes());
       const message = result.message || 'Codice bloccato';
-      this.toast.success(message);
       return { ok: true, message };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Errore nel blocco del codice';
@@ -166,7 +162,6 @@ export class VotingStateService {
     try {
       const updated = await firstValueFrom(this.eventsApi.updateEventVotingState(ev.id, true, authToken));
       this.event.update((prev) => (prev ? { ...prev, votingClosed: updated.votingClosed } : prev));
-      this.toast.success('Televoto chiuso con successo.');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Errore nella chiusura del televoto';
       this.toast.error(msg);

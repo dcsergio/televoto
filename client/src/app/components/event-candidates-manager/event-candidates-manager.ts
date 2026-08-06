@@ -5,7 +5,6 @@ import { MatCardModule } from '@angular/material/card';
 import { firstValueFrom } from 'rxjs';
 import { CandidatesApi } from '../../api/candidates.api';
 import { CandidateData } from '../../models/types';
-import { ToastService } from '../../shared/toast.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 import { CANDIDATE_COLOR_PALETTE, getNextCandidateNumber, getRandomColor } from './event-candidates-manager.util';
 
@@ -30,7 +29,6 @@ interface EditDraft {
 export class EventCandidatesManagerComponent {
   private readonly candidatesApi = inject(CandidatesApi);
   private readonly dialog = inject(MatDialog);
-  private readonly toast = inject(ToastService);
 
   readonly eventId = input.required<string>();
   readonly authToken = input.required<string>();
@@ -103,7 +101,6 @@ export class EventCandidatesManagerComponent {
       this.editing.set(null);
       this.editDraft.set(null);
       this.error.set(null);
-      this.toast.success('Candidato aggiornato con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
     }
@@ -130,7 +127,6 @@ export class EventCandidatesManagerComponent {
       this.candidates.update((prev) => [...prev, candidate].sort((a, b) => a.number - b.number));
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
       this.error.set(null);
-      this.toast.success('Nuovo candidato aggiunto correttamente.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
     }
@@ -154,7 +150,6 @@ export class EventCandidatesManagerComponent {
       this.candidates.set(renumbered);
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
       this.error.set(null);
-      this.toast.success('Candidato eliminato e numerazione aggiornata.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
     }

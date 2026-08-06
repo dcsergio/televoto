@@ -88,11 +88,6 @@ export async function getEventPublicDetail(eventId: string) {
   return eventRepository.findEventPublicDetail(eventId);
 }
 
-// Preserves the original (imperative, order-sensitive) validation exactly as it was
-// in the monolithic route handler — including that the weight / trimmed-mean checks
-// only run when `subtitle` is present in the request body. That nesting looks like
-// an accidental quirk of the original code, but changing it would be a behavior
-// change, which is out of scope for this refactor.
 export type RawEventUpdateBody = {
   name?: unknown;
   subtitle?: unknown;
@@ -131,47 +126,47 @@ export function buildEventUpdateData(body: RawEventUpdateBody): EventUpdateData 
     } else {
       throw new AppError(400, "Sottotitolo non valido");
     }
+  }
 
-    const hasWeightQualificata = Object.hasOwn(body, "weightQualificata");
-    const hasWeightPopolare = Object.hasOwn(body, "weightPopolare");
-    if (hasWeightQualificata || hasWeightPopolare) {
-      if (typeof body.weightQualificata !== "number" || typeof body.weightPopolare !== "number") {
-        throw new AppError(400, "Inserisci entrambi i pesi come numeri interi");
-      }
-      if (!Number.isInteger(body.weightQualificata) || !Number.isInteger(body.weightPopolare)) {
-        throw new AppError(400, "I pesi devono essere interi");
-      }
-      if (
-        body.weightQualificata < 0 ||
-        body.weightQualificata > 100 ||
-        body.weightPopolare < 0 ||
-        body.weightPopolare > 100
-      ) {
-        throw new AppError(400, "I pesi devono essere compresi tra 0 e 100");
-      }
-      if (body.weightQualificata + body.weightPopolare !== 100) {
-        throw new AppError(400, "La somma dei pesi deve essere esattamente 100");
-      }
-      updateData.weightQualificata = body.weightQualificata;
-      updateData.weightPopolare = body.weightPopolare;
+  const hasWeightQualificata = Object.hasOwn(body, "weightQualificata");
+  const hasWeightPopolare = Object.hasOwn(body, "weightPopolare");
+  if (hasWeightQualificata || hasWeightPopolare) {
+    if (typeof body.weightQualificata !== "number" || typeof body.weightPopolare !== "number") {
+      throw new AppError(400, "Inserisci entrambi i pesi come numeri interi");
     }
+    if (!Number.isInteger(body.weightQualificata) || !Number.isInteger(body.weightPopolare)) {
+      throw new AppError(400, "I pesi devono essere interi");
+    }
+    if (
+      body.weightQualificata < 0 ||
+      body.weightQualificata > 100 ||
+      body.weightPopolare < 0 ||
+      body.weightPopolare > 100
+    ) {
+      throw new AppError(400, "I pesi devono essere compresi tra 0 e 100");
+    }
+    if (body.weightQualificata + body.weightPopolare !== 100) {
+      throw new AppError(400, "La somma dei pesi deve essere esattamente 100");
+    }
+    updateData.weightQualificata = body.weightQualificata;
+    updateData.weightPopolare = body.weightPopolare;
+  }
 
-    if (Object.hasOwn(body, "enableTrimmedMean")) {
-      if (typeof body.enableTrimmedMean !== "boolean") {
-        throw new AppError(400, "Il flag trimmed mean non è valido");
-      }
-      updateData.enableTrimmedMean = body.enableTrimmedMean;
+  if (Object.hasOwn(body, "enableTrimmedMean")) {
+    if (typeof body.enableTrimmedMean !== "boolean") {
+      throw new AppError(400, "Il flag trimmed mean non è valido");
     }
+    updateData.enableTrimmedMean = body.enableTrimmedMean;
+  }
 
-    if (Object.hasOwn(body, "trimmedMeanPercentage")) {
-      if (typeof body.trimmedMeanPercentage !== "number" || Number.isNaN(body.trimmedMeanPercentage)) {
-        throw new AppError(400, "La percentuale trimmed mean non è valida");
-      }
-      if (body.trimmedMeanPercentage < 0 || body.trimmedMeanPercentage >= 50) {
-        throw new AppError(400, "La percentuale trimmed mean deve essere tra 0 e 49.99");
-      }
-      updateData.trimmedMeanPercentage = body.trimmedMeanPercentage;
+  if (Object.hasOwn(body, "trimmedMeanPercentage")) {
+    if (typeof body.trimmedMeanPercentage !== "number" || Number.isNaN(body.trimmedMeanPercentage)) {
+      throw new AppError(400, "La percentuale trimmed mean non è valida");
     }
+    if (body.trimmedMeanPercentage < 0 || body.trimmedMeanPercentage >= 50) {
+      throw new AppError(400, "La percentuale trimmed mean deve essere tra 0 e 49.99");
+    }
+    updateData.trimmedMeanPercentage = body.trimmedMeanPercentage;
   }
 
   if (Object.keys(updateData).length === 0) {
