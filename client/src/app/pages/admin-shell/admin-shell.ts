@@ -20,7 +20,6 @@ import { VotingStateService } from '../../state/voting-state.service';
 import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
-import { ToastService } from '../../shared/toast.service';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
@@ -50,7 +49,6 @@ export class AdminShellComponent {
   private readonly authApi = inject(AuthApi);
   private readonly eventsApi = inject(EventsApi);
   private readonly breakpointObserver = inject(BreakpointObserver);
-  private readonly toast = inject(ToastService);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
 
@@ -81,10 +79,11 @@ export class AdminShellComponent {
   protected readonly updatingVotingSettings = signal(false);
   protected readonly eventSettingsDraft = signal({
     weightQualificata: 70,
-    weightPopolare: 30,
     enableTrimmedMean: false,
     trimmedMeanPercentage: 10,
   });
+  /** Peso Popolare non è mai editato direttamente: è sempre il complemento a 100 del peso Qualificata. */
+  protected readonly eventSettingsWeightPopolare = computed(() => 100 - this.eventSettingsDraft().weightQualificata);
   protected readonly updatingManagerPassword = signal(false);
   protected readonly managerPasswordDraft = signal('');
   protected readonly rootPasswordDraft = signal({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -154,7 +153,6 @@ export class AdminShellComponent {
       this.selectedEventNameDraft.set(ev?.name ?? '');
       this.eventSettingsDraft.set({
         weightQualificata: ev?.weightQualificata ?? 70,
-        weightPopolare: ev?.weightPopolare ?? 30,
         enableTrimmedMean: ev?.enableTrimmedMean ?? false,
         trimmedMeanPercentage: ev?.trimmedMeanPercentage ?? 10,
       });
@@ -303,7 +301,6 @@ export class AdminShellComponent {
       this.selectedEventId.set(created.id);
       this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC' });
       this.error.set(null);
-      this.toast.success(`Evento creato con codice ${created.code}.`);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -321,7 +318,6 @@ export class AdminShellComponent {
       return;
     }
     if (trimmedName === ev.name) {
-      this.toast.success('Nessuna modifica da salvare.');
       this.error.set(null);
       return;
     }
@@ -333,7 +329,6 @@ export class AdminShellComponent {
       );
       this.selectedEventNameDraft.set(updated.name);
       this.error.set(null);
-      this.toast.success('Nome evento aggiornato con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -346,17 +341,14 @@ export class AdminShellComponent {
     const token = this.authState.rootAuthToken();
     if (!ev || !token) return;
 
-    const { weightQualificata, weightPopolare, trimmedMeanPercentage, enableTrimmedMean } = this.eventSettingsDraft();
-    if (!Number.isInteger(weightQualificata) || !Number.isInteger(weightPopolare)) {
-      this.error.set('I pesi devono essere numeri interi.');
+    const { weightQualificata, trimmedMeanPercentage, enableTrimmedMean } = this.eventSettingsDraft();
+    const weightPopolare = this.eventSettingsWeightPopolare();
+    if (!Number.isInteger(weightQualificata)) {
+      this.error.set('Il peso deve essere un numero intero.');
       return;
     }
-    if (weightQualificata < 0 || weightQualificata > 100 || weightPopolare < 0 || weightPopolare > 100) {
-      this.error.set('I pesi devono essere compresi tra 0 e 100.');
-      return;
-    }
-    if (weightQualificata + weightPopolare !== 100) {
-      this.error.set('La somma dei pesi deve essere esattamente 100.');
+    if (weightQualificata < 0 || weightQualificata > 100) {
+      this.error.set('Il peso deve essere compreso tra 0 e 100.');
       return;
     }
     if (trimmedMeanPercentage < 0 || trimmedMeanPercentage >= 50) {
@@ -387,7 +379,6 @@ export class AdminShellComponent {
         ),
       );
       this.error.set(null);
-      this.toast.success('Impostazioni pesatura aggiornate con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento impostazioni votazione");
     } finally {
@@ -415,7 +406,6 @@ export class AdminShellComponent {
       await firstValueFrom(this.authApi.updateRootPassword(token, currentPassword, newPassword));
       this.rootPasswordDraft.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
       this.error.set(null);
-      this.toast.success('Password root aggiornata con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password root");
     } finally {
@@ -437,7 +427,6 @@ export class AdminShellComponent {
       await firstValueFrom(this.eventsApi.updateEventManagerPassword(ev.id, password, token));
       this.managerPasswordDraft.set('');
       this.error.set(null);
-      this.toast.success('Password manager evento aggiornata con successo.');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
     } finally {

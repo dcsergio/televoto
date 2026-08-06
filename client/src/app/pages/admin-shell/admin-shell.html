@@ -332,17 +332,15 @@
                               <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
                               <input
                                 type="number"
-                                min="0"
-                                max="100"
-                                [ngModel]="eventSettingsDraft().weightPopolare"
-                                (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightPopolare: $event })"
+                                [ngModel]="eventSettingsWeightPopolare()"
                                 name="weightPopolare"
-                                class="w-full rounded-2xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-text-primary"
+                                disabled
+                                class="w-full rounded-2xl border border-slate-600 bg-slate-800/50 px-3 py-2 text-sm text-text-secondary"
                               />
                             </label>
                           </div>
                           <p class="text-xs text-text-secondary">
-                            Somma attuale: {{ eventSettingsDraft().weightQualificata + eventSettingsDraft().weightPopolare }}
+                            Somma sempre 100: il peso Popolare è calcolato automaticamente per differenza.
                           </p>
                           @if (!isSingleVoteEvent()) {
                             <label class="flex items-center gap-2 text-sm text-text-secondary">
