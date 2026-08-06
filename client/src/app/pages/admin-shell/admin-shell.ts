@@ -77,7 +77,7 @@ export class AdminShellComponent {
   protected readonly updatingRootPassword = signal(false);
   protected readonly selectedEventId = signal<string | null>(null);
   protected readonly selectedEventNameDraft = signal('');
-  protected readonly newEvent = signal({ code: '', name: '', subtitle: '', managerPassword: '' });
+  protected readonly newEvent = signal({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC' as 'NUMERIC' | 'SINGLE' });
   protected readonly updatingVotingSettings = signal(false);
   protected readonly eventSettingsDraft = signal({
     weightQualificata: 70,
@@ -104,6 +104,8 @@ export class AdminShellComponent {
   protected readonly selectedEventStatusLabel = computed(() =>
     this.selectedEventVotingClosed() ? 'Televoto chiuso' : 'Televoto aperto',
   );
+  protected readonly selectedEventPopularVoteMode = computed(() => this.selectedEvent()?.popularVoteMode ?? 'NUMERIC');
+  protected readonly isSingleVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'SINGLE');
 
   /** Cross-event snapshot for the Dashboard "overview" cards. */
   protected readonly eventsOverview = computed(() => {
@@ -292,13 +294,14 @@ export class AdminShellComponent {
             name: trimmedName,
             subtitle: trimmedSubtitle || undefined,
             managerPassword: draft.managerPassword,
+            popularVoteMode: draft.popularVoteMode,
           },
           token,
         ),
       );
       this.events.update((prev) => [created, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(created.id);
-      this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '' });
+      this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC' });
       this.error.set(null);
       this.toast.success(`Evento creato con codice ${created.code}.`);
     } catch (err) {

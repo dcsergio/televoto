@@ -74,7 +74,11 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
               class="flex items-center gap-1 text-[11px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20"
             >
               <span class="text-xs">&#10003;</span>
-              <span>{{ votedScore() }}/10</span>
+              @if (voteMode() === 'SINGLE') {
+                <span>Votato</span>
+              } @else {
+                <span>{{ votedScore() }}/10</span>
+              }
             </span>
           }
           <div
@@ -104,7 +108,18 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
                 <span class="text-xs font-semibold text-accent-cyan animate-pulse">Salvataggio...</span>
               }
             </div>
-            <app-score-selector [value]="votedScore()" (change)="vote.emit({ candidateId: candidate().id, score: $event })" />
+            @if (voteMode() === 'SINGLE') {
+              <button
+                type="button"
+                [disabled]="submitting()"
+                (click)="vote.emit({ candidateId: candidate().id, score: 1 })"
+                class="w-full rounded-2xl bg-accent-cyan px-4 py-3 text-sm font-extrabold uppercase tracking-wide text-slate-900 transition hover:bg-accent-cyan/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Vota questo candidato
+              </button>
+            } @else {
+              <app-score-selector [value]="votedScore()" (change)="vote.emit({ candidateId: candidate().id, score: $event })" />
+            }
           </div>
         </div>
       }
@@ -118,6 +133,7 @@ export class CandidateCardComponent {
   readonly submitting = input(false);
   readonly delay = input(0);
   readonly voteEnabled = input(false);
+  readonly voteMode = input<'NUMERIC' | 'SINGLE'>('NUMERIC');
 
   readonly pick = output<string>();
   readonly vote = output<{ candidateId: string; score: number }>();

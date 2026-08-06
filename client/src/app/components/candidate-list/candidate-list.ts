@@ -14,6 +14,7 @@ import { CandidateCardComponent } from '../candidate-card/candidate-card';
           [selected]="candidate.id === selectedId()"
           [votedScore]="votedMap()[candidate.id] ?? null"
           [voteEnabled]="voteEnabled()"
+          [voteMode]="voteMode()"
           [submitting]="submitting()"
           [delay]="i * 60"
           (pick)="pick.emit($event)"
@@ -28,6 +29,7 @@ export class CandidateListComponent {
   readonly selectedId = input<string | null>(null);
   readonly votedMap = input<Record<string, number | undefined>>({});
   readonly voteEnabled = input(false);
+  readonly voteMode = input<'NUMERIC' | 'SINGLE'>('NUMERIC');
   readonly submitting = input(false);
 
   readonly pick = output<string>();

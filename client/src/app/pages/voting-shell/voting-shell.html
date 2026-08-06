@@ -29,25 +29,36 @@
     @if (judgeMode() && (judgeAccess().status === 'valid' || judgeAccess().status === 'used')) {
       <div class="sticky top-14 z-40 w-full backdrop-blur-md bg-slate-950/80 border-b border-border-glass py-3 px-4 animate-fade-in-up">
         <div class="max-w-2xl mx-auto flex items-center justify-between gap-4">
-          <div class="flex-1">
-            <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider mb-2">
-              <span class="text-text-secondary">Progresso Voto</span>
-              <span class="text-accent-cyan font-bold">{{ judgeVotesCount() }} / {{ event()!.candidates.length }}</span>
+          @if (!isSingleVoteMode()) {
+            <div class="flex-1">
+              <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider mb-2">
+                <span class="text-text-secondary">Progresso Voto</span>
+                <span class="text-accent-cyan font-bold">{{ judgeVotesCount() }} / {{ event()!.candidates.length }}</span>
+              </div>
+              <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+                <div
+                  class="h-full bg-gradient-to-r from-accent-cyan to-accent-magenta rounded-full transition-all duration-300 progress-bar-glow"
+                  [style.width.%]="progressPercent()"
+                ></div>
+              </div>
+              <p class="mt-2 text-xs text-text-secondary">
+                @if (isQualifiedVoter()) {
+                  {{ missingVotes() > 0 ? 'Mancano ' + missingVotes() + ' voti alla conferma finale.' : 'Hai completato tutte le preferenze.' }}
+                } @else {
+                  Voti popolari espressi: {{ judgeVotesCount() }}
+                }
+              </p>
             </div>
-            <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-              <div
-                class="h-full bg-gradient-to-r from-accent-cyan to-accent-magenta rounded-full transition-all duration-300 progress-bar-glow"
-                [style.width.%]="progressPercent()"
-              ></div>
-            </div>
-            <p class="mt-2 text-xs text-text-secondary">
-              @if (isQualifiedVoter()) {
-                {{ missingVotes() > 0 ? 'Mancano ' + missingVotes() + ' voti alla conferma finale.' : 'Hai completato tutte le preferenze.' }}
+          } @else {
+            <div class="flex-1">
+              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2">Voto singolo</p>
+              @if (judgeVotesCount() > 0) {
+                <p class="text-sm text-text-primary">Hai scelto: <span class="font-bold text-accent-cyan">{{ singleVotedCandidateName() }}</span></p>
               } @else {
-                Voti popolari espressi: {{ judgeVotesCount() }}
+                <p class="text-sm text-text-secondary">Scegli un candidato</p>
               }
-            </p>
-          </div>
+            </div>
+          }
           @if (judgeCodeStatusLabel()) {
             <span class="flex-shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 text-[11px] font-bold text-cyan-200">
               {{ judgeCodeStatusLabel() }}
@@ -141,6 +152,7 @@
           [selectedId]="selectedCandidateId()"
           [votedMap]="myVotes()"
           [voteEnabled]="canVote()"
+          [voteMode]="isSingleVoteMode() ? 'SINGLE' : 'NUMERIC'"
           [submitting]="submitting()"
           (pick)="selectCandidate($event)"
           (vote)="onVote($event)"

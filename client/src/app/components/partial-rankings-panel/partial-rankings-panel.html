@@ -13,7 +13,7 @@
         <p class="mt-1 text-xs text-text-secondary">
           Pesi: Qualificata {{ r.weights.qualificata }}% &middot; Popolare {{ r.weights.popolare }}%
         </p>
-        @if (r.event.enableTrimmedMean) {
+        @if (r.event.enableTrimmedMean && r.event.popularVoteMode !== 'SINGLE') {
           <p class="mt-1 text-xs text-text-secondary">
             Trimmed mean attivo al {{ r.event.trimmedMeanPercentage }}% sui voti popolari
           </p>

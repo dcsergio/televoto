@@ -11,6 +11,7 @@ export const createEventSchema = z
     name: z.unknown().optional(),
     subtitle: z.unknown().optional(),
     managerPassword: z.unknown().optional(),
+    popularVoteMode: z.unknown().optional(),
   })
   .transform((body, ctx) => {
     const name = normalizeEventName(body.name);
@@ -35,7 +36,9 @@ export const createEventSchema = z
     const subtitle =
       typeof body.subtitle === "string" && body.subtitle.trim().length > 0 ? body.subtitle.trim() : null;
 
-    return { name, managerPassword, requestedCode, subtitle };
+    const popularVoteMode = body.popularVoteMode === "SINGLE" ? ("SINGLE" as const) : ("NUMERIC" as const);
+
+    return { name, managerPassword, requestedCode, subtitle, popularVoteMode };
   });
 
 export const setManagerPasswordSchema = z.object({

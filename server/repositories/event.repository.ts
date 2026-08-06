@@ -12,6 +12,7 @@ const eventSummarySelect = {
   weightPopolare: true,
   enableTrimmedMean: true,
   trimmedMeanPercentage: true,
+  popularVoteMode: true,
   createdAt: true,
 } as const;
 
@@ -28,6 +29,7 @@ export type CreateEventRepoInput = {
   name: string;
   subtitle: string | null;
   managerPasswordRecord: PasswordRecord;
+  popularVoteMode: "NUMERIC" | "SINGLE";
 };
 
 export function createEvent(input: CreateEventRepoInput) {
@@ -38,6 +40,7 @@ export function createEvent(input: CreateEventRepoInput) {
       subtitle: input.subtitle,
       active: true,
       votingClosed: true,
+      popularVoteMode: input.popularVoteMode,
       managerCredential: { create: input.managerPasswordRecord },
     },
     select: eventSummarySelect,
@@ -65,6 +68,7 @@ export function findEventPublicDetail(eventId: string) {
       weightPopolare: true,
       enableTrimmedMean: true,
       trimmedMeanPercentage: true,
+      popularVoteMode: true,
     },
   });
 }
@@ -111,6 +115,7 @@ export function findEventRankingSettings(eventId: string) {
       weightPopolare: true,
       enableTrimmedMean: true,
       trimmedMeanPercentage: true,
+      popularVoteMode: true,
     },
   });
 }

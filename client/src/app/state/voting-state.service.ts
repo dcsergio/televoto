@@ -104,14 +104,18 @@ export class VotingStateService {
     this.selectedCandidateId.set(candidateId);
   }
 
-  castVote(candidateId: string, score: number, judgeToken: string): void {
+  castVote(candidateId: string, score: number, judgeToken: string, singleVoteMode: boolean = false): void {
     const ev = this.event();
     if (!candidateId || !judgeToken || !ev) return;
 
-    const nextVotes = { ...this.myVotes(), [candidateId]: score };
+    const nextVotes = singleVoteMode ? { [candidateId]: score } : { ...this.myVotes(), [candidateId]: score };
     this.myVotes.set(nextVotes);
-    const nextCandidate = ev.candidates.find((candidate) => nextVotes[candidate.id] === undefined);
-    this.selectedCandidateId.set(nextCandidate?.id ?? null);
+    if (singleVoteMode) {
+      this.selectedCandidateId.set(null);
+    } else {
+      const nextCandidate = ev.candidates.find((candidate) => nextVotes[candidate.id] === undefined);
+      this.selectedCandidateId.set(nextCandidate?.id ?? null);
+    }
 
     const existingTimer = this.voteDebounceTimers.get(candidateId);
     if (existingTimer) {

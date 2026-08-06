@@ -17,8 +17,8 @@ eventsRouter.get("/api/events", async (req, res) => {
 eventsRouter.post("/api/events", async (req, res) => {
   if (!requireRootAuth(req, res)) return;
 
-  const { name, managerPassword, requestedCode, subtitle } = parseBody(createEventSchema, req.body);
-  const event = await eventService.createEvent({ name, subtitle, managerPassword, requestedCode });
+  const { name, managerPassword, requestedCode, subtitle, popularVoteMode } = parseBody(createEventSchema, req.body);
+  const event = await eventService.createEvent({ name, subtitle, managerPassword, requestedCode, popularVoteMode });
   res.status(201).json(event);
 });
 

@@ -47,6 +47,7 @@ export interface PartialRankings {
   event: {
     enableTrimmedMean: boolean;
     trimmedMeanPercentage: number;
+    popularVoteMode: 'NUMERIC' | 'SINGLE';
   };
 }
 

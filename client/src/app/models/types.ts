@@ -9,6 +9,7 @@ export interface EventData {
   weightPopolare: number;
   enableTrimmedMean: boolean;
   trimmedMeanPercentage: number;
+  popularVoteMode: 'NUMERIC' | 'SINGLE';
   candidates: CandidateData[];
 }
 

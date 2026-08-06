@@ -18,6 +18,7 @@ export interface AdminEventSummary {
   weightPopolare: number;
   enableTrimmedMean: boolean;
   trimmedMeanPercentage: number;
+  popularVoteMode: 'NUMERIC' | 'SINGLE';
   createdAt: string;
 }
 
@@ -26,6 +27,7 @@ export interface CreateEventInput {
   code?: string;
   name: string;
   subtitle?: string;
+  popularVoteMode?: 'NUMERIC' | 'SINGLE';
 }
 
 export type UpdateEventInput = Partial<{

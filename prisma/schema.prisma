@@ -17,6 +17,11 @@ enum VoterStatus {
   SUBMITTED
 }
 
+enum PopularVoteMode {
+  NUMERIC
+  SINGLE
+}
+
 model Event {
   id                String                  @id @default(cuid())
   code              String                  @unique
@@ -28,6 +33,7 @@ model Event {
   weightPopolare    Int                     @default(30)
   enableTrimmedMean Boolean                 @default(false)
   trimmedMeanPercentage Float               @default(10.0)
+  popularVoteMode   PopularVoteMode         @default(NUMERIC)
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @updatedAt
   candidates        Candidate[]

@@ -9,6 +9,7 @@ type RankingSettings = {
   trimmedMeanPercentage: number;
   weightQualificata: number;
   weightPopolare: number;
+  popularVoteMode: "NUMERIC" | "SINGLE";
 };
 
 function computeTrimmedMean(rawValues: number[], settings: RankingSettings) {
@@ -25,6 +26,10 @@ function computeTrimmedMean(rawValues: number[], settings: RankingSettings) {
   const trimmed = sorted.slice(trimEachSide, sorted.length - trimEachSide);
   if (trimmed.length === 0) return 0;
   return trimmed.reduce((sum, value) => sum + value, 0) / trimmed.length;
+}
+
+function computePopularVoteShare(candidateVoteCount: number, totalVotesCast: number): number {
+  return totalVotesCast > 0 ? (candidateVoteCount / totalVotesCast) * 10 : 0;
 }
 
 async function loadRankingInputs(eventId: string) {
@@ -57,18 +62,27 @@ async function loadRankingInputs(eventId: string) {
     }
   }
 
-  return { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate };
+  const totalPopularVotesCast = [...votesByCandidate.values()].reduce(
+    (sum, bucket) => sum + bucket.popularScores.length,
+    0,
+  );
+
+  return { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast };
 }
 
 export async function getRankings(eventId: string) {
-  const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate } = await loadRankingInputs(eventId);
+  const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
+    await loadRankingInputs(eventId);
 
   return candidates
     .map((candidate) => {
       const candidateVotes = votesByCandidate.get(candidate.id) ?? { qualifiedScores: [], popularScores: [] };
       const qualifiedSum = candidateVotes.qualifiedScores.reduce((sum, score) => sum + score, 0);
       const avgQualificata = eligibleQualifiedJudgeCount > 0 ? qualifiedSum / eligibleQualifiedJudgeCount : 0;
-      const avgPopolare = computeTrimmedMean(candidateVotes.popularScores, event);
+      const avgPopolare =
+        event.popularVoteMode === "SINGLE"
+          ? computePopularVoteShare(candidateVotes.popularScores.length, totalPopularVotesCast)
+          : computeTrimmedMean(candidateVotes.popularScores, event);
       const finalScore = avgQualificata * (event.weightQualificata / 100) + avgPopolare * (event.weightPopolare / 100);
       const totalValidVotes = candidateVotes.qualifiedScores.length + candidateVotes.popularScores.length;
 
@@ -102,13 +116,17 @@ export async function getRankings(eventId: string) {
 }
 
 export async function getPartialRankings(eventId: string) {
-  const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate } = await loadRankingInputs(eventId);
+  const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
+    await loadRankingInputs(eventId);
 
   const baseEntries = candidates.map((candidate) => {
     const candidateVotes = votesByCandidate.get(candidate.id) ?? { qualifiedScores: [], popularScores: [] };
     const qualifiedSum = candidateVotes.qualifiedScores.reduce((sum, score) => sum + score, 0);
     const avgQualificata = eligibleQualifiedJudgeCount > 0 ? qualifiedSum / eligibleQualifiedJudgeCount : 0;
-    const avgPopolare = computeTrimmedMean(candidateVotes.popularScores, event);
+    const avgPopolare =
+      event.popularVoteMode === "SINGLE"
+        ? computePopularVoteShare(candidateVotes.popularScores.length, totalPopularVotesCast)
+        : computeTrimmedMean(candidateVotes.popularScores, event);
     const finalScore = avgQualificata * (event.weightQualificata / 100) + avgPopolare * (event.weightPopolare / 100);
 
     return {
@@ -159,6 +177,10 @@ export async function getPartialRankings(eventId: string) {
     weighted: weightedRankings,
     weights: { qualificata: event.weightQualificata, popolare: event.weightPopolare },
     eligibleQualifiedJudges: eligibleQualifiedJudgeCount,
-    event: { enableTrimmedMean: event.enableTrimmedMean, trimmedMeanPercentage: event.trimmedMeanPercentage },
+    event: {
+      enableTrimmedMean: event.enableTrimmedMean,
+      trimmedMeanPercentage: event.trimmedMeanPercentage,
+      popularVoteMode: event.popularVoteMode,
+    },
   };
 }

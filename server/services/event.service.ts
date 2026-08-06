@@ -48,6 +48,7 @@ export type CreateEventInput = {
   subtitle: string | null;
   managerPassword: string;
   requestedCode: string | null;
+  popularVoteMode: "NUMERIC" | "SINGLE";
 };
 
 export async function createEvent(input: CreateEventInput) {
@@ -59,6 +60,7 @@ export async function createEvent(input: CreateEventInput) {
       name: input.name,
       subtitle: input.subtitle,
       managerPasswordRecord,
+      popularVoteMode: input.popularVoteMode,
     });
   } catch (e: unknown) {
     if (isPrismaKnownError(e, "P2022")) {

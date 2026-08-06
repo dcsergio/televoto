@@ -73,6 +73,13 @@ export class VotingShellComponent {
   protected readonly judgeVotesCount = computed(() => Object.keys(this.myVotes()).length);
   protected readonly isQualifiedVoter = computed(() => this.voterType() === 'QUALIFICATA');
   protected readonly isPopularVoter = computed(() => this.voterType() === 'POPOLARE');
+  protected readonly popularVoteMode = computed(() => this.event()?.popularVoteMode ?? 'NUMERIC');
+  protected readonly isSingleVoteMode = computed(() => this.isPopularVoter() && this.popularVoteMode() === 'SINGLE');
+  protected readonly singleVotedCandidateName = computed(() => {
+    const ev = this.event();
+    const votedId = Object.keys(this.myVotes())[0];
+    return ev?.candidates.find((c) => c.id === votedId)?.name ?? null;
+  });
   protected readonly allJudgeVotesCast = computed(() => {
     const ev = this.event();
     if (!ev) return false;
@@ -159,7 +166,7 @@ export class VotingShellComponent {
   protected onVote(payload: { candidateId: string; score: number }): void {
     const token = this.judgeToken();
     if (!token || !this.canVote()) return;
-    this.votingState.castVote(payload.candidateId, payload.score, token);
+    this.votingState.castVote(payload.candidateId, payload.score, token, this.isSingleVoteMode());
   }
 
   protected openFinalizeDialog(): void {
