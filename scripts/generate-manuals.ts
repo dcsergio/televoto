@@ -24,15 +24,19 @@ const repoRoot = resolve(__dirname, "..");
 const srcRoot = join(repoRoot, "docs", "manuals", "src");
 const outRoot = join(repoRoot, "docs", "manuals");
 
-const MANUAL_IDS = [
-  "guida-giudici",
-  "manuale-admin",
-  "manuale-manager",
-  "panoramica-generale",
-] as const;
-
 const LOCALES = ["it", "en"] as const;
 type Locale = (typeof LOCALES)[number];
+
+/**
+ * Ogni manuale ha un filename diverso per lingua (i sorgenti/PDF inglesi
+ * usano nomi in inglese, non una traduzione letterale degli id italiani).
+ */
+const MANUALS: Record<Locale, string>[] = [
+  { it: "guida-giudici", en: "how-to-vote" },
+  { it: "manuale-admin", en: "admin-manual" },
+  { it: "manuale-manager", en: "manager-guide" },
+  { it: "panoramica-generale", en: "general-overview" },
+];
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -105,16 +109,16 @@ function startStaticServer(root: string): Promise<{ server: Server; port: number
 }
 
 type JobResult =
-  | { status: "generated"; id: string; locale: Locale; outPath: string }
-  | { status: "skipped"; id: string; locale: Locale; reason: string }
-  | { status: "failed"; id: string; locale: Locale; error: unknown };
+  | { status: "generated"; id: string; filename: string; locale: Locale; outPath: string }
+  | { status: "skipped"; id: string; filename: string; locale: Locale; reason: string }
+  | { status: "failed"; id: string; filename: string; locale: Locale; error: unknown };
 
 async function main() {
   const locales = parseCliLocale(process.argv.slice(2));
-  const jobs: { id: (typeof MANUAL_IDS)[number]; locale: Locale }[] = [];
+  const jobs: { id: string; filename: string; locale: Locale }[] = [];
   for (const locale of locales) {
-    for (const id of MANUAL_IDS) {
-      jobs.push({ id, locale });
+    for (const manual of MANUALS) {
+      jobs.push({ id: manual.it, filename: manual[locale], locale });
     }
   }
 
@@ -129,29 +133,29 @@ async function main() {
   const results: JobResult[] = [];
 
   try {
-    for (const { id, locale } of jobs) {
-      const htmlPath = join(srcRoot, locale, `${id}.html`);
+    for (const { id, filename, locale } of jobs) {
+      const htmlPath = join(srcRoot, locale, `${filename}.html`);
       const htmlExists = await stat(htmlPath).then(
         (s) => s.isFile(),
         () => false,
       );
 
       if (!htmlExists) {
-        const reason = `sorgente HTML non trovato: docs/manuals/src/${locale}/${id}.html`;
-        console.warn(`[generate-manuals] SKIP ${locale}/${id}: ${reason}`);
-        results.push({ status: "skipped", id, locale, reason });
+        const reason = `sorgente HTML non trovato: docs/manuals/src/${locale}/${filename}.html`;
+        console.warn(`[generate-manuals] SKIP ${locale}/${filename}: ${reason}`);
+        results.push({ status: "skipped", id, filename, locale, reason });
         continue;
       }
 
       const outDir = join(outRoot, locale);
-      const outPath = join(outDir, `${id}.pdf`);
+      const outPath = join(outDir, `${filename}.pdf`);
 
       try {
         await mkdir(outDir, { recursive: true });
 
         const page = await browser.newPage();
         try {
-          const url = `http://127.0.0.1:${port}/${locale}/${id}.html`;
+          const url = `http://127.0.0.1:${port}/${locale}/${filename}.html`;
           await page.goto(url, { waitUntil: "networkidle" });
           await page.pdf({
             path: outPath,
@@ -167,11 +171,11 @@ async function main() {
           await page.close();
         }
 
-        console.log(`[generate-manuals] OK ${locale}/${id} -> docs/manuals/${locale}/${id}.pdf`);
-        results.push({ status: "generated", id, locale, outPath });
+        console.log(`[generate-manuals] OK ${locale}/${filename} -> docs/manuals/${locale}/${filename}.pdf`);
+        results.push({ status: "generated", id, filename, locale, outPath });
       } catch (error) {
-        console.error(`[generate-manuals] ERRORE ${locale}/${id}:`, error);
-        results.push({ status: "failed", id, locale, error });
+        console.error(`[generate-manuals] ERRORE ${locale}/${filename}:`, error);
+        results.push({ status: "failed", id, filename, locale, error });
       }
     }
   } finally {
@@ -186,15 +190,15 @@ async function main() {
   console.log("\n[generate-manuals] Riepilogo:");
   console.log(`  Generati: ${generated.length}`);
   for (const r of generated) {
-    console.log(`    - ${r.locale}/${r.id}.pdf`);
+    console.log(`    - ${r.locale}/${r.filename}.pdf`);
   }
   console.log(`  Saltati:  ${skipped.length}`);
   for (const r of skipped) {
-    console.log(`    - ${r.locale}/${r.id}: ${r.reason}`);
+    console.log(`    - ${r.locale}/${r.filename}: ${r.reason}`);
   }
   console.log(`  Falliti:  ${failed.length}`);
   for (const r of failed) {
-    console.log(`    - ${r.locale}/${r.id}`);
+    console.log(`    - ${r.locale}/${r.filename}`);
   }
 
   if (jobs.length > 0 && generated.length === 0 && failed.length > 0) {

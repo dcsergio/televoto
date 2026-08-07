@@ -118,7 +118,7 @@ La pagina admin è organizzata in una single-page app con menu:
    - Le modifiche sono bloccate quando il televoto è aperto.
 
 3. **Gestione votazione** (sull’evento selezionato)
-   - avvio gara (`Avvia gara`): azzera voti, rinumera candidati, apre televoto,
+   - avvio votazione (`Avvia votazione`): azzera voti, rinumera candidati, apre televoto,
    - chiusura televoto,
    - azzeramento classifica (danger zone),
    - gestione codici giudice (generazione, validazione, revoca, QR),

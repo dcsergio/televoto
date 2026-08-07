@@ -53,7 +53,7 @@
         <li class="toc-entry">
           <span class="toc-entry-title">05 · Ciclo di vita del televoto</span>
           <span class="toc-entry-fill"></span>
-          <span class="toc-entry-page">Avvia gara, chiudi, azzera</span>
+          <span class="toc-entry-page">Avvia votazione, chiudi, azzera</span>
         </li>
         <li class="toc-entry">
           <span class="toc-entry-title">06 · Monitoraggio in tempo reale</span>
@@ -192,7 +192,7 @@
 
         <p>
           Sezione <strong>Candidati</strong> del menu laterale — gestisce l'elenco dei
-          candidati/performance in gara per l'evento.
+          candidati/performance in votazione durante l'evento.
         </p>
 
         <h3>Aggiungere un candidato</h3>
@@ -381,11 +381,11 @@
               <td>Avviare l'evento / chiudere il televoto</td>
               <td>
                 Un unico pulsante che cambia in base allo stato: mostra
-                <strong>Avvia gara</strong> quando il televoto è chiuso, oppure
+                <strong>Avvia votazione</strong> quando il televoto è chiuso, oppure
                 <strong>Chiudi televoto</strong> quando è aperto.
               </td>
               <td>
-                <strong>Avvia gara</strong>: rinumera progressivamente i candidati, azzera tutti
+                <strong>Avvia votazione</strong>: rinumera progressivamente i candidati, azzera tutti
                 i voti e riapre il televoto. <strong>Chiudi televoto</strong>: i voti non vengono
                 più accettati; le modifiche ai candidati tornano disponibili.
               </td>
@@ -399,10 +399,10 @@
         </table>
 
         <div class="callout callout--warning">
-          <span class="callout-title">Avviso — "Avvia gara" azzera tutti i voti</span>
+          <span class="callout-title">Avviso — "Avvia votazione" azzera tutti i voti</span>
           <p>
-            <strong>"Avvia gara" è un'operazione distruttiva, non incrementale.</strong> Alla
-            conferma del messaggio <em>"Vuoi avviare la gara? I voti precedenti saranno azzerati
+            <strong>"Avvia votazione" è un'operazione distruttiva, non incrementale.</strong> Alla
+            conferma del messaggio <em>"Vuoi avviare la votazione? I voti precedenti saranno azzerati
             e i candidati verranno rinumerati progressivamente."</em>, tutti i voti già raccolti
             per l'evento vengono <strong>cancellati definitivamente</strong> e non sono
             recuperabili. Usa questa funzione solo quando sei certo di voler ripartire da zero
@@ -413,7 +413,7 @@
 
         <p>Ogni azione richiede una conferma esplicita in un riquadro di dialogo prima di essere eseguita:</p>
         <ul>
-          <li><strong>Avvia gara</strong> → conferma con il pulsante <strong>Avvia</strong>.</li>
+          <li><strong>Avvia votazione</strong> → conferma con il pulsante <strong>Avvia</strong>.</li>
           <li>
             <strong>Chiudi televoto</strong> → conferma con il pulsante <strong>Chiudi</strong>
             (messaggio: "Vuoi chiudere il televoto? I voti non saranno più accettati e le
@@ -605,9 +605,9 @@
           <strong>Chiudi televoto</strong>.
         </p>
 
-        <h3>Ho premuto "Avvia gara" per errore</h3>
+        <h3>Ho premuto "Avvia votazione" per errore</h3>
         <p>
-          L'azzeramento dei voti eseguito da <strong>Avvia gara</strong> non è reversibile: i
+          L'azzeramento dei voti eseguito da <strong>Avvia votazione</strong> non è reversibile: i
           voti precedenti non sono recuperabili. I candidati restano comunque presenti (solo
           rinumerati); potrai far ripetere il voto ai giudici e al pubblico con i codici già
           emessi (se ancora attivi) o generandone di nuovi.

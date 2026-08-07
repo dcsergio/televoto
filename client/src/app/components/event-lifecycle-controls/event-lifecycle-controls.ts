@@ -11,7 +11,7 @@ export interface VotingStateChange {
 }
 
 /**
- * Start race / close televoto / reset ranking controls for a single event.
+ * Start voting / close televoto / reset ranking controls for a single event.
  * Input/output-driven (no app-level state injected) so it can be hosted by
  * both the root admin and event-manager-only shells, matching
  * JudgeCodeManagerComponent/VotingProgressDashboardComponent.
@@ -35,11 +35,11 @@ export class EventLifecycleControlsComponent {
   readonly votingStateChange = output<VotingStateChange>();
 
   protected readonly error = signal<string | null>(null);
-  protected readonly primaryActionLabel = computed(() => (this.votingClosed() ? 'Avvia gara' : 'Chiudi televoto'));
+  protected readonly primaryActionLabel = computed(() => (this.votingClosed() ? 'Avvia votazione' : 'Chiudi televoto'));
 
   protected confirmPrimaryAction(): void {
     if (this.votingClosed()) {
-      this.confirmStartRace();
+      this.confirmStartVoting();
     } else {
       this.confirmCloseTelevote();
     }
@@ -64,26 +64,26 @@ export class EventLifecycleControlsComponent {
     });
   }
 
-  private confirmStartRace(): void {
+  private confirmStartVoting(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Avvia gara',
-        message: 'Vuoi avviare la gara? I voti precedenti saranno azzerati e i candidati verranno rinumerati progressivamente.',
+        title: 'Avvia votazione',
+        message: 'Vuoi avviare la votazione? I voti precedenti saranno azzerati e i candidati verranno rinumerati progressivamente.',
         confirmLabel: 'Avvia',
       },
     });
     ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) void this.startRace();
+      if (confirmed) void this.startVoting();
     });
   }
 
-  private async startRace(): Promise<void> {
+  private async startVoting(): Promise<void> {
     try {
       const result = await firstValueFrom(this.eventsApi.startEvent(this.eventId(), this.authToken()));
       this.votingStateChange.emit({ votingClosed: result.votingClosed, candidates: result.candidates });
       this.error.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'avvio della gara");
+      this.error.set(err instanceof Error ? err.message : "Errore nell'avvio della votazione");
     }
   }
 

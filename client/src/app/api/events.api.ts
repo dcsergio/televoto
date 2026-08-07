@@ -123,6 +123,6 @@ export class EventsApi {
         {},
         withAuth(authToken),
       )
-      .pipe(catchError((err) => throwError(() => toApiError(err, "Errore nell'avvio della gara"))));
+      .pipe(catchError((err) => throwError(() => toApiError(err, "Errore nell'avvio della votazione"))));
   }
 }
