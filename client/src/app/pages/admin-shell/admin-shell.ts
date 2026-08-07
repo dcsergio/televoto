@@ -232,12 +232,18 @@ export class AdminShellComponent {
     window.open(`/hof?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
-  /** Opens the dedicated single-event workspace (candidati, codici voto, backstage). Root's session in this tab is reused there, no extra password prompt. */
+  /**
+   * Opens the dedicated single-event workspace (candidati, codici voto, backstage). Root's session
+   * in this tab is reused there, no extra password prompt — this relies on the browser copying
+   * sessionStorage into the new tab, which only happens when an opener relationship exists, so this
+   * link intentionally omits `noopener`/`noreferrer` (target is same-origin, so reverse-tabnabbing
+   * via `window.opener` is not a concern here).
+   */
   protected handleManageEvent(eventId: string): void {
     this.selectEvent(eventId);
     const ev = this.events().find((e) => e.id === eventId);
     if (!ev) return;
-    window.open(`/manager?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+    window.open(`/manager?eventCode=${encodeURIComponent(ev.code)}`, '_blank');
   }
 
   protected handleLogout(): void {
