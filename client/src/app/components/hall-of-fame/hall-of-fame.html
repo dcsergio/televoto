@@ -17,6 +17,24 @@
     (submitPassword)="handleLoginSubmit($event)"
     (cancel)="handleLoginCancel()"
   />
+} @else if (waitingForClose()) {
+  <div class="flex items-center justify-center min-h-dvh px-4">
+    <div class="max-w-md text-center rounded-2xl border border-slate-700 bg-slate-800/70 p-8">
+      <p class="text-4xl mb-4">&#128274;</p>
+      <h1 class="text-2xl font-bold mb-2">Televoto ancora aperto</h1>
+      <p class="text-text-secondary">
+        La Hall of Fame si sblocca automaticamente alla chiusura del televoto.
+      </p>
+      <button
+        type="button"
+        (click)="handleCloseTelevote()"
+        [disabled]="closingTelevote()"
+        class="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/20 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {{ closingTelevote() ? 'Chiusura...' : 'Chiudi televoto' }}
+      </button>
+    </div>
+  </div>
 } @else if (rankingsLoading()) {
   <div class="flex items-center justify-center min-h-dvh">
     <div class="w-10 h-10 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
@@ -92,6 +110,13 @@
               class="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ refreshing() ? 'Aggiornamento...' : 'Aggiorna classifica' }}
+            </button>
+            <button
+              type="button"
+              (click)="handleExportCsv()"
+              class="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700"
+            >
+              Esporta CSV
             </button>
             <button
               type="button"

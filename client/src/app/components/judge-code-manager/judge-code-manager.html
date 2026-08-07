@@ -276,7 +276,7 @@
                     <div class="mt-4 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        (click)="handleReissue(token.id)"
+                        (click)="confirmReissue(token.id)"
                         [disabled]="reissuingId() === token.id"
                         title="Il codice originale non è più recuperabile: genera un codice nuovo e sposta su di esso gli eventuali voti già dati"
                         class="rounded-xl border border-accent-cyan/40 bg-accent-cyan/10 px-3 py-2 text-xs font-semibold text-accent-cyan transition hover:bg-accent-cyan/20 disabled:cursor-not-allowed disabled:opacity-50"
@@ -285,7 +285,7 @@
                       </button>
                       <button
                         type="button"
-                        (click)="handleRevoke(token.id)"
+                        (click)="confirmRevoke(token.id)"
                         [disabled]="revokingId() === token.id"
                         class="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                       >

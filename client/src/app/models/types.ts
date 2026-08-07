@@ -1,3 +1,10 @@
+export interface EventTurnout {
+  qualifiedTotal: number;
+  qualifiedVoted: number;
+  popularTotal: number;
+  popularVoted: number;
+}
+
 export interface EventData {
   id: string;
   code: string;
@@ -11,6 +18,7 @@ export interface EventData {
   trimmedMeanPercentage: number;
   popularVoteMode: 'NUMERIC' | 'SINGLE';
   candidates: CandidateData[];
+  turnout?: EventTurnout;
 }
 
 export interface CandidateData {

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
 import { withAuth } from './auth.interceptor';
 import { toApiError } from './http-error.util';
-import { CandidateData, EventData } from '../models/types';
+import { CandidateData, EventData, EventTurnout } from '../models/types';
 
 const BASE = '/api';
 
@@ -81,9 +81,11 @@ export class EventsApi {
       );
   }
 
-  fetchEventState(eventId: string): Observable<{ id: string; code: string; votingClosed: boolean }> {
+  fetchEventState(
+    eventId: string,
+  ): Observable<{ id: string; code: string; votingClosed: boolean; turnout?: EventTurnout }> {
     return this.http
-      .get<{ id: string; code: string; votingClosed: boolean }>(`${BASE}/events/${eventId}`)
+      .get<{ id: string; code: string; votingClosed: boolean; turnout?: EventTurnout }>(`${BASE}/events/${eventId}`)
       .pipe(catchError((err) => throwError(() => toApiError(err, 'Errore nel caricamento stato evento'))));
   }
 

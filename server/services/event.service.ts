@@ -75,7 +75,10 @@ export async function createEvent(input: CreateEventInput) {
 
 export async function getEventByCode(eventCode: string) {
   try {
-    return await eventRepository.findEventByCodeWithCandidates(eventCode);
+    const event = await eventRepository.findEventByCodeWithCandidates(eventCode);
+    if (!event) return event;
+    const turnout = await eventRepository.findEventTurnout(event.id);
+    return { ...event, turnout };
   } catch (e: unknown) {
     if (isPrismaKnownError(e, "P2022")) {
       throw new AppError(500, schemaOutdatedMessage);
@@ -85,7 +88,10 @@ export async function getEventByCode(eventCode: string) {
 }
 
 export async function getEventPublicDetail(eventId: string) {
-  return eventRepository.findEventPublicDetail(eventId);
+  const event = await eventRepository.findEventPublicDetail(eventId);
+  if (!event) return event;
+  const turnout = await eventRepository.findEventTurnout(eventId);
+  return { ...event, turnout };
 }
 
 export type RawEventUpdateBody = {

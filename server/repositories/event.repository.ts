@@ -106,11 +106,25 @@ export function findEventCodeById(eventId: string) {
   return prisma.event.findUnique({ where: { id: eventId }, select: { code: true } });
 }
 
+export async function findEventTurnout(eventId: string) {
+  const votedCondition = { OR: [{ finalizedAt: { not: null } }, { status: "SUBMITTED" as const }] };
+
+  const [qualifiedTotal, qualifiedVoted, popularTotal, popularVoted] = await Promise.all([
+    prisma.judgeToken.count({ where: { eventId, type: "QUALIFICATA", revokedAt: null } }),
+    prisma.judgeToken.count({ where: { eventId, type: "QUALIFICATA", revokedAt: null, ...votedCondition } }),
+    prisma.judgeToken.count({ where: { eventId, type: "POPOLARE", revokedAt: null } }),
+    prisma.judgeToken.count({ where: { eventId, type: "POPOLARE", revokedAt: null, ...votedCondition } }),
+  ]);
+
+  return { qualifiedTotal, qualifiedVoted, popularTotal, popularVoted };
+}
+
 export function findEventRankingSettings(eventId: string) {
   return prisma.event.findUnique({
     where: { id: eventId },
     select: {
       id: true,
+      votingClosed: true,
       weightQualificata: true,
       weightPopolare: true,
       enableTrimmedMean: true,

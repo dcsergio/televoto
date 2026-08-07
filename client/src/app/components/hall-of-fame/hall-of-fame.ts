@@ -9,7 +9,7 @@ import { VotingStateService } from '../../state/voting-state.service';
 import { splitEventNameForDisplay } from '../../shared/event-name-display.util';
 import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../protected-page-gate/protected-page-gate';
-import { getButtonLabel, getFinalistLabel, getMedalEmoji } from './hall-of-fame.util';
+import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from './hall-of-fame.util';
 
 @Component({
   selector: 'app-hall-of-fame',
@@ -92,6 +92,7 @@ export class HallOfFameComponent {
     return this.closingTelevote() ? 'Chiusura...' : 'Chiudi televoto';
   });
   protected readonly eventNameParts = computed(() => splitEventNameForDisplay(this.event()?.name ?? ''));
+  protected readonly waitingForClose = computed(() => !!this.event() && !this.event()!.votingClosed);
 
   private lastRankingsEventId: string | null = null;
 
@@ -104,7 +105,7 @@ export class HallOfFameComponent {
     effect(() => {
       const ev = this.event();
       const token = this.authState.eventManagerAuthToken();
-      if (!ev || !token) return;
+      if (!ev || !token || !ev.votingClosed) return;
       if (ev.id === this.lastRankingsEventId) return;
       this.lastRankingsEventId = ev.id;
       this.revealedIndices.set([]);
@@ -147,7 +148,7 @@ export class HallOfFameComponent {
   private async loadRankings(silent = false): Promise<void> {
     const ev = this.event();
     const token = this.authState.eventManagerAuthToken();
-    if (!ev || !token) return;
+    if (!ev || !token || !ev.votingClosed) return;
     if (silent) {
       this.refreshing.set(true);
     } else {
@@ -223,6 +224,17 @@ export class HallOfFameComponent {
 
   protected async handleRefreshRankings(): Promise<void> {
     await this.loadRankings(true);
+  }
+
+  protected handleExportCsv(): void {
+    const csv = rankingsToCsv(this.rankings());
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `classifica-${this.eventCode() ?? 'evento'}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   protected async handleTogglePresenterMode(): Promise<void> {

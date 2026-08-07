@@ -67,8 +67,10 @@ export class VotingStateService {
     if (!ev || ev.votingClosed) return;
     try {
       const state = await firstValueFrom(this.eventsApi.fetchEventState(ev.id));
+      this.event.update((prev) => (prev ? { ...prev, turnout: state.turnout } : prev));
       if (state.votingClosed) {
         this.event.update((prev) => (prev ? { ...prev, votingClosed: true } : prev));
+        this.toast.error('Le votazioni sono state chiuse.');
       }
     } catch {
       // Silent poll failure - the next tick retries.
@@ -126,6 +128,7 @@ export class VotingStateService {
     const timer = setTimeout(async () => {
       try {
         await firstValueFrom(this.votingApi.castVote(candidateId, score, judgeToken));
+        this.toast.success('Voto salvato');
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Errore';
         this.toast.error(msg);

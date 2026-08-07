@@ -1,3 +1,23 @@
+import { RankingEntry } from '../../api/rankings.api';
+
+function escapeCsvField(value: string | number): string {
+  const text = String(value);
+  return /[";\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export function rankingsToCsv(entries: RankingEntry[]): string {
+  const header = ['Posizione', 'Numero', 'Nome', 'Punteggio', 'Voti Qualificata', 'Voti Popolare'];
+  const rows = entries.map((entry, index) => [
+    index + 1,
+    entry.number,
+    entry.name,
+    entry.finalScore.toFixed(3),
+    entry.qualifiedVoteCount,
+    entry.popularVoteCount,
+  ]);
+  return [header, ...rows].map((row) => row.map(escapeCsvField).join(';')).join('\r\n');
+}
+
 export function getMedalEmoji(position: number): string {
   switch (position) {
     case 0:

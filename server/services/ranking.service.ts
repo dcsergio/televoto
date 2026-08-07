@@ -74,6 +74,10 @@ export async function getRankings(eventId: string) {
   const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
     await loadRankingInputs(eventId);
 
+  if (!event.votingClosed) {
+    throw new AppError(409, "La Hall of Fame è disponibile solo dopo la chiusura del televoto");
+  }
+
   return candidates
     .map((candidate) => {
       const candidateVotes = votesByCandidate.get(candidate.id) ?? { qualifiedScores: [], popularScores: [] };

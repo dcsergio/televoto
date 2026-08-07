@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { requireEventManagerAuth } from "../middleware/auth.middleware.js";
+import { voteRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { AppError } from "../middleware/error-handler.js";
+import { parseBody } from "../validation/validate.js";
+import { judgeTokenLookupSchema } from "../validation/judge-token.schemas.js";
 import * as judgeTokenService from "../services/judge-token.service.js";
 import * as judgeTokenRepository from "../repositories/judge-token.repository.js";
 
@@ -40,14 +43,14 @@ judgeTokensRouter.post("/api/events/:eventId/judge-tokens", async (req, res) => 
   void judgeTokenService.broadcastJudgeTokenSnapshot(eventId);
 });
 
-judgeTokensRouter.post("/api/judge-tokens/validate", async (req, res) => {
-  const { token, eventCode } = req.body as { token?: string; eventCode?: string };
+judgeTokensRouter.post("/api/judge-tokens/validate", voteRateLimiter, async (req, res) => {
+  const { token, eventCode } = parseBody(judgeTokenLookupSchema, req.body);
   const result = await judgeTokenService.validateJudgeToken(token ?? "", eventCode);
   res.status(result.httpStatus).json(result.body);
 });
 
-judgeTokensRouter.post("/api/judge-tokens/finalize", async (req, res) => {
-  const { token, eventCode } = req.body as { token?: string; eventCode?: string };
+judgeTokensRouter.post("/api/judge-tokens/finalize", voteRateLimiter, async (req, res) => {
+  const { token, eventCode } = parseBody(judgeTokenLookupSchema, req.body);
   res.json(await judgeTokenService.finalizeJudgeTokenByCode(token ?? "", eventCode));
 });
 

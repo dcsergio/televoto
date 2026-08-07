@@ -141,6 +141,10 @@
 
       <app-hero-banner [name]="event()!.name" [subtitle]="event()!.subtitle" [compact]="judgeMode()" />
 
+      @if (turnoutLabel()) {
+        <p class="mt-3 text-center text-xs uppercase tracking-[0.15em] text-text-secondary">{{ turnoutLabel() }}</p>
+      }
+
       <section class="mt-6">
         <h2 class="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-text-secondary mb-4">
           <span class="text-base" aria-hidden="true">&#9835;</span>

@@ -67,6 +67,11 @@ export class VotingShellComponent {
     return null;
   });
   protected readonly votingClosed = computed(() => this.event()?.votingClosed ?? false);
+  protected readonly turnoutLabel = computed(() => {
+    const turnout = this.event()?.turnout;
+    if (!turnout) return null;
+    return `${turnout.qualifiedVoted + turnout.popularVoted}/${turnout.qualifiedTotal + turnout.popularTotal} giudici hanno votato`;
+  });
   protected readonly canVote = computed(
     () => !this.votingClosed() && this.judgeMode() && this.judgeAccess().status === 'valid',
   );

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import {
   GeneratedJudgeToken,
@@ -8,6 +9,7 @@ import {
   JudgeTokensApi,
 } from '../../api/judge-tokens.api';
 import { JudgeTokenStreamService } from '../../api/judge-token-stream.service';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 import { QrCodePreviewComponent } from './qr-code-preview';
 import { PrintService } from './print.service';
 import { formatDate, formatJudgeToken, getStatusClass, getStatusLabel } from './judge-code-manager.util';
@@ -29,6 +31,7 @@ export class JudgeCodeManagerComponent {
   private readonly judgeTokensApi = inject(JudgeTokensApi);
   private readonly stream = inject(JudgeTokenStreamService);
   private readonly printService = inject(PrintService);
+  private readonly dialog = inject(MatDialog);
 
   readonly eventId = input.required<string>();
   readonly eventCode = input.required<string>();
@@ -175,6 +178,32 @@ export class JudgeCodeManagerComponent {
     } finally {
       this.validationLoading.set(false);
     }
+  }
+
+  protected confirmRevoke(id: string): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Revoca codice',
+        message: 'Il codice non potrà più essere usato per votare. Continuare?',
+        confirmLabel: 'Revoca',
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) void this.handleRevoke(id);
+    });
+  }
+
+  protected confirmReissue(id: string): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Rigenera codice',
+        message: 'Il codice attuale smetterà di funzionare immediatamente. Continuare?',
+        confirmLabel: 'Rigenera',
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) void this.handleReissue(id);
+    });
   }
 
   protected async handleRevoke(id: string): Promise<void> {
