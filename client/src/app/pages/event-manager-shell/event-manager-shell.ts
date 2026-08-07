@@ -7,7 +7,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -44,7 +43,6 @@ import {
     MatIconModule,
     MatButtonModule,
     MatCardModule,
-    MatChipsModule,
     MatDividerModule,
   ],
   templateUrl: './event-manager-shell.html',
@@ -196,6 +194,7 @@ export class EventManagerShellComponent {
           title: 'Televoto ancora aperto',
           message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
           confirmLabel: 'Ho capito',
+          hideCancel: true,
         },
       });
       return;

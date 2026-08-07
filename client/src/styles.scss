@@ -235,3 +235,9 @@ app-root {
   transform: scale(0.96);
   filter: brightness(0.9);
 }
+
+/* ── Shell toolbar spacing ── */
+.app-shell-toolbar {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}

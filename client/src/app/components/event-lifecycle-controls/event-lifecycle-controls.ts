@@ -35,8 +35,15 @@ export class EventLifecycleControlsComponent {
   readonly votingStateChange = output<VotingStateChange>();
 
   protected readonly error = signal<string | null>(null);
-  protected readonly startLabel = computed(() => (this.votingClosed() ? 'Avvia gara' : 'Televoto aperto'));
-  protected readonly currentStatus = computed(() => (this.votingClosed() ? 'Televoto chiuso' : 'Televoto aperto'));
+  protected readonly primaryActionLabel = computed(() => (this.votingClosed() ? 'Avvia gara' : 'Chiudi televoto'));
+
+  protected confirmPrimaryAction(): void {
+    if (this.votingClosed()) {
+      this.confirmStartRace();
+    } else {
+      this.confirmCloseTelevote();
+    }
+  }
 
   protected handleOpenScore(): void {
     if (!this.votingClosed()) {
@@ -52,11 +59,12 @@ export class EventLifecycleControlsComponent {
         title: 'Televoto ancora aperto',
         message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
         confirmLabel: 'Ho capito',
+        hideCancel: true,
       },
     });
   }
 
-  protected confirmStartRace(): void {
+  private confirmStartRace(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Avvia gara',
@@ -79,7 +87,7 @@ export class EventLifecycleControlsComponent {
     }
   }
 
-  protected confirmCloseTelevote(): void {
+  private confirmCloseTelevote(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Chiudi televoto',

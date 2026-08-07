@@ -5,6 +5,7 @@ export interface ConfirmDialogData {
   title: string;
   message: string;
   confirmLabel: string;
+  hideCancel?: boolean;
 }
 
 @Component({
@@ -16,13 +17,15 @@ export interface ConfirmDialogData {
       <h2 class="text-xl font-semibold text-text-primary">{{ data.title }}</h2>
       <p class="mt-3 text-sm text-text-secondary">{{ data.message }}</p>
       <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          (click)="dialogRef.close(false)"
-          class="rounded-2xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
-        >
-          Annulla
-        </button>
+        @if (!data.hideCancel) {
+          <button
+            type="button"
+            (click)="dialogRef.close(false)"
+            class="rounded-2xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
+          >
+            Annulla
+          </button>
+        }
         <button
           type="button"
           (click)="dialogRef.close(true)"

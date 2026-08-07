@@ -225,6 +225,7 @@ export class AdminShellComponent {
           title: 'Televoto ancora aperto',
           message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
           confirmLabel: 'Ho capito',
+          hideCancel: true,
         },
       });
       return;
