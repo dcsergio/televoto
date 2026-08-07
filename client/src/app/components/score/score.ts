@@ -34,7 +34,7 @@ export class ScoreComponent {
 
   protected readonly rankings = signal<RankingEntry[]>([]);
   protected readonly rankingsLoading = signal(true);
-  protected readonly refreshing = signal(false);
+  protected readonly startingReveal = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly revealedIndices = signal<number[]>([]);
   protected readonly showFinalistsStage = signal(false);
@@ -72,7 +72,12 @@ export class ScoreComponent {
   );
   protected readonly revealDisabled = computed(() => {
     const r = this.rankings();
-    return r.length === 0 || this.showWinner() || (r.length < 2 && this.revealedIndices().length >= r.length);
+    return (
+      r.length === 0 ||
+      this.showWinner() ||
+      this.startingReveal() ||
+      (r.length < 2 && this.revealedIndices().length >= r.length)
+    );
   });
   protected readonly canUndo = computed(
     () => this.showWinner() || this.showFinalistsStage() || this.revealedIndices().length > 0,
@@ -87,10 +92,6 @@ export class ScoreComponent {
       isFinalistsStage: this.isFinalistsStage(),
     }),
   );
-  protected readonly closeTelevoteLabel = computed(() => {
-    if (this.event()?.votingClosed) return 'Televoto chiuso';
-    return this.closingTelevote() ? 'Chiusura...' : 'Chiudi televoto';
-  });
   protected readonly eventNameParts = computed(() => splitEventNameForDisplay(this.event()?.name ?? ''));
   protected readonly waitingForClose = computed(() => !!this.event() && !this.event()!.votingClosed);
 
@@ -129,7 +130,7 @@ export class ScoreComponent {
 
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
-      this.handleRevealNext();
+      void this.handleRevealNext();
       return;
     }
 
@@ -145,12 +146,13 @@ export class ScoreComponent {
     }
   }
 
-  private async loadRankings(silent = false): Promise<void> {
+  // silent = the one-off reveal-start refetch (see handleRevealNext); no full-page loading state.
+  private async loadRankings(silent = false): Promise<boolean> {
     const ev = this.event();
     const token = this.authState.eventManagerAuthToken();
-    if (!ev || !token || !ev.votingClosed) return;
+    if (!ev || !token || !ev.votingClosed) return false;
     if (silent) {
-      this.refreshing.set(true);
+      this.startingReveal.set(true);
     } else {
       this.rankingsLoading.set(true);
     }
@@ -158,11 +160,13 @@ export class ScoreComponent {
       const data = await firstValueFrom(this.rankingsApi.fetchRankings(ev.id, token));
       this.rankings.set(data);
       this.error.set(null);
+      return true;
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nel caricamento');
+      return false;
     } finally {
       this.rankingsLoading.set(false);
-      this.refreshing.set(false);
+      this.startingReveal.set(false);
     }
   }
 
@@ -188,8 +192,8 @@ export class ScoreComponent {
     this.router.navigate(['/']);
   }
 
-  protected handleRevealNext(): void {
-    if (this.rankings().length === 0 || this.showWinner()) return;
+  protected async handleRevealNext(): Promise<void> {
+    if (this.rankings().length === 0 || this.showWinner() || this.startingReveal()) return;
 
     if (this.isFinalistsStage()) {
       this.showWinner.set(true);
@@ -202,6 +206,12 @@ export class ScoreComponent {
     }
 
     if (this.revealedIndices().length >= this.rankings().length) return;
+
+    if (!this.revealStarted()) {
+      // Freeze point: last fetch before locking in the reveal, so nothing refetches afterwards.
+      const refreshed = await this.loadRankings(true);
+      if (!refreshed || this.rankings().length === 0) return;
+    }
 
     const nextIndex = this.rankings().length - 1 - this.revealedIndices().length;
     this.revealedIndices.update((prev) => [...prev, nextIndex].sort((a, b) => a - b));
@@ -220,10 +230,6 @@ export class ScoreComponent {
 
     const lastRevealed = Math.min(...this.revealedIndices());
     this.revealedIndices.update((prev) => prev.filter((index) => index !== lastRevealed));
-  }
-
-  protected async handleRefreshRankings(): Promise<void> {
-    await this.loadRankings(true);
   }
 
   protected handleExportCsv(): void {

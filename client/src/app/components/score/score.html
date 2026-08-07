@@ -93,28 +93,17 @@
             <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
             <p class="text-lg font-semibold text-text-primary">Mostra la classifica dal fondo verso l'alto</p>
             <p class="mt-1 text-sm text-text-secondary">
-              Stato televoto: {{ event()!.votingClosed ? 'chiuso' : 'aperto' }}
-            </p>
-            <p class="mt-1 text-sm text-text-secondary">
               Rivelati {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }}
             </p>
             <p class="mt-1 text-xs text-text-muted">
               Scorciatoie: Spazio/Invio prossimo &middot; Backspace annulla &middot; F presentazione &middot; Esc esci
             </p>
           </div>
-          <div class="flex flex-wrap gap-2">
-            <button
-              type="button"
-              (click)="handleRefreshRankings()"
-              [disabled]="refreshing()"
-              class="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {{ refreshing() ? 'Aggiornamento...' : 'Aggiorna classifica' }}
-            </button>
+          <div class="flex flex-nowrap gap-2 overflow-x-auto">
             <button
               type="button"
               (click)="handleExportCsv()"
-              class="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700"
+              class="shrink-0 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700"
             >
               Esporta CSV
             </button>
@@ -122,32 +111,24 @@
               type="button"
               (click)="handleUndoReveal()"
               [disabled]="!canUndo()"
-              class="rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              class="shrink-0 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Annulla ultimo
             </button>
             <button
               type="button"
               (click)="handleTogglePresenterMode()"
-              class="rounded-lg border border-violet-500/30 bg-violet-500/20 px-4 py-2 font-semibold text-violet-200 transition hover:bg-violet-500/30"
+              class="shrink-0 rounded-lg border border-violet-500/30 bg-violet-500/20 px-4 py-2 font-semibold text-violet-200 transition hover:bg-violet-500/30"
             >
               {{ presenterMode() ? 'Esci presentazione' : 'Modalità presentazione' }}
             </button>
             <button
               type="button"
-              (click)="handleCloseTelevote()"
-              [disabled]="event()!.votingClosed || closingTelevote()"
-              class="rounded-lg border border-amber-500/30 bg-amber-500/20 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {{ closeTelevoteLabel() }}
-            </button>
-            <button
-              type="button"
               (click)="handleRevealNext()"
               [disabled]="revealDisabled()"
-              class="rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              class="shrink-0 rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {{ buttonLabel() }}
+              {{ startingReveal() ? 'Avvio...' : buttonLabel() }}
             </button>
           </div>
         </div>
