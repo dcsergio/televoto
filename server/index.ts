@@ -55,7 +55,7 @@ if (shouldServeClient && fs.existsSync(clientIndexPath)) {
   app.get("/", sendClientApp);
   app.get("/admin", sendClientApp);
   app.get("/manager", sendClientApp);
-  app.get("/hof", sendClientApp);
+  app.get("/score", sendClientApp);
 }
 
 app.use(errorHandler);

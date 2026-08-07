@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Esempio pattern — Manuali Televoto</title>
+    <link rel="stylesheet" href="../shared/manual.css" />
+  </head>
+  <body>
+    <!-- ============================================================
+         Pagina di riferimento/pattern per chi scrive i manuali reali.
+         Non è un manuale vero: mostra come usare .cover, .toc,
+         section.chapter con titolo autonumerato e i 3 tipi di callout.
+         Può essere cancellata o ignorata una volta scritti i manuali.
+         ============================================================ -->
+
+    <!-- 1. Copertina -->
+    <section class="cover">
+      <div class="cover-icon">🗳️</div>
+      <p class="cover-eyebrow">Televoto — Manuale d'esempio</p>
+      <h1 class="cover-title">Titolo del Manuale</h1>
+      <p class="cover-subtitle">
+        Sottotitolo descrittivo che spiega in una riga a cosa serve questo
+        documento e a chi è rivolto.
+      </p>
+      <p class="cover-meta">Versione 1.0 — Agosto 2026</p>
+    </section>
+
+    <!-- 2. Indice -->
+    <section class="toc">
+      <h2 class="toc-title">Indice</h2>
+      <ol class="toc-list">
+        <li class="toc-entry">
+          <span class="toc-entry-title">Introduzione</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">3</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Primo capitolo di esempio</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">4</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Secondo capitolo di esempio</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">6</span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- 3. Capitoli: il contenitore .chapters resetta il counter CSS,
+         ogni section.chapter incrementa "chapter" e h2.chapter-title si
+         autonumera (01., 02., ...) via ::before, niente numeri scritti a mano. -->
+    <div class="chapters">
+      <section class="chapter">
+        <h2 class="chapter-title">Primo capitolo di esempio</h2>
+
+        <p>
+          Questo è un paragrafo normale di testo, per mostrare la tipografia
+          di base del corpo del manuale: dimensione, interlinea e colore
+          dell'inchiostro su sfondo chiaro.
+        </p>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Info</span>
+          <p>
+            Box informativo (blu/azzurro): usalo per note neutre, dettagli
+            aggiuntivi o chiarimenti che non sono né avvisi né consigli.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Attenzione</span>
+          <p>
+            Box di avviso (ambra/arancione): usalo per azioni distruttive o
+            irreversibili, ad esempio "riavviare un evento azzera tutti i
+            voti registrati".
+          </p>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout-title">Suggerimento</span>
+          <p>
+            Box consiglio (verde): usalo per scorciatoie, buone pratiche o
+            suggerimenti opzionali che semplificano il lavoro.
+          </p>
+        </div>
+      </section>
+
+      <!-- .page-break forza un'interruzione di pagina manuale prima del
+           capitolo successivo, indipendentemente da dove si trova il
+           contenuto precedente nella pagina. -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Secondo capitolo di esempio</h2>
+
+        <p>
+          Esempio di tabella semplice, utile ad esempio per elencare le
+          azioni disponibili in una toolbar (come nel manuale admin):
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Azione</th>
+              <th>Descrizione</th>
+              <th>Chi può usarla</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Avvia evento</td>
+              <td>Rinumera i candidati e riapre il televoto azzerando i voti.</td>
+              <td>Manager evento</td>
+            </tr>
+            <tr>
+              <td>Chiudi televoto</td>
+              <td>Blocca l'invio di nuovi voti da parte dei giudici.</td>
+              <td>Manager evento</td>
+            </tr>
+            <tr>
+              <td>Rigenera codice</td>
+              <td>Crea un nuovo codice giudice smarrito, invalidando il precedente.</td>
+              <td>Manager evento</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </body>
+</html>

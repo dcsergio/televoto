@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Manuale dell'Amministratore Root | Televoto</title>
+    <link rel="stylesheet" href="../shared/manual.css" />
+  </head>
+  <body>
+    <!-- Copertina -->
+    <section class="cover">
+      <span class="cover-badge">Documentazione operativa</span>
+      <p class="cover-eyebrow">Televoto · Area /admin</p>
+      <h1 class="cover-title">Manuale dell'Amministratore Root</h1>
+      <p class="cover-subtitle">
+        Guida operativa alla gestione cross-evento della piattaforma Televoto
+      </p>
+      <p class="cover-meta">
+        <strong>Destinatari:</strong> amministratori con accesso alla password root globale.<br />
+        <strong>Ambito:</strong> pannello <code>/admin</code> — dashboard generale, anagrafica
+        eventi, pesi di scoring, sicurezza delle credenziali.<br />
+        <strong>Versione documento:</strong> 1.0 · Agosto 2026
+      </p>
+    </section>
+
+    <!-- Indice -->
+    <section class="toc">
+      <h2 class="toc-title">Indice</h2>
+      <ol class="toc-list">
+        <li class="toc-entry">
+          <span class="toc-entry-title">Introduzione e modello di accesso</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Accesso all'area Admin (login root)</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Panoramica della Dashboard</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Creare un nuovo evento</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Modificare un evento esistente e i pesi di scoring</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Ruotare la password root</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Ruotare la password del manager di un evento</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Raggiungere l'area Manager di un evento specifico</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Altre operazioni cross-evento (voto pubblico, Classifica, logout)</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Domande frequenti e risoluzione problemi</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="chapters">
+      <!-- 1 -->
+      <section class="chapter">
+        <h2 class="chapter-title">Introduzione e modello di accesso</h2>
+        <p class="chapter-subtitle">
+          Come funziona l'autenticazione root e cosa distingue l'area Admin dall'area Manager.
+        </p>
+
+        <p>Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra loro:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Livello</th>
+              <th>Ambito</th>
+              <th>Credenziale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Root</strong></td>
+              <td>
+                Globale: accesso a <code>/admin</code>, gestione di tutti gli eventi, sicurezza
+                generale
+              </td>
+              <td>Un'unica password root, condivisa</td>
+            </tr>
+            <tr>
+              <td><strong>Event Manager</strong></td>
+              <td>
+                Singolo evento: accesso a <code>/manager</code>, candidati, codici giuria,
+                avvio/chiusura del televoto
+              </td>
+              <td>Una password dedicata per ciascun evento</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Da sapere</span>
+          <p>
+            Chi accede con la password <strong>root</strong> può aprire l'area
+            <code>/manager</code> di <strong>qualsiasi</strong> evento senza dover inserire la
+            password del manager di quell'evento: il sistema riconosce automaticamente il ruolo
+            root e salta la richiesta. Questo NON vale per la pagina <code>/score</code>
+            (Classifica), dove anche il root deve inserire la password manager dell'evento
+            specifico.
+          </p>
+        </div>
+
+        <p>
+          L'area <code>/admin</code> è pensata esclusivamente per operazioni
+          <strong>cross-evento</strong>: creazione e anagrafica degli eventi, pesi di scoring,
+          sicurezza delle password. Non gestisce candidati, codici giuria o l'avvio/chiusura
+          della votazione di un singolo evento: per queste operazioni occorre raggiungere l'area
+          dedicata <code>/manager</code> dell'evento (vedi Capitolo 8).
+        </p>
+      </section>
+
+      <!-- 2 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Accesso all'area Admin (login root)</h2>
+        <p class="chapter-subtitle">Come autenticarsi con la password root.</p>
+
+        <ol>
+          <li>Apri il browser e naviga a <code>/admin</code> sul dominio dell'applicazione.</li>
+          <li>
+            Se non è già presente una sessione root valida, viene mostrata una schermata di
+            accesso protetta con il messaggio:
+            <em>"Inserisci la password root per accedere a questa sezione."</em>
+          </li>
+          <li>Digita la <strong>password root</strong> nel campo dedicato e conferma l'invio del modulo.</li>
+          <li>In caso di password errata, il modulo mostra un messaggio di errore e permette di riprovare.</li>
+          <li>
+            È possibile annullare l'accesso: l'utente viene riportato alla pagina pubblica di
+            voto (<code>/</code>).
+          </li>
+        </ol>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Sessione</span>
+          <p>
+            L'autenticazione produce un token firmato con validità di <strong>12 ore</strong>.
+            Il token viene conservato nella <code>sessionStorage</code> del browser: resta
+            valido dopo un aggiornamento della pagina, ma viene perso alla chiusura della
+            scheda/browser.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Attenzione</span>
+          <p>
+            Non esiste un sistema di account utente individuali: la password root è unica e
+            condivisa da tutti gli amministratori. Custodiscila con cura e ruotala
+            periodicamente (vedi Capitolo 6).
+          </p>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Panoramica della Dashboard</h2>
+        <p class="chapter-subtitle">
+          Sezione "Dashboard" del menu laterale — vista d'insieme su tutti gli eventi.
+        </p>
+
+        <p>
+          Dopo il login, l'area Admin si presenta con un menu laterale a due voci:
+          <strong>Dashboard</strong> e <strong>Eventi</strong> (parametro URL
+          <code>?adminSection=dashboard|events</code>). La Dashboard è la sezione predefinita e
+          mostra:
+        </p>
+
+        <h3>Riepilogo generale (card numeriche)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Indicatore</th>
+              <th>Significato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Eventi totali</td>
+              <td>Numero complessivo di eventi presenti a sistema</td>
+            </tr>
+            <tr>
+              <td>Eventi attivi</td>
+              <td>Eventi con flag "Attivo" impostato</td>
+            </tr>
+            <tr>
+              <td>Televoto aperto</td>
+              <td>Eventi con votazione attualmente aperta</td>
+            </tr>
+            <tr>
+              <td>Televoto chiuso</td>
+              <td>Eventi con votazione chiusa</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Evento selezionato</h3>
+        <p>
+          In alto nella toolbar è presente un selettore a tendina
+          <strong>"Evento selezionato"</strong> che elenca tutti gli eventi (codice + nome).
+          L'evento scelto qui rimane selezionato anche passando da una sezione all'altra e
+          determina la card di dettaglio mostrata in Dashboard, con:
+        </p>
+        <ul>
+          <li>Stato: <strong>Attivo</strong> / Non attivo, <strong>Televoto aperto</strong> / chiuso;</li>
+          <li>
+            Pulsante <strong>"Gestisci evento"</strong>, che apre l'area <code>/manager</code>
+            dell'evento in una nuova scheda.
+          </li>
+        </ul>
+
+        <h3>Elenco completo eventi</h3>
+        <p>
+          Sotto la card di dettaglio, una griglia di schede riepiloga tutti gli eventi con
+          codice, nome, sottotitolo (se presente), stato Attivo/Non attivo, stato televoto
+          Aperto/Chiuso e un pulsante <strong>"Gestisci"</strong> per ciascuno.
+        </p>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Azioni rapide in toolbar</span>
+          <p>
+            Dalla toolbar in alto sono sempre disponibili: <strong>Aggiorna eventi</strong>
+            (ricarica l'elenco), <strong>Apri pagina voto pubblico</strong> e
+            <strong>Apri Classifica</strong> per l'evento selezionato, oltre al pulsante di
+            <strong>logout</strong>.
+          </p>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Creare un nuovo evento</h2>
+        <p class="chapter-subtitle">Sezione "Eventi" → riquadro "Crea nuovo evento".</p>
+
+        <ol>
+          <li>Nel menu laterale seleziona <strong>Eventi</strong>.</li>
+          <li>Individua il riquadro <strong>"Crea nuovo evento"</strong> sulla destra del pannello.</li>
+          <li>Compila i campi del modulo (vedi tabella sotto).</li>
+          <li>Premi il pulsante <strong>"Crea evento"</strong>.</li>
+          <li>
+            Il nuovo evento viene aggiunto in cima all'elenco e selezionato automaticamente come
+            evento corrente.
+          </li>
+        </ol>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Campo</th>
+              <th>Obbligatorio</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Nome evento</strong></td>
+              <td>Sì</td>
+              <td>
+                Testo libero. Il separatore <code>//</code> nel nome evidenzia graficamente una
+                parte del titolo (es. <code>Finale regionale // GRAN FINALE</code>).
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Sottotitolo</strong></td>
+              <td>No</td>
+              <td>Testo libero opzionale, es. "Edizione 2026".</td>
+            </tr>
+            <tr>
+              <td><strong>Codice evento</strong></td>
+              <td>No</td>
+              <td>
+                Da 1 a 5 cifre numeriche. Se lasciato vuoto viene generato automaticamente dal
+                sistema. È il codice usato nell'URL pubblico (<code>?eventCode=...</code>) e per
+                l'accesso a <code>/manager</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Modalità voto popolare</strong></td>
+              <td>Sì (scelta predefinita: Numerico)</td>
+              <td>
+                <strong>Numerico (1-10)</strong>: il pubblico assegna un punteggio.
+                <strong>Singolo (elezione)</strong>: il pubblico vota un solo candidato. Non
+                modificabile dopo la creazione dell'evento.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Password manager evento</strong></td>
+              <td>Sì</td>
+              <td>
+                Minimo 8 caratteri. È la password che l'event manager userà per accedere a
+                <code>/manager</code> per questo evento.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Validazioni bloccanti</span>
+          <p>
+            Il modulo respinge la creazione se: il nome è vuoto, il codice evento non rispetta
+            il formato 1-5 cifre, oppure la password manager è più corta di 8 caratteri. Il
+            messaggio di errore compare in cima al pannello.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Irreversibile dopo la creazione</span>
+          <p>
+            La modalità di voto popolare (Numerico / Singolo) non è più modificabile una volta
+            creato l'evento: scegliela con attenzione prima di confermare.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Modificare un evento e i pesi di scoring</h2>
+        <p class="chapter-subtitle">Sezione "Eventi" → riquadro "Evento corrente".</p>
+
+        <p>
+          Seleziona l'evento da modificare tramite il selettore in toolbar, poi vai nella
+          sezione <strong>Eventi</strong>: il riquadro <strong>"Evento corrente"</strong> mostra
+          tre moduli distinti per l'evento selezionato.
+        </p>
+
+        <h3>5.1 Rinominare l'evento</h3>
+        <ol>
+          <li>Nel campo <strong>"Nuovo nome evento"</strong> digita il nome aggiornato.</li>
+          <li>
+            Premi <strong>"Rinomina"</strong>. Il pulsante mostra "Salvataggio..." durante
+            l'operazione.
+          </li>
+        </ol>
+        <p>Se il nome digitato coincide con quello già salvato, non viene inviata alcuna richiesta.</p>
+
+        <h3>5.2 Pesatura giurie (pesi di scoring)</h3>
+        <p>
+          Nel riquadro <strong>"Pesatura giurie"</strong> si imposta il bilanciamento tra la
+          media della giuria <strong>Qualificata</strong> e quella del voto
+          <strong>Popolare</strong> nel calcolo del punteggio finale.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Campo</th>
+              <th>Descrizione</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Peso Qualificata (%)</td>
+              <td>Valore intero 0–100, editabile direttamente.</td>
+            </tr>
+            <tr>
+              <td>Peso Popolare (%)</td>
+              <td>
+                Campo <em>disabilitato</em>, calcolato automaticamente come
+                <code>100 - Peso Qualificata</code>. I due pesi sommano sempre 100.
+              </td>
+            </tr>
+            <tr>
+              <td>Abilita trimmed mean su voti popolari</td>
+              <td>
+                Checkbox visibile solo per eventi con modalità di voto <strong>Numerico</strong>
+                (non per "Singolo"). Riduce l'impatto di voti anomali/outlier sulla media
+                popolare.
+              </td>
+            </tr>
+            <tr>
+              <td>Percentuale trimmed mean (%)</td>
+              <td>Valore 0–49,99, attivo solo se la trimmed mean è abilitata.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Premi <strong>"Salva impostazioni voto"</strong> per confermare. Il valore predefinito
+          di fabbrica è 70% Qualificata / 30% Popolare.
+        </p>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Come viene usato il peso Qualificata</span>
+          <p>
+            La media della giuria Qualificata viene divisa per il numero di giudici qualificata
+            idonei e non revocati assegnati all'evento (non solo per chi ha effettivamente
+            votato): le astensioni abbassano quindi la media del candidato. Il punteggio finale
+            combina le due medie secondo i pesi impostati qui.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Validazioni</span>
+          <p>
+            Il peso Qualificata deve essere un numero intero compreso tra 0 e 100; la
+            percentuale trimmed mean deve essere compresa tra 0 e 49,99. Valori fuori range
+            vengono respinti con un messaggio d'errore.
+          </p>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Ruotare la password root</h2>
+        <p class="chapter-subtitle">
+          Sezione "Eventi" → riquadro "Sicurezza root" (in fondo alla pagina).
+        </p>
+
+        <p>
+          Questa operazione aggiorna la password root globale, usata per l'accesso a tutte le
+          aree amministrative protette.
+        </p>
+
+        <ol>
+          <li>Vai nella sezione <strong>Eventi</strong> e scorri fino al riquadro <strong>"Sicurezza root"</strong>.</li>
+          <li>
+            Compila i tre campi: <strong>Password root attuale</strong>,
+            <strong>Nuova password root</strong>, <strong>Conferma nuova password root</strong>.
+          </li>
+          <li>Premi <strong>"Aggiorna password root"</strong>.</li>
+        </ol>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Requisiti e controlli</span>
+          <ul>
+            <li>Sia la password attuale sia la nuova devono avere almeno <strong>8 caratteri</strong>.</li>
+            <li>La nuova password e la sua conferma devono coincidere esattamente, altrimenti l'operazione viene respinta.</li>
+            <li>Dopo l'aggiornamento con successo, i campi del modulo vengono svuotati automaticamente.</li>
+          </ul>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Impatto</span>
+          <p>
+            Cambiare la password root non invalida automaticamente le sessioni già aperte in
+            altri browser/dispositivi (i token restano validi fino alla scadenza delle 12 ore),
+            ma qualunque nuovo accesso a <code>/admin</code> richiederà la nuova password.
+            Comunica il cambiamento a tutti gli amministratori root prima di eseguirlo.
+          </p>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Ruotare la password del manager di un evento</h2>
+        <p class="chapter-subtitle">
+          Sezione "Eventi" → riquadro "Evento corrente" → campo "Nuova password manager evento".
+        </p>
+
+        <p>
+          Ogni evento ha una propria password manager, indipendente dalla password root, usata
+          per accedere a <code>/manager</code> per quell'evento specifico (tipicamente da chi
+          gestisce l'evento sul campo, senza credenziali root).
+        </p>
+
+        <ol>
+          <li>Seleziona l'evento interessato dal selettore in toolbar.</li>
+          <li>Vai nella sezione <strong>Eventi</strong>, riquadro <strong>"Evento corrente"</strong>.</li>
+          <li>Nel campo <strong>"Nuova password manager evento"</strong> digita la nuova password (minimo 8 caratteri).</li>
+          <li>Premi <strong>"Aggiorna password evento"</strong>.</li>
+        </ol>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Casi d'uso tipici</span>
+          <p>
+            Utile quando la password del manager di un evento è stata smarrita, condivisa
+            impropriamente, oppure va ruotata a fine evento per motivi di sicurezza. Ricorda di
+            comunicare la nuova password al manager dell'evento tramite un canale sicuro.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Nota</span>
+          <p>
+            Questa operazione riguarda esclusivamente l'evento selezionato: non esiste
+            un'operazione massiva per ruotare le password manager di più eventi
+            contemporaneamente.
+          </p>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Raggiungere l'area Manager di un evento</h2>
+        <p class="chapter-subtitle">
+          Come accedere alle operazioni quotidiane di un evento (candidati, codici giuria,
+          avvio/chiusura voto).
+        </p>
+
+        <p>
+          L'area <code>/manager</code> gestisce le operazioni specifiche di un singolo evento:
+          candidati, codici giuria, avvio/chiusura della votazione e monitoraggio in tempo
+          reale. Non è raggiungibile dall'area Admin per la modifica dei dati anagrafici o dei
+          pesi (quelli restano qui in <code>/admin</code>), ma è il punto di ingresso per la
+          gestione operativa del giorno dell'evento.
+        </p>
+
+        <ol>
+          <li>Seleziona l'evento desiderato (dal selettore in toolbar oppure dalla scheda evento in Dashboard/Eventi).</li>
+          <li>Premi il pulsante <strong>"Gestisci"</strong> / <strong>"Gestisci evento"</strong>.</li>
+          <li>Si apre una nuova scheda del browser all'indirizzo <code>/manager?eventCode=&lt;codice&gt;</code>.</li>
+        </ol>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Nessuna password aggiuntiva richiesta</span>
+          <p>
+            Essendo autenticato come root, l'accesso a <code>/manager</code> per qualsiasi
+            evento avviene <strong>senza</strong> dover inserire la password manager di
+            quell'evento: la sessione root viene riconosciuta automaticamente e ha diritti
+            equivalenti (o superiori) a quelli del manager dell'evento.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Eccezione: Classifica</span>
+          <p>
+            Questo bypass automatico <strong>non</strong> vale per la pagina <code>/score</code>
+            (Classifica): lì, anche con sessione root attiva, è comunque richiesta la password
+            manager specifica dell'evento. Usa il pulsante <strong>"Apri Classifica"</strong> in
+            toolbar per raggiungerla rapidamente e tieni a portata di mano la password manager
+            dell'evento.
+          </p>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Altre operazioni cross-evento</h2>
+        <p class="chapter-subtitle">Scorciatoie disponibili nella toolbar dell'area Admin.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Pulsante</th>
+              <th>Azione</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Aggiorna eventi</td>
+              <td>Ricarica l'elenco eventi dal server.</td>
+            </tr>
+            <tr>
+              <td>Apri pagina voto pubblico</td>
+              <td>
+                Apre in una nuova scheda la pagina pubblica di voto
+                (<code>/?eventCode=...</code>) per l'evento selezionato.
+              </td>
+            </tr>
+            <tr>
+              <td>Apri Classifica</td>
+              <td>
+                Apre <code>/score?eventCode=...</code> per l'evento selezionato. Se il televoto
+                dell'evento è ancora aperto, il sistema mostra un avviso ("La Classifica è
+                accessibile solo a televoto chiuso") e blocca l'apertura finché la votazione non
+                viene chiusa da <code>/manager</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>Esci (logout)</td>
+              <td>
+                Termina sia la sessione root sia un'eventuale sessione manager attiva nello
+                stesso browser, riportando alla schermata di login.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Vista compatta su mobile</span>
+          <p>
+            Su viewport stretti (smartphone/tablet in verticale), la toolbar mostra un badge
+            compatto con il solo codice evento al posto del selettore completo; il menu laterale
+            si apre tramite l'icona hamburger e si richiude automaticamente dopo la selezione di
+            una sezione.
+          </p>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Domande frequenti e risoluzione problemi</h2>
+        <p class="chapter-subtitle">Situazioni comuni e come gestirle.</p>
+
+        <h3>"Sessione root non disponibile" durante il caricamento eventi</h3>
+        <p>
+          Il token root non è presente o è scaduto (durata 12 ore). Esegui nuovamente il login
+          da <code>/admin</code>.
+        </p>
+
+        <h3>Non riesco a creare l'evento: "Il codice evento deve contenere da 1 a 5 cifre"</h3>
+        <p>
+          Il campo "Codice evento" accetta solo cifre numeriche, da 1 a 5 caratteri. Lascialo
+          vuoto per farlo generare automaticamente.
+        </p>
+
+        <h3>Il campo "Peso Popolare" appare bloccato/disabilitato</h3>
+        <p>
+          È un comportamento previsto: il peso Popolare non si edita mai direttamente, è sempre
+          il complemento a 100 del Peso Qualificata.
+        </p>
+
+        <h3>Non trovo dove gestire i candidati o i codici giuria da /admin</h3>
+        <p>
+          Non è previsto: quelle operazioni appartengono esclusivamente all'area
+          <code>/manager</code> del singolo evento (vedi Capitolo 8). L'area Admin resta
+          volutamente limitata alla gestione cross-evento.
+        </p>
+
+        <h3>Ho cambiato la password manager di un evento ma il manager non riesce ad accedere</h3>
+        <p>
+          Verifica di aver comunicato correttamente la nuova password (minimo 8 caratteri) e che
+          il manager stia usando il codice evento corretto nell'URL
+          <code>/manager?eventCode=...</code>.
+        </p>
+
+        <p
+          style="
+            margin-top: 2em;
+            padding-top: 1em;
+            border-top: 1px solid var(--line);
+            color: var(--ink-faint);
+            font-size: 9.5pt;
+          "
+        >
+          Televoto · Manuale Amministratore Root · Documento interno
+        </p>
+      </section>
+    </div>
+  </body>
+</html>

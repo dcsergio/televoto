@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>Guida del Manager di Evento | Televoto</title>
+    <link rel="stylesheet" href="../shared/manual.css" />
+  </head>
+  <body>
+    <!-- Copertina -->
+    <section class="cover">
+      <p class="cover-eyebrow">Manuale operativo · Ad uso dei manager evento</p>
+      <h1 class="cover-title">Televoto<br />Guida del Manager di Evento</h1>
+      <p class="cover-subtitle">
+        Come gestire un singolo evento in <code>/manager</code>: candidati, codici giudice,
+        avvio/chiusura del televoto e classifica finale.
+      </p>
+      <div class="chip-row">
+        <span class="chip">Area: /manager</span>
+        <span class="chip">Lingua interfaccia: Italiano</span>
+        <span class="chip">Versione manuale: 1.0</span>
+      </div>
+      <div class="chip-row">
+        <span class="chip">Accesso con codice evento + password manager</span>
+        <span class="chip">Gestione di un solo evento alla volta</span>
+        <span class="chip">Nessun accesso ad altri eventi</span>
+      </div>
+    </section>
+
+    <!-- Indice -->
+    <section class="toc">
+      <h2 class="toc-title">Indice</h2>
+      <ol class="toc-list">
+        <li class="toc-entry">
+          <span class="toc-entry-title">01 · Accesso all'area manager</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Codice evento e password</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">02 · Panoramica della Dashboard</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Numeri chiave dell'evento</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">03 · Gestione candidati</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Aggiungere, modificare, eliminare</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">04 · Codici giudice</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Generazione, QR, revoca, rigenerazione</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">05 · Ciclo di vita del televoto</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Avvia gara, chiudi, azzera</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">06 · Monitoraggio in tempo reale</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Backstage Votazione</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">07 · Classifica finale</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Come funziona il punteggio</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">08 · Domande frequenti</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">Problemi comuni</span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="chapters">
+      <!-- 1 -->
+      <section class="chapter">
+        <h2 class="chapter-title">Accesso all'area manager</h2>
+
+        <p>
+          L'area <code>/manager</code> permette di gestire operativamente
+          <strong>un solo evento alla volta</strong>: non è possibile vedere o raggiungere altri
+          eventi da qui, per progetto. Per accedere servono due informazioni distinte, richieste
+          in due passaggi separati.
+        </p>
+
+        <ol>
+          <li>
+            <strong>Apri l'indirizzo /manager</strong> — Se non è già presente un codice evento
+            nell'URL, comparirà la schermata <em>"Inserisci il codice evento"</em>. Digita il
+            codice numerico dell'evento (da 1 a 5 cifre, es. <code>00001</code>) e premi
+            <strong>Entra</strong>.
+          </li>
+          <li>
+            <strong>Inserisci la password manager dell'evento</strong> — Comparirà la schermata
+            <em>"Area protetta › Gestione evento"</em> con il messaggio
+            <em>"Inserisci la password manager per gestire questo evento"</em>. Inserisci la
+            password fornita dall'amministratore root e premi <strong>Accedi</strong>. Se la
+            password è errata, il campo mostrerà un messaggio di errore e potrai riprovare.
+          </li>
+          <li>
+            <strong>Sei dentro</strong> — Dopo l'accesso corretto si apre la shell dell'evento,
+            con menu laterale (o menu a comparsa su schermi piccoli) e le sezioni
+            <strong>Dashboard</strong>, <strong>Candidati</strong>, <strong>Codici Voto</strong>
+            e <strong>Backstage Votazione</strong>.
+          </li>
+        </ol>
+
+        <p><code>/manager?eventCode=00001&amp;adminSection=dashboard</code></p>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Da sapere</span>
+          <p>
+            Il codice evento identifica <em>quale</em> evento vuoi gestire; la password manager
+            è specifica di <strong>quell'evento</strong> (una password diversa per ogni evento).
+            Se hai ricevuto una sessione da amministratore root, l'accesso a
+            <code>/manager</code> di qualunque evento avviene automaticamente, senza dover
+            inserire di nuovo la password manager.
+          </p>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Uscire dall'area</span>
+          <p>
+            Il pulsante <strong>Esci</strong> è disponibile sia nel menu laterale sia nella barra
+            in alto (icona di logout) e riporta alla pagina pubblica di voto.
+          </p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Panoramica della Dashboard</h2>
+
+        <p>
+          La sezione <strong>Dashboard</strong> è la prima schermata dopo il login e riassume lo
+          stato dell'evento con tre riquadri:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Riquadro</th>
+              <th>Cosa mostra</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Candidati</strong></td>
+              <td>Numero totale di candidati registrati per l'evento.</td>
+            </tr>
+            <tr>
+              <td><strong>Codici giuria emessi</strong></td>
+              <td>Totale dei codici giudice generati, suddiviso in Qualificata e Popolare.</td>
+            </tr>
+            <tr>
+              <td><strong>Stato voti giuria</strong></td>
+              <td>Conteggio dei codici attivi, finalizzati e revocati.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Nella barra superiore è sempre visibile un'etichetta di stato:
+          <strong>Televoto aperto</strong> oppure <strong>Televoto chiuso</strong>. Da qui, con
+          le apposite icone, puoi anche aprire in una nuova scheda la pagina di voto pubblico
+          (icona urna) e la <strong>Classifica</strong> (icona coppa) dell'evento corrente.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Attenzione</span>
+          <p>
+            L'icona <strong>Apri Classifica</strong> è utilizzabile solo a televoto chiuso: se
+            provi ad aprirla mentre il televoto è ancora aperto, comparirà un avviso — <em>"La
+            Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter
+            continuare."</em> — e la pagina non si aprirà.
+          </p>
+        </div>
+
+        <p>
+          Dal riquadro principale della Dashboard puoi anche saltare rapidamente alle altre
+          sezioni tramite i pulsanti con le stesse etichette del menu laterale:
+          <strong>Candidati</strong>, <strong>Codici Voto</strong>, <strong>Backstage
+          Votazione</strong>.
+        </p>
+      </section>
+
+      <!-- 3 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Gestione candidati</h2>
+
+        <p>
+          Sezione <strong>Candidati</strong> del menu laterale — gestisce l'elenco dei
+          candidati/performance in gara per l'evento.
+        </p>
+
+        <h3>Aggiungere un candidato</h3>
+        <ol>
+          <li>
+            <strong>Compila il modulo "Aggiungi nuovo candidato"</strong> — Inserisci il
+            <em>Nome candidato</em> (obbligatorio, es. "Marco Rossi") ed eventualmente il
+            <em>Titolo performance</em> (facoltativo, es. "Brano / coreografia").
+          </li>
+          <li>
+            <strong>Scegli il colore</strong> — Un colore viene assegnato automaticamente
+            ("Colore assegnato automaticamente"); puoi rigenerarlo con
+            <strong>Rigenera colore</strong>, sceglierne uno dalla palette rapida mostrata a
+            bottoni tondi, oppure impostarne uno personalizzato con il selettore colore
+            ("Palette personalizzata").
+          </li>
+          <li>
+            <strong>Conferma</strong> — Premi <strong>Aggiungi candidato</strong>. Il candidato
+            compare subito nell'elenco "Candidati attuali", numerato progressivamente.
+          </li>
+        </ol>
+
+        <h3>Modificare o eliminare un candidato</h3>
+        <p>
+          Ogni candidato nell'elenco ha i pulsanti <strong>Modifica</strong> ed
+          <strong>Elimina</strong>. "Modifica" apre un pannello inline con i campi Nome,
+          Performance e Colore, con pulsanti <strong>Salva</strong> e <strong>Annulla</strong>.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Vincolo importante — modifiche bloccate a voto aperto</span>
+          <p>
+            Aggiunta, modifica ed eliminazione dei candidati sono possibili
+            <strong>solo quando il televoto è chiuso</strong>. Con televoto aperto tutti i
+            controlli sono disattivati e compare il messaggio <em>"Modifiche bloccate finché il
+            televoto è aperto."</em> Per intervenire sui candidati devi prima chiudere il
+            televoto (vedi Capitolo 5).
+          </p>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Rinumerazione automatica</span>
+          <p>
+            L'eliminazione di un candidato fa <strong>rinumerare automaticamente</strong> i
+            candidati rimanenti, così che la numerazione resti sempre progressiva e senza
+            "buchi" (es. se elimini il candidato n.3 su 5, il vecchio n.4 diventa il nuovo n.3,
+            e così via).
+          </p>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Stato evento visibile in cima</span>
+          <p>
+            In alto alla sezione Candidati trovi sempre un riquadro con lo
+            <strong>Stato evento</strong> corrente (Televoto aperto/chiuso) e la relativa
+            spiegazione, così sai subito se puoi operare o meno.
+          </p>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Codici giudice</h2>
+
+        <p>
+          Sezione <strong>Codici Voto</strong> del menu laterale — "Gestione codici opachi": qui
+          generi, distribuisci, verifichi e revochi i codici che permettono ai giudici e al
+          pubblico di votare.
+        </p>
+
+        <p>
+          Ogni codice è una stringa <strong>opaca e imprevedibile di 16 caratteri</strong>,
+          mostrata anche suddivisa in 4 gruppi da 4 caratteri per facilitarne lettura e
+          digitazione (es. <code>ABCD EFGH IJKL MNOP</code>). Il codice in chiaro è visibile
+          <strong>solo al momento della generazione</strong>: da quel momento il sistema
+          conserva solo un'impronta (hash) e un'anteprima parziale, non più il valore completo.
+        </p>
+
+        <h3>Le due tipologie di codice</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Etichetta in app</th>
+              <th>Significato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>QUALIFICATA</td>
+              <td>"Giuria Qualificata"</td>
+              <td>
+                Voto di un giudice qualificato. Nel calcolo finale pesa come media giudici,
+                divisa per <strong>tutti</strong> i codici qualificata attivi assegnati (non
+                solo quelli usati) — un'astensione abbassa la media.
+              </td>
+            </tr>
+            <tr>
+              <td>POPOLARE</td>
+              <td>"Giuria Popolare"</td>
+              <td>Voto del pubblico generico. Confluisce nella media voto popolare dell'evento.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Generare codici</h3>
+        <ol>
+          <li>
+            <strong>Imposta i parametri di generazione</strong> — Nel modulo "Genera codici"
+            scegli: <em>Numero</em> di codici da creare (1–200), un <em>Prefisso</em>
+            facoltativo per l'etichetta (es. "Giudice"), il <em>Tipo giuria</em> (Giuria
+            Qualificata / Giuria Popolare) e la <em>Base URL</em> da usare per comporre il
+            link/QR di ogni codice (es. l'indirizzo pubblico dell'evento). La lunghezza dei
+            codici è fissa a 16 caratteri.
+          </li>
+          <li>
+            <strong>Premi "Genera codici"</strong> — I nuovi codici compaiono in "Ultimi codici
+            generati", ciascuno con QR code, codice testuale formattato, link diretto e stato
+            ("Attivo").
+          </li>
+          <li>
+            <strong>Distribuisci i codici</strong> — Per ogni codice puoi
+            <strong>Copia codice</strong> o <strong>Copia URL QR</strong>; oppure usa
+            <strong>Copia tutti i link</strong> per l'intero lotto, o
+            <strong>Stampa foglio A4</strong> per ottenere un foglio pronto da stampare e
+            ritagliare (utile per consegnare fisicamente i QR ai giudici in sala).
+          </li>
+        </ol>
+
+        <h3>Validare, revocare e rigenerare</h3>
+        <ul>
+          <li>
+            <strong>Valida un codice</strong>: incolla un codice nel riquadro "Valida un codice"
+            e premi <strong>Valida codice</strong> per verificarne rapidamente lo stato (attivo,
+            usato o revocato), l'etichetta, la data di creazione e la data di utilizzo.
+          </li>
+          <li>
+            <strong>Codici attivi</strong>: l'elenco in basso a destra mostra tutti i codici non
+            ancora esauriti, con etichetta, tipo, anteprima del codice, date di
+            creazione/uso/revoca e stato colorato (Attivo / Usato / Revocato).
+          </li>
+          <li>
+            <strong>Revoca codice</strong>: disponibile su ogni codice attivo, invalida il
+            codice impedendone l'uso (utile se un codice è stato condiviso per errore o
+            compromesso).
+          </li>
+          <li>
+            <strong>Codice perso? Rigenera</strong>: genera un nuovo codice al posto di uno
+            smarrito, trasferendo su di esso gli eventuali voti già espressi con il codice
+            originale — che non è più recuperabile una volta rigenerato.
+          </li>
+        </ul>
+
+        <div class="callout callout--tip">
+          <span class="callout-title">Aggiornamento in tempo reale</span>
+          <p>
+            L'elenco dei codici e i contatori <strong>Attivi / Usati / Revocati</strong> in alto
+            alla sezione si aggiornano automaticamente man mano che i giudici usano i propri
+            codici, senza bisogno di ricaricare la pagina.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Ciclo di vita del televoto</h2>
+
+        <p>
+          Sezione <strong>Backstage Votazione</strong> del menu laterale, blocco "Operazioni
+          amministrative" — qui si controllano avvio, chiusura e reset del televoto.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Azione</th>
+              <th>Etichetta pulsante</th>
+              <th>Effetto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Avviare l'evento</td>
+              <td>
+                <strong>Avvia gara</strong> (disponibile solo a televoto chiuso; se aperto il
+                pulsante mostra "Televoto aperto" ed è disattivato)
+              </td>
+              <td>Rinumera progressivamente i candidati, azzera tutti i voti e riapre il televoto.</td>
+            </tr>
+            <tr>
+              <td>Chiudere il televoto</td>
+              <td><strong>Chiudi televoto</strong> (visibile solo mentre il televoto è aperto)</td>
+              <td>I voti non vengono più accettati; le modifiche ai candidati tornano disponibili.</td>
+            </tr>
+            <tr>
+              <td>Azzerare la classifica</td>
+              <td><strong>Azzera classifica</strong> (nella "Danger zone")</td>
+              <td>Azzera tutti i voti raccolti per ricominciare da capo, senza toccare candidati o codici giudice.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Avviso — "Avvia gara" azzera tutti i voti</span>
+          <p>
+            <strong>"Avvia gara" è un'operazione distruttiva, non incrementale.</strong> Alla
+            conferma del messaggio <em>"Vuoi avviare la gara? I voti precedenti saranno azzerati
+            e i candidati verranno rinumerati progressivamente."</em>, tutti i voti già raccolti
+            per l'evento vengono <strong>cancellati definitivamente</strong> e non sono
+            recuperabili. Usa questa funzione solo quando sei certo di voler ripartire da zero
+            (ad es. all'inizio ufficiale della serata, dopo aver terminato prove tecniche o
+            test), non per "riaprire" temporaneamente il voto.
+          </p>
+        </div>
+
+        <p>Ogni azione richiede una conferma esplicita in un riquadro di dialogo prima di essere eseguita:</p>
+        <ul>
+          <li><strong>Avvia gara</strong> → conferma con il pulsante <strong>Avvia</strong>.</li>
+          <li>
+            <strong>Chiudi televoto</strong> → conferma con il pulsante <strong>Chiudi</strong>
+            (messaggio: "Vuoi chiudere il televoto? I voti non saranno più accettati e le
+            modifiche torneranno disponibili.").
+          </li>
+          <li>
+            <strong>Azzera classifica</strong> → conferma con il pulsante
+            <strong>Azzera</strong> (messaggio: "Vuoi azzerare tutti i voti e ricominciare da
+            capo?").
+          </li>
+        </ul>
+
+        <p>
+          Il riquadro mostra anche il codice e nome evento e lo <strong>Stato</strong> corrente
+          (Televoto aperto/chiuso), e include un accesso rapido al pulsante
+          <strong>Apri Classifica</strong> (con lo stesso avviso già visto: bloccato finché il
+          televoto resta aperto).
+        </p>
+      </section>
+
+      <!-- 6 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Monitoraggio in tempo reale</h2>
+
+        <p>
+          Sezione <strong>Backstage Votazione</strong>, blocco "Progresso voti giudici" — la
+          dashboard che ti permette di seguire l'andamento del voto mentre è in corso.
+        </p>
+
+        <p>Quattro indicatori principali, aggiornati in tempo reale:</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <span class="card-title">Qualificata attivi</span>
+            <p>Numero di codici giuria qualificata ancora attivi (non revocati) assegnati all'evento.</p>
+          </div>
+          <div class="card">
+            <span class="card-title">Qualificata finalizzati</span>
+            <p>Numero di giudici qualificati che hanno completato e bloccato definitivamente il proprio voto.</p>
+          </div>
+          <div class="card">
+            <span class="card-title">Popolare QR attivati</span>
+            <p>Numero di codici popolari che sono stati effettivamente aperti/usati dal pubblico.</p>
+          </div>
+          <div class="card">
+            <span class="card-title">Voti popolari espressi</span>
+            <p>Totale dei voti popolari già registrati per l'evento.</p>
+          </div>
+        </div>
+
+        <p>Più in basso trovi il dettaglio operativo utile a chiudere gli ultimi voti mancanti:</p>
+        <ul>
+          <li>
+            <strong>Candidati con voti incompleti</strong>: elenco dei candidati a cui mancano
+            ancora voti da parte di alcuni giudici, con il conteggio di quanti giudici mancano
+            per ciascuno.
+          </li>
+          <li>
+            <strong>Giudici attivi incompleti</strong>: elenco dei giudici (identificati
+            dall'anteprima del codice e, se presente, dall'etichetta) che non hanno ancora
+            votato tutti i candidati, con il conteggio voti espressi/richiesti e i nomi dei
+            candidati ancora mancanti.
+          </li>
+        </ul>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Nessun dato ancora</span>
+          <p>
+            Se non è stato generato nessun codice giudice per l'evento, la sezione mostra
+            semplicemente <em>"Nessun codice giudice generato per questo evento."</em> Puoi
+            comunque forzare un aggiornamento manuale con il pulsante <strong>Aggiorna</strong>
+            in alto alla dashboard.
+          </p>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout-title">Utile durante l'evento dal vivo</span>
+          <p>
+            Questa dashboard è pensata per essere tenuta aperta "in backstage" durante la
+            serata, per capire in ogni momento se si può procedere a chiudere il televoto o se
+            conviene aspettare ancora qualche giudice.
+          </p>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Classifica finale</h2>
+
+        <p>
+          Questa pagina mostra la classifica finale dei candidati. È raggiungibile dall'icona
+          coppa presente nella barra dell'evento (Dashboard) o dal pulsante
+          <strong>Apri Classifica</strong> nel Backstage Votazione, e si apre in una nuova
+          scheda del browser.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Accessibile solo a televoto chiuso</span>
+          <p>
+            Se il televoto è ancora aperto, l'accesso alla Classifica è
+            <strong>bloccato</strong>: comparirà l'avviso <em>"Televoto ancora aperto — La
+            Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter
+            continuare."</em> Devi prima chiudere il televoto (Capitolo 5) per poter consultare
+            la classifica.
+          </p>
+        </div>
+
+        <h3>Come viene calcolato il punteggio (in sintesi)</h3>
+        <p>Il punteggio finale di ciascun candidato combina due componenti:</p>
+
+        <p>
+          <code
+            >Media Qualificata = somma punti giudici qualificati ÷ numero di codici QUALIFICATA
+            attivi (non solo chi ha votato)</code
+          ><br />
+          <code
+            >Media Popolare = media dei voti popolari (eventualmente "trimmed mean" per ridurre
+            l'effetto di voti anomali)</code
+          ><br />
+          <code
+            >Punteggio finale = (Media Qualificata × peso Qualificata) + (Media Popolare ×
+            peso Popolare)</code
+          >
+        </p>
+
+        <ul>
+          <li>
+            <strong>Le astensioni pesano</strong>: la media dei giudici qualificati si divide
+            per <em>tutti</em> i codici QUALIFICATA validi assegnati all'evento, non solo per
+            quelli effettivamente usati — quindi un giudice qualificato che non vota abbassa
+            comunque la media del candidato.
+          </li>
+          <li>
+            <strong>Trimmed mean (facoltativa)</strong>: se attivata per l'evento, la media del
+            voto popolare esclude una percentuale di voti estremi (più alti/più bassi) per
+            ridurre l'impatto di valutazioni anomale.
+          </li>
+          <li>
+            <strong>Pesi per evento</strong>: le due medie vengono combinate secondo pesi
+            specifici dell'evento (di norma 70% giuria qualificata / 30% pubblico, ma
+            personalizzabili dall'amministratore root), che sommano al 100%.
+          </li>
+          <li>
+            <strong>Parità</strong>: in caso di punteggi finali sostanzialmente uguali, prevale
+            prima chi ha la media qualificata più alta, poi — a parità anche di quella — chi ha
+            il numero di candidato più basso.
+          </li>
+        </ul>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Classifica in corso vs classifica finale</span>
+          <p>
+            Nel Backstage Votazione è disponibile anche una vista di
+            <strong>classifica parziale</strong>, utile per seguire l'andamento mentre il voto è
+            ancora aperto: è una stima "live" e può differire leggermente dal calcolo definitivo
+            mostrato da questa pagina a televoto chiuso.
+          </p>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Domande frequenti</h2>
+
+        <h3>Non riesco ad accedere: "Password errata"</h3>
+        <p>
+          Verifica di aver digitato correttamente la password manager di
+          <strong>questo specifico evento</strong> (ogni evento ha la propria). Se l'hai persa,
+          chiedi all'amministratore root di comunicartela di nuovo o di rigenerarla.
+        </p>
+
+        <h3>Non riesco a modificare/eliminare un candidato</h3>
+        <p>
+          I controlli sono disattivati mentre il <strong>televoto è aperto</strong>. Vai in
+          <strong>Backstage Votazione</strong> e usa <strong>Chiudi televoto</strong>, poi torna
+          in <strong>Candidati</strong>.
+        </p>
+
+        <h3>Un giudice ha smarrito il proprio codice</h3>
+        <p>
+          In <strong>Codici Voto</strong>, individua il codice del giudice tra i "Codici attivi"
+          e usa <strong>Codice perso? Rigenera</strong>: verrà creato un nuovo codice, con gli
+          eventuali voti già dati trasferiti su di esso; il vecchio codice smette di funzionare.
+        </p>
+
+        <h3>La Classifica non si apre</h3>
+        <p>
+          Controlla lo stato in alto alla pagina: se mostra <strong>Televoto aperto</strong>,
+          devi prima chiuderlo da <strong>Backstage Votazione</strong> →
+          <strong>Chiudi televoto</strong>.
+        </p>
+
+        <h3>Ho premuto "Avvia gara" per errore</h3>
+        <p>
+          L'azzeramento dei voti eseguito da <strong>Avvia gara</strong> non è reversibile: i
+          voti precedenti non sono recuperabili. I candidati restano comunque presenti (solo
+          rinumerati); potrai far ripetere il voto ai giudici e al pubblico con i codici già
+          emessi (se ancora attivi) o generandone di nuovi.
+        </p>
+
+        <h3>Posso gestire più eventi da qui?</h3>
+        <p>
+          No: <code>/manager</code> è volutamente limitato a
+          <strong>un evento alla volta</strong>, identificato dal codice evento inserito in
+          accesso. Per passare a un altro evento serve il suo codice e la sua password manager
+          (oppure una sessione amministratore root, che può aprire qualsiasi evento senza
+          password aggiuntiva).
+        </p>
+
+        <p
+          style="
+            margin-top: 2em;
+            padding-top: 1em;
+            border-top: 1px solid var(--line);
+            color: var(--ink-faint);
+            font-size: 9.5pt;
+          "
+        >
+          Manuale operativo Televoto per Manager di evento · area applicativa <code>/manager</code>
+          · contenuti allineati all'interfaccia corrente dell'applicazione.
+        </p>
+      </section>
+    </div>
+  </body>
+</html>

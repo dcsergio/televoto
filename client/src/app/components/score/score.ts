@@ -9,15 +9,15 @@ import { VotingStateService } from '../../state/voting-state.service';
 import { splitEventNameForDisplay } from '../../shared/event-name-display.util';
 import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../protected-page-gate/protected-page-gate';
-import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from './hall-of-fame.util';
+import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from './score.util';
 
 @Component({
-  selector: 'app-hall-of-fame',
+  selector: 'app-score',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, EventCodeGateComponent, ProtectedPageGateComponent],
-  templateUrl: './hall-of-fame.html',
+  templateUrl: './score.html',
 })
-export class HallOfFameComponent {
+export class ScoreComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly rankingsApi = inject(RankingsApi);

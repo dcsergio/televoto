@@ -44,7 +44,7 @@ test.describe('Admin sidenav navigation', () => {
 
     await expect(page.getByTestId('admin-event-select')).toBeVisible();
     await expect(page.getByTestId('admin-open-voting')).toBeVisible();
-    await expect(page.getByTestId('admin-open-hof')).toBeVisible();
+    await expect(page.getByTestId('admin-open-score')).toBeVisible();
     await expect(page.getByTestId('admin-toolbar-logout')).toBeVisible();
   });
 

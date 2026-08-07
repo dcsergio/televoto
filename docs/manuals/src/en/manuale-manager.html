@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Event Manager Guide · Televoto</title>
+    <link rel="stylesheet" href="../shared/manual.css" />
+  </head>
+  <body>
+    <!-- 1. Cover -->
+    <section class="cover" style="background: linear-gradient(160deg, #0f1230, #0aa8c4); color: #fff;">
+      <p class="cover-eyebrow" style="color: #bdeaf2">
+        Operational manual · for event managers
+      </p>
+      <h1 class="cover-title" style="color: #fff">
+        Televoto — Event Manager Guide
+      </h1>
+      <p class="cover-subtitle" style="color: #e4e7f5">
+        How to manage a single event in <code style="background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.25); color: #fff">/manager</code>:
+        candidates, judge codes, starting/closing voting, and the final
+        ranking.
+      </p>
+      <div class="chip-row">
+        <span class="chip" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); color: #fff">Area: /manager</span>
+        <span class="chip" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); color: #fff">Interface language: Italian</span>
+      </div>
+      <div class="chip-row">
+        <span class="chip" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); color: #fff">Manual version: 1.0</span>
+      </div>
+      <div class="chip-row">
+        <span class="chip" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); color: #fff">Access via event code + manager password</span>
+        <span class="chip" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); color: #fff">Manage a single event at a time</span>
+        <span class="chip" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); color: #fff">No access to other events</span>
+      </div>
+    </section>
+
+    <!-- 2. Table of contents -->
+    <section class="toc">
+      <h2 class="toc-title">Table of contents</h2>
+      <ol class="toc-list">
+        <li class="toc-entry">
+          <span class="toc-entry-title">01 &nbsp; Accessing the manager area</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">3</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">02 &nbsp; Dashboard overview</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">5</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">03 &nbsp; Candidate management</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">6</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">04 &nbsp; Judge codes</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">8</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">05 &nbsp; Voting lifecycle</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">10</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">06 &nbsp; Real-time monitoring</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">11</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">07 &nbsp; Final ranking</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">12</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">08 &nbsp; FAQ</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">13</span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="chapters">
+      <!-- 1 -->
+      <section class="chapter">
+        <h2 class="chapter-title">Accessing the manager area</h2>
+
+        <p>
+          The <code>/manager</code> area lets you operationally manage
+          <strong>one event at a time</strong>: it's not possible to see or
+          reach other events from here, by design. To access it you need
+          two separate pieces of information, requested in two separate
+          steps.
+        </p>
+
+        <h3>1. Open the /manager address</h3>
+        <p>
+          If there isn't already an event code in the URL, the screen
+          <em>"Enter the event code"</em> appears. Type the event's numeric
+          code (1 to 5 digits, e.g. <code>00001</code>) and press
+          <strong>Enter</strong>.
+        </p>
+        <p><code>/manager?eventCode=00001&amp;adminSection=dashboard</code></p>
+
+        <h3>2. Enter the event's manager password</h3>
+        <p>
+          The screen <em>"Protected area › Manage event"</em> appears with
+          the message <em>"Enter the manager password to manage this
+          event."</em> Enter the password provided by the root
+          administrator and press <strong>Log in</strong>. If the password
+          is incorrect, the field shows an error message and you can try
+          again.
+        </p>
+
+        <h3>3. You're in</h3>
+        <p>
+          After a successful login, the event's shell opens, with a side
+          menu (or a pop-up menu on small screens) and the sections
+          <strong>Dashboard</strong>, <strong>Candidates</strong>,
+          <strong>Voting Codes</strong>, and
+          <strong>Voting Backstage</strong>.
+        </p>
+
+        <div class="page-break"></div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Good to know</span>
+          <p>
+            The event code identifies <em>which</em> event you want to
+            manage; the manager password is specific to
+            <strong>that event</strong> (a different password for each
+            event). If you're signed in as a root administrator, access to
+            <code>/manager</code> for any event happens automatically,
+            without having to enter the manager password again.
+          </p>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Leaving the area</span>
+          <p>
+            The <strong>Log out</strong> button is available both in the
+            side menu and in the top bar (logout icon), and takes you back
+            to the public voting page.
+          </p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Dashboard overview</h2>
+
+        <p>
+          The <strong>Dashboard</strong> section is the first screen after
+          login and summarizes the event's status with three boxes:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Box</th>
+              <th>What it shows</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Candidates</td>
+              <td>Total number of candidates registered for the event.</td>
+            </tr>
+            <tr>
+              <td>Judge codes issued</td>
+              <td>
+                Total number of judge codes generated, split into
+                <span class="pill pill--violet">Qualified</span> and
+                <span class="pill pill--cyan">Public</span>.
+              </td>
+            </tr>
+            <tr>
+              <td>Vote status</td>
+              <td>
+                Count of <span class="pill pill--green">active</span>,
+                <span class="pill pill--amber">finalized</span>, and
+                <span class="pill pill--red">revoked</span> codes.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          A status label is always visible in the top bar:
+          <span class="pill pill--cyan">Voting open</span> or
+          <span class="pill pill--violet">Voting closed</span>. From here,
+          using the respective icons, you can also open the
+          <strong>public voting page</strong> (urn icon) and the
+          <strong>Final Ranking</strong> (trophy icon) for the current
+          event in a new tab.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Warning</span>
+          <p>
+            The <strong>Open Final Ranking</strong> icon can only be used
+            once voting is closed: if you try to open it while voting is
+            still open, a warning appears —
+            <em
+              >"Final Ranking is only accessible once voting is closed.
+              Close the voting to continue."</em
+            >
+            — and the page will not open.
+          </p>
+        </div>
+
+        <p>
+          From the main Dashboard box you can also jump quickly to the
+          other sections using buttons with the same labels as the side
+          menu: <strong>Candidates</strong>, <strong>Voting Codes</strong>,
+          <strong>Voting Backstage</strong>.
+        </p>
+      </section>
+
+      <!-- 3 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Candidate management</h2>
+        <p>
+          <span class="pill pill--violet">Candidates</span> section in the
+          side menu — manages the list of candidates/performances
+          competing in the event.
+        </p>
+
+        <h3>Adding a candidate</h3>
+        <ol>
+          <li>
+            <strong>Fill in the "Add new candidate" form.</strong> Enter
+            the <em>Candidate name</em> (required, e.g. "Marco Rossi") and
+            optionally the <em>Performance title</em> (optional, e.g.
+            "Song / choreography").
+          </li>
+          <li>
+            <strong>Choose the color.</strong> A color is assigned
+            automatically ("Color assigned automatically"); you can
+            regenerate it with <strong>Regenerate color</strong>, pick one
+            from the quick palette shown as round buttons, or set a custom
+            one with the color picker ("Custom palette").
+          </li>
+          <li>
+            <strong>Confirm.</strong> Press
+            <strong>Add candidate</strong>. The candidate immediately
+            appears in the "Current candidates" list, numbered
+            sequentially.
+          </li>
+        </ol>
+
+        <h3>Editing or deleting a candidate</h3>
+        <p>
+          Every candidate in the list has <strong>Edit</strong> and
+          <strong>Delete</strong> buttons. "Edit" opens an inline panel
+          with the Name, Performance, and Color fields, with
+          <strong>Save</strong> and <strong>Cancel</strong> buttons.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title"
+            >Important constraint — edits locked while voting is open</span
+          >
+          <p>
+            Adding, editing, and deleting candidates is possible
+            <strong>only when voting is closed</strong>. While voting is
+            open all controls are disabled and the message
+            <em>"Changes are locked while voting is open."</em> appears.
+            To make changes to candidates you must first close voting (see
+            Chapter 5).
+          </p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Automatic renumbering</span>
+          <p>
+            Deleting a candidate automatically
+            <strong>renumbers</strong> the remaining candidates, so the
+            numbering always stays sequential and without "gaps" (e.g. if
+            you delete candidate no. 3 out of 5, the old no. 4 becomes the
+            new no. 3, and so on).
+          </p>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Event status visible at the top</span>
+          <p>
+            At the top of the Candidates section you'll always find a box
+            with the current <strong>Event status</strong> (voting
+            open/closed) and its explanation, so you immediately know
+            whether you can operate or not.
+          </p>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Judge codes</h2>
+        <p>
+          <span class="pill pill--violet">Voting Codes</span> section in
+          the side menu — "opaque code management": here you generate,
+          distribute, verify, and revoke the codes that let judges and the
+          public vote.
+        </p>
+        <p>
+          Every code is an <strong>opaque, unpredictable 16-character
+          string</strong>, also shown split into 4 groups of 4 characters
+          to make it easier to read and type (e.g.
+          <code>ABCD EFGH IJKL MNOP</code>). The plain-text code is
+          visible <strong>only at the moment it's generated</strong>: from
+          then on the system keeps only a hash (fingerprint) and a partial
+          preview, never the full value.
+        </p>
+
+        <h3>The two code types</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Label in app</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="pill pill--violet">QUALIFIED</span></td>
+              <td>"Qualified Jury"</td>
+              <td>
+                A qualified judge's vote. In the final calculation it
+                counts as a judges' average, divided by
+                <strong>all</strong> active qualified codes assigned (not
+                only those actually used) — an abstention lowers the
+                average.
+              </td>
+            </tr>
+            <tr>
+              <td><span class="pill pill--cyan">PUBLIC</span></td>
+              <td>"Public Jury"</td>
+              <td>
+                A member of the general public's vote. Feeds into the
+                event's public vote average.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Generating codes</h3>
+        <ol>
+          <li>
+            <strong>Set the generation parameters.</strong> In the
+            "Generate codes" form choose: <em>Number</em> of codes to
+            create (1–200), an optional <em>Prefix</em> for the label
+            (e.g. "Judge"), the <em>Judge type</em> (Qualified Jury /
+            Public Jury), and the <em>Base URL</em> used to build the
+            link/QR for each code (e.g. the event's public address). Code
+            length is fixed at 16 characters.
+          </li>
+          <li>
+            <strong>Press "Generate codes".</strong> The new codes appear
+            under "Latest generated codes," each with a QR code, formatted
+            text code, direct link, and status ("Active").
+          </li>
+          <li>
+            <strong>Distribute the codes.</strong> For each code you can
+            <strong>Copy code</strong> or <strong>Copy QR URL</strong>; or
+            use <strong>Copy all links</strong> for the entire batch, or
+            <strong>Print A4 sheet</strong> to get a ready-to-print,
+            ready-to-cut sheet (useful for physically handing out QR codes
+            to judges in the room).
+          </li>
+        </ol>
+
+        <div class="page-break"></div>
+
+        <h3>Validating, revoking, and regenerating</h3>
+        <ul>
+          <li>
+            <strong>Validate a code</strong>: paste a code into the
+            "Validate a code" box and press <strong>Validate code</strong>
+            to quickly check its status (active, used, or revoked), its
+            label, and its creation/usage dates.
+          </li>
+          <li>
+            <strong>Active codes</strong>: the list at the bottom right
+            shows all codes not yet exhausted, with label, type, code
+            preview, creation/usage/revocation dates, and colored status
+            (<span class="pill pill--green">Active</span> /
+            <span class="pill pill--amber">Used</span> /
+            <span class="pill pill--red">Revoked</span>).
+          </li>
+          <li>
+            <strong>Revoke code</strong>: available on every active code,
+            invalidates the code and prevents further use (useful if a
+            code was shared by mistake or compromised).
+          </li>
+          <li>
+            <strong>Lost code? Regenerate</strong>: generates a new code
+            to replace a lost one, transferring any votes already cast
+            with the original code onto it — the original code is no
+            longer recoverable once regenerated.
+          </li>
+        </ul>
+
+        <div class="callout callout--tip">
+          <span class="callout-title">Real-time updates</span>
+          <p>
+            The code list and the Active / Used / Revoked counters at the
+            top of the section update automatically as judges use their
+            codes, with no need to reload the page.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Voting lifecycle</h2>
+        <p>
+          <span class="pill pill--violet">Voting Backstage</span> section
+          in the side menu, "Administrative operations" block — this is
+          where you control starting, closing, and resetting the voting.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Button label</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Start the event</td>
+              <td>
+                <strong>Start contest</strong> (available only when
+                voting is closed; if it's open, the button shows "Voting
+                open" and is disabled)
+              </td>
+              <td>
+                Sequentially renumbers the candidates,
+                <strong>clears all votes</strong>, and reopens voting.
+              </td>
+            </tr>
+            <tr>
+              <td>Close voting</td>
+              <td>
+                <strong>Close voting</strong> (visible only while voting
+                is open)
+              </td>
+              <td>
+                Votes are no longer accepted; candidate edits become
+                available again.
+              </td>
+            </tr>
+            <tr>
+              <td>Reset the ranking</td>
+              <td>
+                <strong>Reset ranking</strong> (in the "Danger zone")
+              </td>
+              <td>
+                Clears all votes collected so far to start over, without
+                touching candidates or judge codes.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout--warning">
+          <span class="callout-title"
+            >Warning — "Start contest" clears all votes</span
+          >
+          <p>
+            <strong>"Start contest" is a destructive operation, not an
+            incremental one.</strong> Upon confirming the message
+            <em
+              >"Do you want to start the contest? Previous votes will be
+              cleared and candidates will be renumbered sequentially."</em
+            >, all votes already collected for the event are
+            <strong>permanently deleted</strong> and cannot be recovered.
+            Use this function only when you're certain you want to start
+            fresh (e.g. at the official start of the evening, after
+            finishing technical rehearsals or tests), not to "temporarily
+            reopen" voting.
+          </p>
+        </div>
+
+        <p>
+          Every action requires explicit confirmation in a dialog box
+          before it's carried out:
+        </p>
+        <ul>
+          <li>
+            <strong>Start contest</strong> → confirm with the
+            <strong>Start</strong> button.
+          </li>
+          <li>
+            <strong>Close voting</strong> → confirm with the
+            <strong>Close</strong> button (message: "Do you want to close
+            voting? Votes will no longer be accepted and edits will
+            become available again.").
+          </li>
+          <li>
+            <strong>Reset ranking</strong> → confirm with the
+            <strong>Reset</strong> button (message: "Do you want to clear
+            all votes and start over?").
+          </li>
+        </ul>
+
+        <p>
+          The box also shows the event code and name and the current
+          <strong>Status</strong> (voting open/closed), and includes a
+          quick-access <strong>Open Final Ranking</strong> button (with
+          the same warning already mentioned: blocked while voting
+          remains open).
+        </p>
+      </section>
+
+      <!-- 6 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Real-time monitoring</h2>
+        <p>
+          <span class="pill pill--violet">Voting Backstage</span> section,
+          "Judge voting progress" block — the dashboard that lets you
+          follow how voting is going while it's in progress.
+        </p>
+        <p>Four main indicators, updated in real time:</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <span class="card-title">Qualified active</span>
+            <p>
+              Number of qualified jury codes still active (not revoked)
+              assigned to the event.
+            </p>
+          </div>
+          <div class="card">
+            <span class="card-title">Qualified finalized</span>
+            <p>
+              Number of qualified judges who have completed and
+              permanently locked their vote.
+            </p>
+          </div>
+          <div class="card">
+            <span class="card-title">Public QR activated</span>
+            <p>
+              Number of public codes that have actually been
+              opened/used by the public.
+            </p>
+          </div>
+          <div class="card">
+            <span class="card-title">Public votes cast</span>
+            <p>
+              Total number of public votes already recorded for the
+              event.
+            </p>
+          </div>
+        </div>
+
+        <p>
+          Below that you'll find operational detail useful for closing out
+          the last missing votes:
+        </p>
+        <ul>
+          <li>
+            <strong>Candidates with incomplete votes</strong>: list of
+            candidates still missing votes from some judges, with a count
+            of how many judges are missing for each.
+          </li>
+          <li>
+            <strong>Incomplete active judges</strong>: list of judges
+            (identified by their code preview and, if present, their
+            label) who haven't yet voted for all candidates, with a count
+            of votes cast/expected and the names of the candidates still
+            missing.
+          </li>
+        </ul>
+
+        <div class="callout callout--info">
+          <span class="callout-title">No data yet</span>
+          <p>
+            If no judge code has been generated for the event, the section
+            simply shows <em>"No judge code generated for this
+            event."</em> You can still force a manual refresh with the
+            <strong>Refresh</strong> button at the top of the dashboard.
+          </p>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout-title">Useful during the live event</span>
+          <p>
+            This dashboard is designed to be kept open "backstage" during
+            the evening, so you can tell at any moment whether it's time
+            to close voting or whether it's worth waiting for a few more
+            judges.
+          </p>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Final ranking</h2>
+        <p>
+          The <strong>Final Ranking</strong> shows the candidates' final
+          standings. You can reach it from the trophy icon in the event
+          bar (Dashboard) or from the <strong>Open Final Ranking</strong>
+          button in Voting Backstage, and it opens in a new browser tab.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title"
+            >Only accessible when voting is closed</span
+          >
+          <p>
+            If voting is still open, access to the Final Ranking is
+            blocked: the warning
+            <em
+              >"Voting still open — Final Ranking is only accessible once
+              voting is closed. Close voting to continue."</em
+            >
+            appears. You must close voting first (Chapter 5) before you
+            can view the ranking.
+          </p>
+        </div>
+
+        <h3>How the score is calculated (in brief)</h3>
+        <p>Each candidate's final score combines two components:</p>
+        <p>
+          <code
+            >Qualified average = sum of qualified judges' scores ÷ number
+            of active QUALIFIED codes (not just those who voted)</code
+          ><br />
+          <code
+            >Public average = average of public votes (optionally a
+            "trimmed mean" to reduce the effect of anomalous
+            votes)</code
+          ><br />
+          <code
+            >Final score = (Qualified average × Qualified weight) +
+            (Public average × Public weight)</code
+          >
+        </p>
+
+        <ul>
+          <li>
+            <strong>Abstentions count</strong>: the qualified judges'
+            average is divided by all valid QUALIFIED codes assigned to
+            the event, not only the ones actually used — so a qualified
+            judge who doesn't vote still lowers the candidate's average.
+          </li>
+          <li>
+            <strong>Trimmed mean (optional)</strong>: if enabled for the
+            event, the public vote average excludes a percentage of
+            extreme votes (highest/lowest) to reduce the impact of
+            anomalous ratings.
+          </li>
+          <li>
+            <strong>Per-event weights</strong>: the two averages are
+            combined according to event-specific weights (typically 70%
+            qualified jury / 30% public, but customizable by the root
+            administrator), which add up to 100%.
+          </li>
+          <li>
+            <strong>Ties</strong>: in the event of substantially equal
+            final scores, the higher qualified average wins first, then —
+            if that's also tied — the lower candidate number wins.
+          </li>
+        </ul>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Live ranking vs. final ranking</span>
+          <p>
+            Voting Backstage also offers a <strong>partial ranking</strong>
+            view, useful for following the standings while voting is
+            still open: it's a "live" estimate and may differ slightly
+            from the definitive calculation shown by the Final Ranking
+            once voting is closed.
+          </p>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">FAQ</h2>
+
+        <h3>Can't log in: "Incorrect password"</h3>
+        <p>
+          Check that you typed the manager password for this specific
+          event correctly (each event has its own). If you've lost it,
+          ask the root administrator to give it to you again or to
+          regenerate it.
+        </p>
+
+        <h3>Can't edit/delete a candidate</h3>
+        <p>
+          The controls are disabled while voting is open. Go to
+          <span class="pill pill--violet">Voting Backstage</span> and use
+          <strong>Close voting</strong>, then go back to
+          <span class="pill pill--violet">Candidates</span>.
+        </p>
+
+        <h3>A judge has lost their code</h3>
+        <p>
+          In <span class="pill pill--violet">Voting Codes</span>, find the
+          judge's code among the "Active codes" and use
+          <strong>Lost code? Regenerate</strong>: a new code will be
+          created, with any votes already cast transferred onto it; the
+          old code stops working.
+        </p>
+
+        <h3>Final Ranking won't open</h3>
+        <p>
+          Check the status at the top of the page: if it shows
+          <span class="pill pill--cyan">Voting open</span>, you must first
+          close it from
+          <span class="pill pill--violet">Voting Backstage</span> →
+          <strong>Close voting</strong>.
+        </p>
+
+        <h3>I pressed "Start contest" by mistake</h3>
+        <p>
+          The vote reset performed by <strong>Start contest</strong>
+          cannot be undone: previous votes are not recoverable.
+          Candidates remain in place (only renumbered); you'll be able to
+          have judges and the public vote again with the codes already
+          issued (if still active) or by generating new ones.
+        </p>
+
+        <h3>Can I manage multiple events from here?</h3>
+        <p>
+          No: <code>/manager</code> is intentionally limited to
+          <strong>one event at a time</strong>, identified by the event
+          code entered at login. To switch to another event you need its
+          code and its manager password (or a root administrator session,
+          which can open any event without an additional password).
+        </p>
+
+        <p style="margin-top: 3em; color: var(--ink-faint); font-size: 9pt">
+          Operational Televoto manual for Event Managers ·
+          <code>/manager</code> application area · content aligned with
+          the current interface.
+        </p>
+      </section>
+    </div>
+  </body>
+</html>

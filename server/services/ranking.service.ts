@@ -75,7 +75,7 @@ export async function getRankings(eventId: string) {
     await loadRankingInputs(eventId);
 
   if (!event.votingClosed) {
-    throw new AppError(409, "La Hall of Fame è disponibile solo dopo la chiusura del televoto");
+    throw new AppError(409, "La Classifica è disponibile solo dopo la chiusura del televoto");
   }
 
   return candidates

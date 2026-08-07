@@ -3,7 +3,7 @@
 Applicazione web per gestire eventi di voto con:
 - area voto pubblico/giudici,
 - pannello admin,
-- Hall of Fame (classifica finale).
+- Classifica finale.
 
 Frontend: Angular + Angular Material (in `client/`).  
 Backend: Express + Prisma.  
@@ -94,10 +94,10 @@ Note:
 
 - `/` → pagina votazione
 - `/admin` → pannello amministrazione
-- `/hof` → Hall of Fame (accesso protetto da password root)
+- `/score` → Classifica (accesso protetto da password root)
 
-Per votazione e Hall of Fame serve un `eventCode` valido (query string o input iniziale).
-Per `/admin` e `/hof` è inoltre richiesta la password root.
+Per votazione e Classifica serve un `eventCode` valido (query string o input iniziale).
+Per `/admin` e `/score` è inoltre richiesta la password root.
 
 ## 5.2 Flusso admin (nuova SPA strutturata)
 
@@ -134,7 +134,7 @@ La sezione admin corrente è persistita nella query string (`adminSection=events
 3. Inserisce/modifica voti (1-10 interi per candidato).
 4. Conferma finale e blocco codice.
 
-## 5.4 Hall of Fame
+## 5.4 Classifica
 
 - Mostra classifica aggregata per evento.
 - Quando il televoto è chiuso, l’area è pensata per consultazione risultati.

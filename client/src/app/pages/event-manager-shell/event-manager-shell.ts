@@ -187,20 +187,20 @@ export class EventManagerShellComponent {
     window.open(`/?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
-  protected handleOpenHallOfFame(): void {
+  protected handleOpenScore(): void {
     const ev = this.event();
     if (!ev) return;
     if (!ev.votingClosed) {
       this.dialog.open(ConfirmDialogComponent, {
         data: {
           title: 'Televoto ancora aperto',
-          message: 'La Hall of Fame è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
+          message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
           confirmLabel: 'Ho capito',
         },
       });
       return;
     }
-    window.open(`/hof?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+    window.open(`/score?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
   protected handleVotingStateChange(change: VotingStateChange): void {

@@ -1,0 +1,555 @@
+/*
+ * Televoto — foglio di stile condiviso per i manuali PDF.
+ * Pensato per la stampa/conversione in PDF via Chromium (Playwright `page.pdf()`).
+ * Nessun asset esterno: solo font di sistema.
+ *
+ * Palette ispirata al tema "Neon Dark" dell'app (cyan/violet), adattata per
+ * la leggibilità su carta chiara: testo scuro su sfondo chiaro, accenti
+ * cyan/violet riservati a titoli, box informativi e dettagli decorativi.
+ */
+
+/* ---------- Reset di base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+table,
+figure {
+  margin: 0 0 0.75em 0;
+}
+
+img {
+  max-width: 100%;
+}
+
+a {
+  color: var(--accent-violet-dark);
+}
+
+/* ---------- Palette ---------- */
+
+:root {
+  /* Superfici */
+  --paper: #ffffff;
+  --paper-muted: #f5f6fa;
+
+  /* Testo */
+  --ink: #1b1e2b;
+  --ink-soft: #4a4f63;
+  --ink-faint: #767c93;
+
+  /* Accenti neon-dark, adattati per sfondo chiaro */
+  --accent-cyan: #0aa8c4;
+  --accent-cyan-dark: #067486;
+  --accent-violet: #6c4fd6;
+  --accent-violet-dark: #4c33a8;
+
+  /* Bordi / linee */
+  --line: #e1e3ec;
+  --line-strong: #c7cadb;
+
+  /* Callout */
+  --info-bg: #eaf7fb;
+  --info-border: #0aa8c4;
+  --info-ink: #0a5566;
+
+  --warning-bg: #fff4e5;
+  --warning-border: #e08a1e;
+  --warning-ink: #7a4c07;
+
+  --tip-bg: #eaf9ef;
+  --tip-border: #2fa860;
+  --tip-ink: #1a6b3c;
+}
+
+/* ---------- Copertina ---------- */
+
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10vh 10vw;
+  break-after: page;
+  page-break-after: always;
+}
+
+.cover-icon {
+  font-size: 64pt;
+  line-height: 1;
+  margin-bottom: 0.5em;
+}
+
+.cover-eyebrow {
+  font-size: 12pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-cyan-dark);
+  font-weight: 600;
+  margin-bottom: 0.5em;
+}
+
+.cover-title {
+  font-size: 34pt;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.35em 0;
+  line-height: 1.15;
+}
+
+.cover-subtitle {
+  font-size: 15pt;
+  color: var(--ink-soft);
+  max-width: 32em;
+  margin: 0 auto 1.5em auto;
+}
+
+.cover-meta {
+  font-size: 10pt;
+  color: var(--ink-faint);
+  margin-top: 2em;
+}
+
+/* ---------- Indice (TOC) ---------- */
+
+.toc {
+  break-after: page;
+  page-break-after: always;
+  padding-top: 2em;
+}
+
+.toc-title {
+  font-size: 20pt;
+  font-weight: 700;
+  color: var(--accent-violet-dark);
+  margin-bottom: 0.8em;
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  padding: 0.35em 0;
+  border-bottom: 1px dotted var(--line-strong);
+  font-size: 12pt;
+}
+
+.toc-entry-title {
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toc-entry-fill {
+  flex: 1 1 auto;
+  border-bottom: 1px dotted var(--line-strong);
+  margin: 0 0.25em;
+  height: 0;
+}
+
+.toc-entry-page {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Capitoli ---------- */
+
+.chapters {
+  counter-reset: chapter;
+}
+
+section.chapter {
+  counter-increment: chapter;
+}
+
+h2.chapter-title {
+  font-size: 19pt;
+  font-weight: 700;
+  color: var(--accent-violet-dark);
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 0.3em;
+  margin-bottom: 0.8em;
+}
+
+h2.chapter-title::before {
+  content: counter(chapter, decimal-leading-zero) ". ";
+  color: var(--accent-cyan-dark);
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 13.5pt;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 1.2em;
+}
+
+h4 {
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-top: 1em;
+}
+
+p {
+  color: var(--ink);
+}
+
+ul,
+ol {
+  padding-left: 1.4em;
+  color: var(--ink);
+}
+
+li {
+  margin-bottom: 0.3em;
+}
+
+strong {
+  color: var(--ink);
+}
+
+code {
+  font-family: "Consolas", "Cascadia Mono", ui-monospace, monospace;
+  font-size: 0.92em;
+  background: var(--paper-muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.05em 0.35em;
+}
+
+/* ---------- Callout ---------- */
+
+.callout {
+  border-left: 5px solid var(--line-strong);
+  background: var(--paper-muted);
+  border-radius: 6px;
+  padding: 0.85em 1.1em;
+  margin: 1em 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.callout-title {
+  font-weight: 700;
+  margin-bottom: 0.3em;
+  display: block;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.callout--info {
+  border-left-color: var(--info-border);
+  background: var(--info-bg);
+  color: var(--info-ink);
+}
+
+.callout--info .callout-title {
+  color: var(--info-border);
+}
+
+.callout--warning {
+  border-left-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.callout--warning .callout-title {
+  color: var(--warning-border);
+}
+
+.callout--tip {
+  border-left-color: var(--tip-border);
+  background: var(--tip-bg);
+  color: var(--tip-ink);
+}
+
+.callout--tip .callout-title {
+  color: var(--tip-border);
+}
+
+/* ---------- Interruzioni di pagina ---------- */
+
+.page-break {
+  break-before: page;
+  page-break-before: always;
+}
+
+/* ---------- Tabelle ---------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+table caption {
+  text-align: left;
+  font-size: 10pt;
+  color: var(--ink-faint);
+  margin-bottom: 0.4em;
+}
+
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 0.45em 0.6em;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--paper-muted);
+  color: var(--accent-violet-dark);
+  font-weight: 700;
+}
+
+tbody tr:nth-child(even) td {
+  background: #fbfbfd;
+}
+
+/* ---------- Quick-guide pages (single-page numbered step guides) ---------- */
+/* Added for the English `guida-giudici` source; additive only, nothing above changed. */
+
+.quickguide-eyebrow {
+  font-size: 10pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-cyan-dark);
+  font-weight: 600;
+  margin-bottom: 0.3em;
+}
+
+.quickguide-title {
+  font-size: 26pt;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 0.3em 0;
+}
+
+.quickguide-subtitle {
+  font-size: 12pt;
+  color: var(--ink-soft);
+  margin: 0 0 1.2em 0;
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  margin: 1.2em 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  gap: 0.9em;
+  align-items: flex-start;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.step-number {
+  flex: 0 0 auto;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12pt;
+}
+
+.step-body h4 {
+  margin-top: 0;
+  margin-bottom: 0.2em;
+}
+
+.step-body p {
+  margin: 0 0 0.3em 0;
+}
+
+/* ---------- Status pills / badges ---------- */
+/* Used to mirror the colored status chips shown in the app UI (Active, Voting open, Qualified, etc.). */
+
+.pill {
+  display: inline-block;
+  padding: 0.1em 0.65em;
+  border-radius: 999px;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill--cyan {
+  background: var(--info-bg);
+  color: var(--info-border);
+}
+
+.pill--violet {
+  background: #f1ecfc;
+  color: var(--accent-violet-dark);
+}
+
+.pill--green {
+  background: var(--tip-bg);
+  color: var(--tip-border);
+}
+
+.pill--amber {
+  background: var(--warning-bg);
+  color: var(--warning-border);
+}
+
+.pill--red {
+  background: #fdeceb;
+  color: #b3261e;
+}
+
+/* Note: section-title / card-grid / card / chip-row / cover-badge /
+   chapter-subtitle are defined further below in the "Estensioni additive"
+   block (added concurrently by another agent working on the IT locale) —
+   reused as-is from the `en` sources instead of duplicating them here. */
+
+/* ---------- Estensioni additive (non toccare le regole sopra) ----------
+   Aggiunte per coprire pattern ricorrenti nei manuali (badge di copertina,
+   sottotitolo di capitolo, tag/chip, griglie di card informative) non
+   presenti nella prima versione del foglio di stile. Puramente additivo:
+   nessuna regola esistente è stata modificata o rimossa. */
+
+/* Sottotitolo descrittivo sotto h2.chapter-title (riga grigia piccola) */
+.chapter-subtitle {
+  font-size: 10.5pt;
+  color: var(--ink-faint);
+  margin-top: -0.5em;
+  margin-bottom: 1em;
+}
+
+/* Titolo di sezione "piatto" (senza numerazione capitolo), utile per
+   documenti non strutturati a capitoli, es. la panoramica marketing */
+.section-title {
+  font-size: 17pt;
+  font-weight: 700;
+  color: var(--accent-violet-dark);
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 0.3em;
+  margin-top: 1.6em;
+  margin-bottom: 0.8em;
+}
+
+/* Badge pieno (pillola) usato in copertina, es. "DOCUMENTAZIONE OPERATIVA" */
+.cover-badge {
+  display: inline-block;
+  background: var(--accent-cyan-dark);
+  color: #ffffff;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.4em 1em;
+  border-radius: 999px;
+  margin-bottom: 1em;
+}
+
+/* Chip/tag testuali in riga (badge di copertina secondari, elenchi di
+   categorie/target, ecc.) */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  margin: 0.8em 0;
+}
+
+.cover .chip-row {
+  justify-content: center;
+}
+
+.chip {
+  display: inline-block;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.45em 0.95em;
+  font-size: 9.5pt;
+  color: var(--ink-soft);
+  background: var(--paper-muted);
+  white-space: nowrap;
+}
+
+/* Griglia di card informative (fasi, funzionalità, punti di forza) */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1em;
+  margin: 1em 0;
+}
+
+.card-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  background: var(--paper-muted);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.card-icon {
+  font-size: 18pt;
+  line-height: 1;
+  margin-bottom: 0.4em;
+}
+
+.card-title {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.3em;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
