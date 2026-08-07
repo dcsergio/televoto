@@ -93,4 +93,10 @@ export class JudgeTokensApi {
       .post<JudgeTokenRecord>(`${BASE}/judge-tokens/${id}/revoke`, {}, withAuth(authToken))
       .pipe(catchError((err) => throwError(() => toApiError(err, 'Errore nella revoca del codice'))));
   }
+
+  reissueJudgeToken(id: string, origin: string, authToken: string): Observable<{ ok: boolean; code: GeneratedJudgeToken }> {
+    return this.http
+      .post<{ ok: boolean; code: GeneratedJudgeToken }>(`${BASE}/judge-tokens/${id}/reissue`, { origin }, withAuth(authToken))
+      .pipe(catchError((err) => throwError(() => toApiError(err, 'Errore nella rigenerazione del codice'))));
+  }
 }

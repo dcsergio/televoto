@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma.js";
+import type { Prisma } from "../../src/generated/prisma/client.js";
 import type { VoterType } from "../types/domain.js";
 
 const listSelect = {
@@ -54,8 +55,9 @@ export type CreateJudgeTokenInput = {
   tokenPreview: string;
 };
 
-export function createJudgeToken(input: CreateJudgeTokenInput) {
-  return prisma.judgeToken.create({
+export function createJudgeToken(input: CreateJudgeTokenInput, tx?: Prisma.TransactionClient) {
+  const client = tx ?? prisma;
+  return client.judgeToken.create({
     data: {
       eventId: input.eventId,
       label: input.label,
@@ -65,6 +67,10 @@ export function createJudgeToken(input: CreateJudgeTokenInput) {
       tokenPreview: input.tokenPreview,
     },
   });
+}
+
+export function findJudgeTokenById(id: string) {
+  return prisma.judgeToken.findUnique({ where: { id }, select: detailSelect });
 }
 
 export function findJudgeTokenByHash(tokenHash: string) {
@@ -86,8 +92,9 @@ export function finalizeJudgeToken(id: string) {
   });
 }
 
-export function revokeJudgeToken(id: string) {
-  return prisma.judgeToken.update({ where: { id }, data: { revokedAt: new Date() }, select: detailSelect });
+export function revokeJudgeToken(id: string, tx?: Prisma.TransactionClient) {
+  const client = tx ?? prisma;
+  return client.judgeToken.update({ where: { id }, data: { revokedAt: new Date() }, select: detailSelect });
 }
 
 export function findJudgeTokenEventId(id: string) {

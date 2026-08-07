@@ -1,4 +1,5 @@
 import type { Response } from "express";
+import { prisma } from "../db/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
 import { generateOpaqueToken, hashOpaqueToken, judgeTokenLength } from "../lib/opaque-token.js";
 import { normalizeEventCode, normalizeJudgeToken, normalizeVoterType } from "../lib/normalize.js";
@@ -165,6 +166,69 @@ export async function issueJudgeTokens(input: IssueJudgeTokensInput) {
     status: getJudgeTokenStatus(code),
     url: `${baseUrl}/?${new URLSearchParams({ eventCode: event.code, judgeToken: code.token }).toString()}`,
   }));
+}
+
+export type ReissueJudgeTokenInput = {
+  id: string;
+  origin?: unknown;
+  fallbackOrigin: string;
+};
+
+// A judge who lost their code gets a fresh one instead of the old code being
+// shown again (the server only ever stores a hash, never the plaintext).
+// Partial votes already cast under the old token move to the new one so the
+// judge doesn't lose progress; the old token is revoked in the same transaction.
+export async function reissueJudgeToken(input: ReissueJudgeTokenInput) {
+  const oldToken = await judgeTokenRepository.findJudgeTokenById(input.id);
+  if (!oldToken) {
+    throw new AppError(404, "Codice giudice non trovato");
+  }
+
+  const status = getJudgeTokenStatus(oldToken);
+  if (status !== "active") {
+    throw new AppError(400, "Puoi rigenerare solo un codice attivo, non ancora bloccato o revocato");
+  }
+
+  const event = await eventRepository.findEventCodeById(oldToken.eventId);
+  if (!event) {
+    throw new AppError(404, "Evento non trovato");
+  }
+
+  const clientOrigin = typeof input.origin === "string" && input.origin.trim() ? input.origin.trim() : input.fallbackOrigin;
+  const baseUrl = new URL(clientOrigin).origin;
+
+  const rawToken = generateOpaqueToken(judgeTokenLength);
+
+  const record = await prisma.$transaction(async (tx) => {
+    const created = await judgeTokenRepository.createJudgeToken(
+      {
+        eventId: oldToken.eventId,
+        label: oldToken.label,
+        type: oldToken.type as VoterType,
+        tokenHash: hashOpaqueToken(rawToken),
+        tokenPreview: rawToken.slice(0, 8),
+      },
+      tx,
+    );
+    await voteRepository.updateVotesJudgeToken(oldToken.id, created.id, tx);
+    await judgeTokenRepository.revokeJudgeToken(oldToken.id, tx);
+    return created;
+  });
+
+  return {
+    id: record.id,
+    label: record.label,
+    type: record.type as VoterType,
+    voterStatus: record.status as VoterStatus,
+    tokenPreview: record.tokenPreview,
+    createdAt: record.createdAt,
+    finalizedAt: record.finalizedAt,
+    usedAt: record.finalizedAt ?? null,
+    revokedAt: record.revokedAt,
+    status: getJudgeTokenStatus(record),
+    token: rawToken,
+    url: `${baseUrl}/?${new URLSearchParams({ eventCode: event.code, judgeToken: rawToken }).toString()}`,
+  };
 }
 
 type JudgeTokenLookup =

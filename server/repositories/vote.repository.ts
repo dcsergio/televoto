@@ -13,6 +13,11 @@ export function findVotesByJudgeToken(judgeTokenId: string) {
   });
 }
 
+export function updateVotesJudgeToken(oldJudgeTokenId: string, newJudgeTokenId: string, tx?: Prisma.TransactionClient) {
+  const client = tx ?? prisma;
+  return client.vote.updateMany({ where: { judgeTokenId: oldJudgeTokenId }, data: { judgeTokenId: newJudgeTokenId } });
+}
+
 export function findVotesForRanking(eventId: string) {
   return prisma.vote.findMany({
     where: { candidate: { eventId }, judgeToken: { revokedAt: null }, score: { not: null } },

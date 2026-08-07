@@ -39,6 +39,7 @@ export class JudgeCodeManagerComponent {
   protected readonly loading = signal(true);
   protected readonly generating = signal(false);
   protected readonly revokingId = signal<string | null>(null);
+  protected readonly reissuingId = signal<string | null>(null);
   protected readonly validationInput = signal('');
   protected readonly validationResult = signal<JudgeTokenValidationResult | null>(null);
   protected readonly validationLoading = signal(false);
@@ -187,6 +188,24 @@ export class JudgeCodeManagerComponent {
       this.error.set(err instanceof Error ? err.message : 'Errore nella revoca');
     } finally {
       this.revokingId.set(null);
+    }
+  }
+
+  protected async handleReissue(id: string): Promise<void> {
+    this.reissuingId.set(id);
+    this.error.set(null);
+    try {
+      const result = await firstValueFrom(
+        this.judgeTokensApi.reissueJudgeToken(id, window.location.origin, this.authToken()),
+      );
+      this.generatedTokens.update((prev) => [result.code, ...prev]);
+      await this.loadTokens();
+      this.copyMessage.set('Nuovo codice generato: vedi "Ultimi codici generati" qui sopra');
+      setTimeout(() => this.copyMessage.set(null), 3000);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Errore nella rigenerazione del codice');
+    } finally {
+      this.reissuingId.set(null);
     }
   }
 
