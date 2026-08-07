@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { firstValueFrom, map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
@@ -20,6 +21,7 @@ import { EventCandidatesManagerComponent } from '../../components/event-candidat
 import { EventLifecycleControlsComponent, VotingStateChange } from '../../components/event-lifecycle-controls/event-lifecycle-controls';
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
 import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import {
   EVENT_MANAGER_SECTION_NAV,
   EventManagerSection,
@@ -52,6 +54,7 @@ export class EventManagerShellComponent {
   private readonly router = inject(Router);
   private readonly judgeTokensApi = inject(JudgeTokensApi);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly dialog = inject(MatDialog);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
 
@@ -187,6 +190,16 @@ export class EventManagerShellComponent {
   protected handleOpenHallOfFame(): void {
     const ev = this.event();
     if (!ev) return;
+    if (!ev.votingClosed) {
+      this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Televoto ancora aperto',
+          message: 'La Hall of Fame è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
+          confirmLabel: 'Ho capito',
+        },
+      });
+      return;
+    }
     window.open(`/hof?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 

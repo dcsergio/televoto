@@ -39,7 +39,21 @@ export class EventLifecycleControlsComponent {
   protected readonly currentStatus = computed(() => (this.votingClosed() ? 'Televoto chiuso' : 'Televoto aperto'));
 
   protected handleOpenHallOfFame(): void {
+    if (!this.votingClosed()) {
+      this.notifyVotingStillOpen();
+      return;
+    }
     window.open(`/hof?eventCode=${encodeURIComponent(this.eventCode())}`, '_blank', 'noopener,noreferrer');
+  }
+
+  private notifyVotingStillOpen(): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Televoto ancora aperto',
+        message: 'La Hall of Fame è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
+        confirmLabel: 'Ho capito',
+      },
+    });
   }
 
   protected confirmStartRace(): void {

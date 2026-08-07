@@ -13,6 +13,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { firstValueFrom, map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
@@ -21,6 +22,7 @@ import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
 @Component({
@@ -49,6 +51,7 @@ export class AdminShellComponent {
   private readonly authApi = inject(AuthApi);
   private readonly eventsApi = inject(EventsApi);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly dialog = inject(MatDialog);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
 
@@ -216,6 +219,16 @@ export class AdminShellComponent {
   protected handleOpenHallOfFame(): void {
     const ev = this.selectedEvent();
     if (!ev) return;
+    if (!ev.votingClosed) {
+      this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Televoto ancora aperto',
+          message: 'La Hall of Fame è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
+          confirmLabel: 'Ho capito',
+        },
+      });
+      return;
+    }
     window.open(`/hof?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
