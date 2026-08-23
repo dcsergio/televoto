@@ -92,6 +92,14 @@ export function finalizeJudgeToken(id: string) {
   });
 }
 
+export function resetJudgeTokensForRestart(eventId: string, tx?: Prisma.TransactionClient) {
+  const client = tx ?? prisma;
+  return client.judgeToken.updateMany({
+    where: { eventId, revokedAt: null },
+    data: { status: "ACTIVE", finalizedAt: null, usedAt: null },
+  });
+}
+
 export function revokeJudgeToken(id: string, tx?: Prisma.TransactionClient) {
   const client = tx ?? prisma;
   return client.judgeToken.update({ where: { id }, data: { revokedAt: new Date() }, select: detailSelect });

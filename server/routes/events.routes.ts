@@ -6,6 +6,7 @@ import { normalizeEventCode } from "../lib/normalize.js";
 import { AppError } from "../middleware/error-handler.js";
 import * as eventService from "../services/event.service.js";
 import { getVotingProgress } from "../services/voting-progress.service.js";
+import { broadcastJudgeTokenSnapshot } from "../services/judge-token.service.js";
 
 export const eventsRouter = Router();
 
@@ -85,6 +86,7 @@ eventsRouter.post("/api/events/:eventId/start", async (req, res) => {
 
   const result = await eventService.startEvent(eventId);
   res.json({ ok: true, votingClosed: result.votingClosed, candidates: result.candidates });
+  await broadcastJudgeTokenSnapshot(eventId);
 });
 
 eventsRouter.delete("/api/events/:eventId/votes", async (req, res) => {

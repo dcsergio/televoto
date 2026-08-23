@@ -11,6 +11,7 @@ import {
   updateCandidateNumber,
 } from "../repositories/candidate.repository.js";
 import { deleteVotesByEvent } from "../repositories/vote.repository.js";
+import { resetJudgeTokensForRestart } from "../repositories/judge-token.repository.js";
 
 const schemaOutdatedMessage = "Schema DB non aggiornato: applica le migration più recenti";
 
@@ -224,6 +225,7 @@ export async function startEvent(eventId: string) {
       }
 
       await deleteVotesByEvent(eventId, tx);
+      await resetJudgeTokensForRestart(eventId, tx);
 
       await tx.event.update({
         where: { id: eventId },
@@ -231,7 +233,11 @@ export async function startEvent(eventId: string) {
       });
     });
   } else {
-    await eventRepository.reopenEventForStart(eventId);
+    await prisma.$transaction(async (tx) => {
+      await deleteVotesByEvent(eventId, tx);
+      await resetJudgeTokensForRestart(eventId, tx);
+      await tx.event.update({ where: { id: eventId }, data: { active: true, votingClosed: false } });
+    });
   }
 
   const updatedCandidates = await findCandidatesByEvent(eventId);

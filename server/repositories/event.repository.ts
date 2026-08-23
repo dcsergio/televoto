@@ -98,10 +98,6 @@ export function updateVotingState(eventId: string, votingClosed: boolean) {
   });
 }
 
-export function reopenEventForStart(eventId: string) {
-  return prisma.event.update({ where: { id: eventId }, data: { active: true, votingClosed: false } });
-}
-
 export function findEventCodeById(eventId: string) {
   return prisma.event.findUnique({ where: { id: eventId }, select: { code: true } });
 }
