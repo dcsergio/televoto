@@ -20,9 +20,10 @@
         <strong>Audience:</strong> administrators with access to the global
         root password.<br />
         <strong>Scope:</strong> the <code>/admin</code> panel — overview
-        dashboard, event registry, scoring weights, credential security.
+        dashboard, event registry, event archiving and cloning, scoring
+        weights, credential security.
       </p>
-      <p class="cover-meta">Document version 1.0 · August 2026</p>
+      <p class="cover-meta">Document version 1.1 · August 2026</p>
     </section>
 
     <!-- 2. Table of contents -->
@@ -45,39 +46,44 @@
           <span class="toc-entry-page">5</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">Creating a new event</span>
+          <span class="toc-entry-title">Archiving, restoring and cloning an event</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">6</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">Editing an existing event and scoring weights</span>
+          <span class="toc-entry-title">Creating a new event</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">7</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">Rotating the root password</span>
+          <span class="toc-entry-title">Editing an existing event and scoring weights</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">8</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">Rotating an event manager's password</span>
+          <span class="toc-entry-title">Rotating the root password</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">9</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">Reaching a specific event's Manager area</span>
+          <span class="toc-entry-title">Rotating an event manager's password</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">10</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">Other cross-event operations (public voting, Final Ranking, logout)</span>
+          <span class="toc-entry-title">Reaching a specific event's Manager area</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">11</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">FAQ and troubleshooting</span>
+          <span class="toc-entry-title">Other cross-event operations (public voting, Final Ranking, logout)</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">12</span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">FAQ and troubleshooting</span>
+          <span class="toc-entry-fill"></span>
+          <span class="toc-entry-page">13</span>
         </li>
       </ol>
     </section>
@@ -140,11 +146,11 @@
         <p>
           The <code>/admin</code> area is designed exclusively for
           <strong>cross-event</strong> operations: creating and maintaining
-          the event registry, scoring weights, password security. It does
-          not manage candidates, judge codes, or starting/closing voting
-          for a single event: for those operations you need to reach the
-          dedicated <code>/manager</code> area for that event (see Chapter
-          8).
+          the event registry, archiving and cloning events, scoring
+          weights, password security. It does not manage candidates, judge
+          codes, or starting/closing voting for a single event: for those
+          operations you need to reach the dedicated <code>/manager</code>
+          area for that event (see Chapter 9).
         </p>
       </section>
 
@@ -192,7 +198,7 @@
           <p>
             There is no individual user account system: the root password
             is single and shared by all administrators. Keep it safe and
-            rotate it periodically (see Chapter 6).
+            rotate it periodically (see Chapter 7).
           </p>
         </div>
       </section>
@@ -206,9 +212,11 @@
         </p>
 
         <p>
-          After logging in, the Admin area shows a side menu with two
-          entries: <strong>Dashboard</strong> and <strong>Events</strong>
-          (URL parameter <code>?adminSection=dashboard|events</code>).
+          After logging in, the Admin area shows a side menu with three
+          entries: <strong>Dashboard</strong>, <strong>Events</strong> and
+          <strong>Archived</strong> (URL parameter
+          <code>?adminSection=dashboard|events|archived</code>), the last
+          one dedicated to managing archived events (see Chapter 4).
           Dashboard is the default section and shows:
         </p>
 
@@ -227,7 +235,7 @@
             </tr>
             <tr>
               <td>Active events</td>
-              <td>Events with the "Active" flag set</td>
+              <td>Events that aren't archived (excludes those with the "Active" flag off)</td>
             </tr>
             <tr>
               <td>Voting open</td>
@@ -262,10 +270,13 @@
 
         <h3>Full list</h3>
         <p>
-          Below the detail card, a grid of cards lists every event with its
-          code, name, subtitle (if present), Active/Not active status,
-          Voting open/closed status, and a <strong>"Manage"</strong> button
-          for each.
+          Below the detail card, a grid of cards lists every
+          <strong>non-archived</strong> event with its code, name, subtitle
+          (if present), Voting open/closed status, a <strong>"Manage"</strong>
+          button, and an <strong>"Archive event"</strong> icon for each. If
+          any events are archived, a quick link with their count appears
+          above the grid, pointing to the <strong>Archived</strong> section
+          (see Chapter 4).
         </p>
 
         <div class="callout callout--info">
@@ -281,6 +292,111 @@
       </section>
 
       <!-- 4 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Archiving, restoring and cloning an event</h2>
+        <p class="chapter-subtitle">
+          "Events" section (archiving) and "Archived" section (restoring and cloning).
+        </p>
+
+        <p>
+          An archived event is excluded from the <strong>"Selected event"</strong> dropdown in
+          the toolbar, the "All events" grid in Dashboard, and the "Active events"/"Voting
+          open"/"Voting closed" counters — but it remains fully preserved (with its candidates,
+          credentials, and settings) and reachable from the <strong>Archived</strong> section of
+          the side menu.
+        </p>
+
+        <h3>4.1 Archiving an event</h3>
+        <p>You can archive an event from two places in the panel:</p>
+        <ul>
+          <li>
+            in <strong>Dashboard</strong>, from the event's card in the "All events" grid, via
+            the <strong>"Archive event"</strong> icon;
+          </li>
+          <li>
+            in <strong>Events</strong> → "Current event" box, via the
+            <strong>"Archive event"</strong> button (shows "Archiving…" while in progress).
+          </li>
+        </ul>
+        <p>
+          No additional confirmation is required: the archived event immediately disappears
+          from the active lists and becomes visible only in the Archived section.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Reversible, non-destructive operation</span>
+          <p>
+            Archiving an event does <strong>not</strong> delete candidates, judge codes, votes,
+            or credentials: it's a visibility flag, always reversible by unarchiving the event.
+          </p>
+        </div>
+
+        <h3>4.2 Unarchiving an event</h3>
+        <ol>
+          <li>Go to the <strong>Archived</strong> section in the side menu.</li>
+          <li>Locate the event's card in the grid.</li>
+          <li>Press <strong>"Unarchive"</strong> (shows "Restoring…" while in progress).</li>
+          <li>
+            The event immediately becomes available again in the toolbar selector and in
+            Dashboard/Events' active lists, with the same voting state it had before being
+            archived.
+          </li>
+        </ol>
+
+        <h3>4.3 Cloning an archived event</h3>
+        <p>
+          From the same <strong>Archived</strong> section, the <strong>"Clone"</strong> button
+          (copy icon) creates a <strong>new event</strong> based on the archived one, useful for
+          reusing an already-configured format (e.g. a previous edition of the same contest)
+          without re-entering candidates and settings from scratch.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>What gets copied</th>
+              <th>What does NOT get copied</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                Event name (with a " (copy)" suffix), subtitle, public voting mode, scoring
+                weights and trimmed mean settings, the full candidate list (number, name,
+                subtitle, color, template), the event manager password
+              </td>
+              <td>Recorded votes, already-generated judge/public codes, progress history</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          The new event gets an <strong>automatically generated event code</strong> (never the
+          source event's code) and is created <strong>not archived</strong> but with
+          <strong>voting already closed</strong>: before opening it to the public you need to
+          generate new judge/public codes from the new event's <code>/manager</code> area.
+        </p>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Why cloning is only available from archived events</span>
+          <p>
+            The "Clone" action is only available in the Archived section: to duplicate a still
+            active event, archive it first (Section 4.1), then clone it and, if needed,
+            unarchive the original.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Duplicated manager password</span>
+          <p>
+            The cloned event inherits the <strong>same</strong> manager password as the source
+            event. If both the original and the clone remain active, consider rotating one of
+            their passwords (Chapter 8) to avoid them sharing the same credential.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Creating a new event</h2>
         <p class="chapter-subtitle">
@@ -376,7 +492,7 @@
         </div>
       </section>
 
-      <!-- 5 -->
+      <!-- 6 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">
           Editing an existing event and scoring weights
@@ -478,7 +594,7 @@
         </div>
       </section>
 
-      <!-- 6 -->
+      <!-- 7 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Rotating the root password</h2>
         <p class="chapter-subtitle">
@@ -535,7 +651,7 @@
         </div>
       </section>
 
-      <!-- 7 -->
+      <!-- 8 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">
           Rotating an event manager's password
@@ -585,7 +701,7 @@
         </div>
       </section>
 
-      <!-- 8 -->
+      <!-- 9 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">
           Reaching a specific event's Manager area
@@ -640,7 +756,7 @@
         </div>
       </section>
 
-      <!-- 9 -->
+      <!-- 10 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Other cross-event operations</h2>
         <p class="chapter-subtitle">
@@ -697,7 +813,7 @@
         </div>
       </section>
 
-      <!-- 10 -->
+      <!-- 11 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">FAQ and troubleshooting</h2>
         <p class="chapter-subtitle">Common situations and how to handle them.</p>
@@ -730,8 +846,15 @@
         <p>
           That's expected: those operations belong exclusively to the
           <code>/manager</code> area of the individual event (see Chapter
-          8). The Admin area is intentionally limited to cross-event
+          9). The Admin area is intentionally limited to cross-event
           management.
+        </p>
+
+        <h3>An event disappeared from the "Selected event" dropdown and Dashboard</h3>
+        <p>
+          It has probably been archived: archived events are excluded from the toolbar selector
+          and the active lists. You'll find it in the <strong>Archived</strong> section of the
+          side menu, where you can unarchive or clone it (see Chapter 4).
         </p>
 
         <h3>
