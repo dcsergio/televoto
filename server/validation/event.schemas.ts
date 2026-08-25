@@ -48,3 +48,7 @@ export const setManagerPasswordSchema = z.object({
 export const votingStateSchema = z.object({
   votingClosed: z.boolean({ error: "Stato votazione non valido" }),
 });
+
+export const archiveStateSchema = z.object({
+  archived: z.boolean({ error: "Stato archiviazione non valido" }),
+});

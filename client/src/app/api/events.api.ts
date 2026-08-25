@@ -125,4 +125,20 @@ export class EventsApi {
       )
       .pipe(catchError((err) => throwError(() => toApiError(err, "Errore nell'avvio della votazione"))));
   }
+
+  updateEventArchivedState(eventId: string, archived: boolean, authToken: string): Observable<AdminEventSummary> {
+    return this.http
+      .put<AdminEventSummary>(`${BASE}/events/${eventId}/archive-state`, { archived }, withAuth(authToken))
+      .pipe(
+        catchError((err) =>
+          throwError(() => toApiError(err, archived ? "Errore nell'archiviazione evento" : "Errore nel ripristino evento")),
+        ),
+      );
+  }
+
+  cloneEvent(eventId: string, authToken: string): Observable<AdminEventSummary> {
+    return this.http
+      .post<AdminEventSummary>(`${BASE}/events/${eventId}/clone`, {}, withAuth(authToken))
+      .pipe(catchError((err) => throwError(() => toApiError(err, "Errore nella clonazione evento"))));
+  }
 }

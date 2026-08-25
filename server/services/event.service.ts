@@ -241,3 +241,36 @@ export async function startEvent(eventId: string) {
 export async function clearVotes(eventId: string) {
   await deleteVotesByEvent(eventId);
 }
+
+export async function setEventArchivedState(eventId: string, archived: boolean) {
+  try {
+    return await eventRepository.setEventArchivedState(eventId, archived);
+  } catch (e: unknown) {
+    if (isPrismaKnownError(e, "P2025")) {
+      throw new AppError(404, "Evento non trovato");
+    }
+    throw e;
+  }
+}
+
+export async function cloneEvent(eventId: string) {
+  const source = await eventRepository.findEventForClone(eventId);
+  if (!source) {
+    throw new AppError(404, "Evento non trovato");
+  }
+
+  const code = await createUniqueEventCode();
+  const clonedName = `${source.name} (copia)`;
+
+  try {
+    return await eventRepository.cloneEvent(source, code, clonedName);
+  } catch (e: unknown) {
+    if (isPrismaKnownError(e, "P2022")) {
+      throw new AppError(500, schemaOutdatedMessage);
+    }
+    if (isPrismaKnownError(e, "P2002")) {
+      throw new AppError(409, "Codice evento già in uso");
+    }
+    throw e;
+  }
+}

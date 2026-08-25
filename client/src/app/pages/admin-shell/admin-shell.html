@@ -35,7 +35,10 @@
               <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
               @if (item.section === 'events') {
-                <span matListItemMeta class="text-xs text-text-secondary">{{ events().length }}</span>
+                <span matListItemMeta class="text-xs text-text-secondary">{{ activeEvents().length }}</span>
+              }
+              @if (item.section === 'archived') {
+                <span matListItemMeta class="text-xs text-text-secondary">{{ archivedEvents().length }}</span>
               }
             </a>
           }
@@ -81,10 +84,10 @@
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-event-select min-w-[200px] flex-1 max-w-sm">
             <mat-label>Evento selezionato</mat-label>
             <mat-select [value]="selectedEventId()" (selectionChange)="selectEvent($event.value)" data-testid="admin-event-select">
-              @if (events().length === 0) {
+              @if (activeEvents().length === 0) {
                 <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
               }
-              @for (ev of events(); track ev.id) {
+              @for (ev of activeEvents(); track ev.id) {
                 <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.name }}</mat-option>
               }
             </mat-select>
@@ -190,9 +193,9 @@
                           <p class="text-lg font-semibold text-text-primary">{{ ev.code }} - {{ ev.name }}</p>
                         </div>
                         <mat-chip-set>
-                          <mat-chip [class]="ev.active ? '!bg-emerald-400/15 !text-emerald-200' : '!bg-slate-700 !text-text-secondary'" disabled>
-                            {{ ev.active ? 'Attivo' : 'Non attivo' }}
-                          </mat-chip>
+                          @if (!ev.active) {
+                            <mat-chip class="!bg-amber-400/15 !text-amber-200" disabled>Archiviato</mat-chip>
+                          }
                           <mat-chip [class]="ev.votingClosed ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
                             {{ ev.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
                           </mat-chip>
@@ -218,12 +221,20 @@
                 }
 
                 <div class="space-y-3">
-                  <h3 class="text-lg font-semibold">Tutti gli eventi</h3>
-                  @if (events().length === 0) {
-                    <p class="text-text-secondary">Nessun evento creato. Vai in "Eventi" per crearne uno.</p>
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Tutti gli eventi</h3>
+                    @if (archivedEvents().length > 0) {
+                      <button type="button" mat-button (click)="handleSectionChange('archived')">
+                        <mat-icon>archive</mat-icon>
+                        {{ archivedEvents().length }} archiviat{{ archivedEvents().length === 1 ? 'o' : 'i' }}
+                      </button>
+                    }
+                  </div>
+                  @if (activeEvents().length === 0) {
+                    <p class="text-text-secondary">Nessun evento attivo. Vai in "Eventi" per crearne uno.</p>
                   } @else {
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      @for (ev of events(); track ev.id) {
+                      @for (ev of activeEvents(); track ev.id) {
                         <mat-card
                           appearance="outlined"
                           class="!bg-slate-900/70 transition"
@@ -238,16 +249,24 @@
                               }
                             </div>
                             <mat-chip-set>
-                              <mat-chip [class]="ev.active ? '!bg-emerald-400/15 !text-emerald-200' : '!bg-slate-700 !text-text-secondary'" disabled>
-                                {{ ev.active ? 'Attivo' : 'Non attivo' }}
-                              </mat-chip>
                               <mat-chip [class]="ev.votingClosed ? '!bg-cyan-400/15 !text-cyan-200' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
                                 {{ ev.votingClosed ? 'Chiuso' : 'Aperto' }}
                               </mat-chip>
                             </mat-chip-set>
-                            <button type="button" mat-flat-button class="w-full" (click)="handleManageEvent(ev.id)">
-                              Gestisci
-                            </button>
+                            <div class="flex gap-2">
+                              <button type="button" mat-flat-button class="flex-1" (click)="handleManageEvent(ev.id)">
+                                Gestisci
+                              </button>
+                              <button
+                                type="button"
+                                mat-icon-button
+                                matTooltip="Archivia evento"
+                                [disabled]="archivingEventId() === ev.id"
+                                (click)="handleArchiveEvent(ev.id)"
+                              >
+                                <mat-icon>archive</mat-icon>
+                              </button>
+                            </div>
                           </mat-card-content>
                         </mat-card>
                       }
@@ -294,6 +313,16 @@
                             {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Rinomina' }}
                           </button>
                         </form>
+
+                        <button
+                          type="button"
+                          mat-stroked-button
+                          [disabled]="archivingEventId() === ev.id"
+                          (click)="handleArchiveEvent(ev.id)"
+                        >
+                          <mat-icon>archive</mat-icon>
+                          {{ archivingEventId() === ev.id ? 'Archiviazione...' : 'Archivia evento' }}
+                        </button>
 
                         <form (ngSubmit)="handleRotateEventManagerPassword()" class="flex flex-col gap-2 sm:flex-row">
                           <input
@@ -504,6 +533,68 @@
                       {{ updatingRootPassword() ? 'Aggiornamento...' : 'Aggiorna password root' }}
                     </button>
                   </form>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @if (activeSection() === 'archived') {
+            <mat-card appearance="outlined" class="!bg-slate-900/60">
+              <mat-card-content class="space-y-4">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                  <h2 class="mt-2 text-2xl font-semibold">Eventi archiviati</h2>
+                  <p class="mt-1 text-sm text-text-secondary">
+                    Gli eventi archiviati non compaiono più tra quelli attivi. Puoi ripristinarli o usarli come base per un nuovo evento.
+                  </p>
+                </div>
+
+                @if (loadingEvents()) {
+                  <div class="flex items-center justify-center py-8">
+                    <div class="h-8 w-8 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent"></div>
+                  </div>
+                } @else if (archivedEvents().length === 0) {
+                  <p class="text-text-secondary">Nessun evento archiviato.</p>
+                } @else {
+                  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    @for (ev of archivedEvents(); track ev.id) {
+                      <mat-card appearance="outlined" class="!bg-slate-900/70">
+                        <mat-card-content class="space-y-3">
+                          <div>
+                            <p class="text-xs text-text-secondary">{{ ev.code }}</p>
+                            <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.name }}</p>
+                            @if (ev.subtitle) {
+                              <p class="truncate text-xs text-text-secondary" [title]="ev.subtitle">{{ ev.subtitle }}</p>
+                            }
+                          </div>
+                          <mat-chip-set>
+                            <mat-chip class="!bg-amber-400/15 !text-amber-200" disabled>Archiviato</mat-chip>
+                          </mat-chip-set>
+                          <div class="flex gap-2">
+                            <button
+                              type="button"
+                              mat-flat-button
+                              class="flex-1"
+                              [disabled]="archivingEventId() === ev.id"
+                              (click)="handleUnarchiveEvent(ev.id)"
+                            >
+                              {{ archivingEventId() === ev.id ? 'Ripristino...' : 'Disarchivia' }}
+                            </button>
+                            <button
+                              type="button"
+                              mat-stroked-button
+                              matTooltip="Crea una copia di questo evento"
+                              [disabled]="cloningEventId() === ev.id"
+                              (click)="handleCloneEvent(ev.id)"
+                            >
+                              <mat-icon>content_copy</mat-icon>
+                              {{ cloningEventId() === ev.id ? 'Clonazione...' : 'Clona' }}
+                            </button>
+                          </div>
+                        </mat-card-content>
+                      </mat-card>
+                    }
+                  </div>
                 }
               </mat-card-content>
             </mat-card>
