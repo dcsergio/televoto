@@ -1,6 +1,6 @@
-export type AdminSection = 'dashboard' | 'events';
+export type AdminSection = 'dashboard' | 'events' | 'archived';
 
-const ADMIN_SECTIONS: AdminSection[] = ['dashboard', 'events'];
+const ADMIN_SECTIONS: AdminSection[] = ['dashboard', 'events', 'archived'];
 
 export interface AdminSectionMeta {
   section: AdminSection;
@@ -12,6 +12,7 @@ export interface AdminSectionMeta {
 export const ADMIN_SECTION_NAV: AdminSectionMeta[] = [
   { section: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { section: 'events', label: 'Eventi', icon: 'event' },
+  { section: 'archived', label: 'Archiviati', icon: 'archive' },
 ];
 
 export function isAdminSection(value: string | null): value is AdminSection {

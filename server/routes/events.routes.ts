@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { requireEventManagerAuth, requireRootAuth } from "../middleware/auth.middleware.js";
 import { parseBody } from "../validation/validate.js";
-import { createEventSchema, setManagerPasswordSchema, votingStateSchema } from "../validation/event.schemas.js";
+import {
+  archiveStateSchema,
+  createEventSchema,
+  setManagerPasswordSchema,
+  votingStateSchema,
+} from "../validation/event.schemas.js";
 import { normalizeEventCode } from "../lib/normalize.js";
 import { AppError } from "../middleware/error-handler.js";
 import * as eventService from "../services/event.service.js";
@@ -95,4 +100,20 @@ eventsRouter.delete("/api/events/:eventId/votes", async (req, res) => {
 
   await eventService.clearVotes(eventId);
   res.json({ ok: true });
+});
+
+eventsRouter.put("/api/events/:eventId/archive-state", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
+  const { eventId } = req.params;
+  const { archived } = parseBody(archiveStateSchema, req.body);
+  res.json(await eventService.setEventArchivedState(eventId, archived));
+});
+
+eventsRouter.post("/api/events/:eventId/clone", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
+  const { eventId } = req.params;
+  const cloned = await eventService.cloneEvent(eventId);
+  res.status(201).json(cloned);
 });

@@ -102,6 +102,58 @@ export function findEventCodeById(eventId: string) {
   return prisma.event.findUnique({ where: { id: eventId }, select: { code: true } });
 }
 
+export function setEventArchivedState(eventId: string, archived: boolean) {
+  return prisma.event.update({ where: { id: eventId }, data: { active: !archived }, select: eventSummarySelect });
+}
+
+export function findEventForClone(eventId: string) {
+  return prisma.event.findUnique({
+    where: { id: eventId },
+    include: {
+      candidates: { orderBy: { number: "asc" } },
+      managerCredential: true,
+    },
+  });
+}
+
+export type EventCloneSource = NonNullable<Awaited<ReturnType<typeof findEventForClone>>>;
+
+export function cloneEvent(source: EventCloneSource, code: string, name: string) {
+  return prisma.event.create({
+    data: {
+      code,
+      name,
+      subtitle: source.subtitle,
+      active: true,
+      votingClosed: true,
+      weightQualificata: source.weightQualificata,
+      weightPopolare: source.weightPopolare,
+      enableTrimmedMean: source.enableTrimmedMean,
+      trimmedMeanPercentage: source.trimmedMeanPercentage,
+      popularVoteMode: source.popularVoteMode,
+      candidates: {
+        create: source.candidates.map((candidate) => ({
+          number: candidate.number,
+          name: candidate.name,
+          subtitle: candidate.subtitle,
+          color: candidate.color,
+          templateId: candidate.templateId,
+        })),
+      },
+      managerCredential: source.managerCredential
+        ? {
+            create: {
+              passwordHash: source.managerCredential.passwordHash,
+              passwordSalt: source.managerCredential.passwordSalt,
+              passwordIterations: source.managerCredential.passwordIterations,
+            },
+          }
+        : undefined,
+    },
+    select: eventSummarySelect,
+  });
+}
+
 export async function findEventTurnout(eventId: string) {
   const votedCondition = { OR: [{ finalizedAt: { not: null } }, { status: "SUBMITTED" as const }] };
 

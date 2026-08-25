@@ -109,16 +109,24 @@ export class AdminShellComponent {
   protected readonly selectedEventPopularVoteMode = computed(() => this.selectedEvent()?.popularVoteMode ?? 'NUMERIC');
   protected readonly isSingleVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'SINGLE');
 
+  /** Non-archived events: used for selection, the dashboard event grid, and the toolbar selector. */
+  protected readonly activeEvents = computed(() => this.events().filter((e) => e.active));
+  /** Archived events: shown only in the dedicated "Archiviati" section. */
+  protected readonly archivedEvents = computed(() => this.events().filter((e) => !e.active));
+
   /** Cross-event snapshot for the Dashboard "overview" cards. */
   protected readonly eventsOverview = computed(() => {
     const list = this.events();
     return {
       total: list.length,
       active: list.filter((e) => e.active).length,
-      votingOpen: list.filter((e) => !e.votingClosed).length,
-      votingClosed: list.filter((e) => e.votingClosed).length,
+      votingOpen: list.filter((e) => e.active && !e.votingClosed).length,
+      votingClosed: list.filter((e) => e.active && e.votingClosed).length,
     };
   });
+
+  protected readonly archivingEventId = signal<string | null>(null);
+  protected readonly cloningEventId = signal<string | null>(null);
 
   private lastEventCode: string | null = null;
 
@@ -177,6 +185,7 @@ export class AdminShellComponent {
       this.events.set(data);
       this.eventsError.set(null);
 
+      const activeData = data.filter((e) => e.active);
       const currentId = this.selectedEventId();
       if (currentId && data.some((e) => e.id === currentId)) {
         // keep current selection
@@ -184,9 +193,9 @@ export class AdminShellComponent {
         this.selectedEventId.set(initialEventId);
       } else if (initialEventCode) {
         const match = data.find((e) => e.code === initialEventCode);
-        this.selectedEventId.set(match?.id ?? data[0]?.id ?? null);
+        this.selectedEventId.set(match?.id ?? activeData[0]?.id ?? null);
       } else {
-        this.selectedEventId.set(data[0]?.id ?? null);
+        this.selectedEventId.set(activeData[0]?.id ?? null);
       }
     } catch (err) {
       this.eventsError.set(err instanceof Error ? err.message : 'Errore');
@@ -451,6 +460,66 @@ export class AdminShellComponent {
       this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
     } finally {
       this.updatingManagerPassword.set(false);
+    }
+  }
+
+  protected handleArchiveEvent(eventId: string): void {
+    const ev = this.events().find((e) => e.id === eventId);
+    if (!ev) return;
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Archivia evento',
+        message: `Vuoi archiviare "${ev.name}"? Non sarà più visibile tra gli eventi attivi, ma potrà essere ripristinato in qualsiasi momento dalla sezione Archiviati.`,
+        confirmLabel: 'Archivia',
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) void this.setEventArchivedState(eventId, true);
+    });
+  }
+
+  protected handleUnarchiveEvent(eventId: string): void {
+    void this.setEventArchivedState(eventId, false);
+  }
+
+  private async setEventArchivedState(eventId: string, archived: boolean): Promise<void> {
+    const token = this.authState.rootAuthToken();
+    if (!token) {
+      this.error.set("Sessione root non valida. Rientra nell'area admin.");
+      return;
+    }
+    this.archivingEventId.set(eventId);
+    try {
+      const updated = await firstValueFrom(this.eventsApi.updateEventArchivedState(eventId, archived, token));
+      this.events.update((prev) => prev.map((e) => (e.id === updated.id ? { ...e, active: updated.active } : e)));
+      if (archived && this.selectedEventId() === eventId) {
+        this.selectedEventId.set(this.activeEvents().find((e) => e.id !== eventId)?.id ?? null);
+      }
+      this.error.set(null);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento dell'archiviazione");
+    } finally {
+      this.archivingEventId.set(null);
+    }
+  }
+
+  protected async handleCloneEvent(eventId: string): Promise<void> {
+    const token = this.authState.rootAuthToken();
+    if (!token) {
+      this.error.set("Sessione root non valida. Rientra nell'area admin.");
+      return;
+    }
+    this.cloningEventId.set(eventId);
+    try {
+      const cloned = await firstValueFrom(this.eventsApi.cloneEvent(eventId, token));
+      this.events.update((prev) => [cloned, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
+      this.selectedEventId.set(cloned.id);
+      this.handleSectionChange('events');
+      this.error.set(null);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Errore nella clonazione evento');
+    } finally {
+      this.cloningEventId.set(null);
     }
   }
 }

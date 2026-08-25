@@ -48,4 +48,14 @@
       outlined-container-shape: 16px,
     )
   );
+
+  // The select panel (e.g. "Evento selezionato") inherits its background from
+  // --mat-sys-surface-container above, which is semi-transparent for the
+  // glassmorphism cards; override it to a solid color so the dropdown panel
+  // doesn't show page content bleeding through.
+  @include mat.select-overrides(
+    (
+      panel-background-color: #111128,
+    )
+  );
 }
