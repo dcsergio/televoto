@@ -25,24 +25,25 @@
       <p class="cover-meta">Versione 1.0 — Agosto 2026</p>
     </section>
 
-    <!-- 2. Indice -->
+    <!-- 2. Indice: niente numero di pagina per voce. La numerazione reale
+         viene scritta da Chromium in stampa (page.pdf() in
+         scripts/generate-manuals.ts, footerTemplate con pageNumber/
+         totalPages) e dipende dal reflow del contenuto: un numero scritto
+         a mano qui andrebbe fuori sincrono col PDF reale ad ogni modifica. -->
     <section class="toc">
       <h2 class="toc-title">Indice</h2>
       <ol class="toc-list">
         <li class="toc-entry">
           <span class="toc-entry-title">Introduzione</span>
           <span class="toc-entry-fill"></span>
-          <span class="toc-entry-page">3</span>
         </li>
         <li class="toc-entry">
           <span class="toc-entry-title">Primo capitolo di esempio</span>
           <span class="toc-entry-fill"></span>
-          <span class="toc-entry-page">4</span>
         </li>
         <li class="toc-entry">
           <span class="toc-entry-title">Secondo capitolo di esempio</span>
           <span class="toc-entry-fill"></span>
-          <span class="toc-entry-page">6</span>
         </li>
       </ol>
     </section>
