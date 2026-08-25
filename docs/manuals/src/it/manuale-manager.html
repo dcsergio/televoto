@@ -386,8 +386,10 @@
               </td>
               <td>
                 <strong>Avvia votazione</strong>: rinumera progressivamente i candidati, azzera tutti
-                i voti e riapre il televoto. <strong>Chiudi televoto</strong>: i voti non vengono
-                più accettati; le modifiche ai candidati tornano disponibili.
+                i voti, riporta allo stato <strong>Attivo</strong> tutti i codici giudice non
+                revocati (anche quelli già "Usato") e riapre il televoto. <strong>Chiudi
+                televoto</strong>: i voti non vengono più accettati; le modifiche ai candidati
+                tornano disponibili.
               </td>
             </tr>
             <tr>
@@ -407,7 +409,9 @@
             per l'evento vengono <strong>cancellati definitivamente</strong> e non sono
             recuperabili. Usa questa funzione solo quando sei certo di voler ripartire da zero
             (ad es. all'inizio ufficiale della serata, dopo aver terminato prove tecniche o
-            test), non per "riaprire" temporaneamente il voto.
+            test), non per "riaprire" temporaneamente il voto. I codici giudice/pubblico già
+            distribuiti restano validi e tornano riutilizzabili (stato "Attivo"): non serve
+            rigenerarli dopo un avvio/riavvio, a meno che non siano stati revocati.
           </p>
         </div>
 

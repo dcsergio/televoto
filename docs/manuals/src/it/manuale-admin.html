@@ -17,8 +17,9 @@
       <p class="cover-meta">
         <strong>Destinatari:</strong> amministratori con accesso alla password root globale.<br />
         <strong>Ambito:</strong> pannello <code>/admin</code> — dashboard generale, anagrafica
-        eventi, pesi di scoring, sicurezza delle credenziali.<br />
-        <strong>Versione documento:</strong> 1.0 · Agosto 2026
+        eventi, archiviazione e clonazione eventi, pesi di scoring, sicurezza delle
+        credenziali.<br />
+        <strong>Versione documento:</strong> 1.1 · Agosto 2026
       </p>
     </section>
 
@@ -36,6 +37,10 @@
         </li>
         <li class="toc-entry">
           <span class="toc-entry-title">Panoramica della Dashboard</span>
+          <span class="toc-entry-fill"></span>
+        </li>
+        <li class="toc-entry">
+          <span class="toc-entry-title">Archiviare, ripristinare e clonare un evento</span>
           <span class="toc-entry-fill"></span>
         </li>
         <li class="toc-entry">
@@ -121,10 +126,11 @@
 
         <p>
           L'area <code>/admin</code> è pensata esclusivamente per operazioni
-          <strong>cross-evento</strong>: creazione e anagrafica degli eventi, pesi di scoring,
-          sicurezza delle password. Non gestisce candidati, codici giuria o l'avvio/chiusura
-          della votazione di un singolo evento: per queste operazioni occorre raggiungere l'area
-          dedicata <code>/manager</code> dell'evento (vedi Capitolo 8).
+          <strong>cross-evento</strong>: creazione e anagrafica degli eventi, archiviazione e
+          clonazione degli eventi, pesi di scoring, sicurezza delle password. Non gestisce
+          candidati, codici giuria o l'avvio/chiusura della votazione di un singolo evento: per
+          queste operazioni occorre raggiungere l'area dedicata <code>/manager</code> dell'evento
+          (vedi Capitolo 9).
         </p>
       </section>
 
@@ -163,7 +169,7 @@
           <p>
             Non esiste un sistema di account utente individuali: la password root è unica e
             condivisa da tutti gli amministratori. Custodiscila con cura e ruotala
-            periodicamente (vedi Capitolo 6).
+            periodicamente (vedi Capitolo 7).
           </p>
         </div>
       </section>
@@ -176,10 +182,11 @@
         </p>
 
         <p>
-          Dopo il login, l'area Admin si presenta con un menu laterale a due voci:
-          <strong>Dashboard</strong> e <strong>Eventi</strong> (parametro URL
-          <code>?adminSection=dashboard|events</code>). La Dashboard è la sezione predefinita e
-          mostra:
+          Dopo il login, l'area Admin si presenta con un menu laterale a tre voci:
+          <strong>Dashboard</strong>, <strong>Eventi</strong> e <strong>Archiviati</strong>
+          (parametro URL <code>?adminSection=dashboard|events|archived</code>), quest'ultima
+          dedicata alla gestione degli eventi archiviati (vedi Capitolo 4). La Dashboard è la
+          sezione predefinita e mostra:
         </p>
 
         <h3>Riepilogo generale (card numeriche)</h3>
@@ -197,7 +204,7 @@
             </tr>
             <tr>
               <td>Eventi attivi</td>
-              <td>Eventi con flag "Attivo" impostato</td>
+              <td>Eventi non archiviati (esclude quelli con flag "Attivo" disattivato)</td>
             </tr>
             <tr>
               <td>Televoto aperto</td>
@@ -227,9 +234,12 @@
 
         <h3>Elenco completo eventi</h3>
         <p>
-          Sotto la card di dettaglio, una griglia di schede riepiloga tutti gli eventi con
-          codice, nome, sottotitolo (se presente), stato Attivo/Non attivo, stato televoto
-          Aperto/Chiuso e un pulsante <strong>"Gestisci"</strong> per ciascuno.
+          Sotto la card di dettaglio, una griglia di schede riepiloga tutti gli eventi
+          <strong>non archiviati</strong> con codice, nome, sottotitolo (se presente), stato
+          televoto Aperto/Chiuso, un pulsante <strong>"Gestisci"</strong> e un'icona
+          <strong>"Archivia evento"</strong> per ciascuno. Se esistono eventi archiviati, sopra
+          la griglia compare un collegamento rapido con il relativo conteggio verso la sezione
+          <strong>Archiviati</strong> (vedi Capitolo 4).
         </p>
 
         <div class="callout callout--info">
@@ -244,6 +254,114 @@
       </section>
 
       <!-- 4 -->
+      <section class="chapter page-break">
+        <h2 class="chapter-title">Archiviare, ripristinare e clonare un evento</h2>
+        <p class="chapter-subtitle">
+          Sezione "Eventi" (archiviazione) e sezione "Archiviati" (ripristino e clonazione).
+        </p>
+
+        <p>
+          Un evento archiviato viene escluso dal selettore <strong>"Evento selezionato"</strong>
+          in toolbar, dalla griglia "Tutti gli eventi" in Dashboard e dai conteggi "Eventi
+          attivi"/"Televoto aperto"/"Televoto chiuso": resta comunque interamente conservato (con
+          i suoi candidati, credenziali e impostazioni) e raggiungibile dalla sezione
+          <strong>Archiviati</strong> del menu laterale.
+        </p>
+
+        <h3>4.1 Archiviare un evento</h3>
+        <p>Puoi archiviare un evento da due punti del pannello:</p>
+        <ul>
+          <li>
+            in <strong>Dashboard</strong>, dalla scheda dell'evento nella griglia "Tutti gli
+            eventi", tramite l'icona <strong>"Archivia evento"</strong>;
+          </li>
+          <li>
+            in <strong>Eventi</strong> → riquadro "Evento corrente", tramite il pulsante
+            <strong>"Archivia evento"</strong> (mostra "Archiviazione..." durante l'operazione).
+          </li>
+        </ul>
+        <p>
+          Non è richiesta una conferma aggiuntiva: l'evento archiviato scompare immediatamente
+          dalle liste attive e diventa visibile solo nella sezione Archiviati.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Operazione reversibile, ma non distruttiva</span>
+          <p>
+            Archiviare un evento <strong>non</strong> cancella candidati, codici giuria, voti o
+            credenziali: è un flag di visibilità, sempre reversibile disarchiviando l'evento.
+          </p>
+        </div>
+
+        <h3>4.2 Disarchiviare un evento</h3>
+        <ol>
+          <li>Vai nella sezione <strong>Archiviati</strong> del menu laterale.</li>
+          <li>Individua la scheda dell'evento nella griglia.</li>
+          <li>
+            Premi <strong>"Disarchivia"</strong> (mostra "Ripristino..." durante l'operazione).
+          </li>
+          <li>
+            L'evento torna immediatamente disponibile nel selettore in toolbar e nelle liste
+            attive di Dashboard/Eventi, con lo stato di televoto invariato rispetto a prima
+            dell'archiviazione.
+          </li>
+        </ol>
+
+        <h3>4.3 Clonare un evento archiviato</h3>
+        <p>
+          Dalla stessa sezione <strong>Archiviati</strong>, il pulsante <strong>"Clona"</strong>
+          (icona di copia) crea un <strong>nuovo evento</strong> a partire da quello archiviato,
+          utile per riutilizzare un format già configurato (es. un'edizione precedente dello
+          stesso concorso) senza reinserire candidati e impostazioni da zero.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cosa viene copiato</th>
+              <th>Cosa NON viene copiato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                Nome evento (con suffisso " (copia)"), sottotitolo, modalità di voto popolare,
+                pesi di scoring e impostazioni trimmed mean, elenco candidati completo (numero,
+                nome, sottotitolo, colore, template), password manager evento
+              </td>
+              <td>Voti registrati, codici giudice/pubblico già generati, storico progressi</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Il nuovo evento riceve un <strong>codice evento generato automaticamente</strong> (mai
+          quello dell'evento di origine), nasce <strong>non archiviato</strong> ma con il
+          <strong>televoto già chiuso</strong>: prima di aprirlo al pubblico occorre generare i
+          nuovi codici giudice/pubblico dall'area <code>/manager</code> del nuovo evento.
+        </p>
+
+        <div class="callout callout--info">
+          <span class="callout-title">Perché clonare solo dagli eventi archiviati</span>
+          <p>
+            L'azione "Clona" è disponibile solo nella sezione Archiviati: per duplicare un
+            evento ancora attivo, archivialo prima (Capitolo 4.1), poi clonalo e, se necessario,
+            disarchivia l'originale.
+          </p>
+        </div>
+
+        <div class="callout callout--warning">
+          <span class="callout-title">Password manager duplicata</span>
+          <p>
+            L'evento clonato eredita la <strong>stessa</strong> password manager dell'evento di
+            origine. Se l'originale e il clone restano entrambi attivi, valuta di ruotare la
+            password di uno dei due (Capitolo 8) per evitare che condividano la stessa
+            credenziale.
+          </p>
+        </div>
+      </section>
+
+      <!-- 5 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Creare un nuovo evento</h2>
         <p class="chapter-subtitle">Sezione "Eventi" → riquadro "Crea nuovo evento".</p>
@@ -328,7 +446,7 @@
         </div>
       </section>
 
-      <!-- 5 -->
+      <!-- 6 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Modificare un evento e i pesi di scoring</h2>
         <p class="chapter-subtitle">Sezione "Eventi" → riquadro "Evento corrente".</p>
@@ -415,7 +533,7 @@
         </div>
       </section>
 
-      <!-- 6 -->
+      <!-- 7 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Ruotare la password root</h2>
         <p class="chapter-subtitle">
@@ -456,7 +574,7 @@
         </div>
       </section>
 
-      <!-- 7 -->
+      <!-- 8 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Ruotare la password del manager di un evento</h2>
         <p class="chapter-subtitle">
@@ -495,7 +613,7 @@
         </div>
       </section>
 
-      <!-- 8 -->
+      <!-- 9 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Raggiungere l'area Manager di un evento</h2>
         <p class="chapter-subtitle">
@@ -539,7 +657,7 @@
         </div>
       </section>
 
-      <!-- 9 -->
+      <!-- 10 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Altre operazioni cross-evento</h2>
         <p class="chapter-subtitle">Scorciatoie disponibili nella toolbar dell'area Admin.</p>
@@ -593,7 +711,7 @@
         </div>
       </section>
 
-      <!-- 10 -->
+      <!-- 11 -->
       <section class="chapter page-break">
         <h2 class="chapter-title">Domande frequenti e risoluzione problemi</h2>
         <p class="chapter-subtitle">Situazioni comuni e come gestirle.</p>
@@ -619,8 +737,15 @@
         <h3>Non trovo dove gestire i candidati o i codici giuria da /admin</h3>
         <p>
           Non è previsto: quelle operazioni appartengono esclusivamente all'area
-          <code>/manager</code> del singolo evento (vedi Capitolo 8). L'area Admin resta
+          <code>/manager</code> del singolo evento (vedi Capitolo 9). L'area Admin resta
           volutamente limitata alla gestione cross-evento.
+        </p>
+
+        <h3>Un evento è sparito dal selettore "Evento selezionato" e dalla Dashboard</h3>
+        <p>
+          Probabilmente è stato archiviato: gli eventi archiviati sono esclusi dal selettore in
+          toolbar e dalle liste attive. Trovi l'evento nella sezione <strong>Archiviati</strong>
+          del menu laterale, da cui puoi disarchiviarlo o clonarlo (vedi Capitolo 4).
         </p>
 
         <h3>Ho cambiato la password manager di un evento ma il manager non riesce ad accedere</h3>

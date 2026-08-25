@@ -440,7 +440,9 @@
               </td>
               <td>
                 Sequentially renumbers the candidates,
-                <strong>clears all votes</strong>, and reopens voting.
+                <strong>clears all votes</strong>, resets every
+                non-revoked judge code back to <strong>Active</strong>
+                (including ones already "Used"), and reopens voting.
               </td>
             </tr>
             <tr>
@@ -482,7 +484,10 @@
             Use this function only when you're certain you want to start
             fresh (e.g. at the official start of the evening, after
             finishing technical rehearsals or tests), not to "temporarily
-            reopen" voting.
+            reopen" voting. Judge/public codes already handed out remain
+            valid and become reusable again ("Active" status): you don't
+            need to regenerate them after a start/restart, unless they were
+            revoked.
           </p>
         </div>
 
