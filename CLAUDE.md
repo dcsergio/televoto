@@ -45,7 +45,7 @@ The frontend has no separate API-base-URL env var — `client/src/app/api/*.api.
 ## Architecture
 
 ### Two-tier auth model
-There is no user-account system — instead two independent, password-based auth layers, both implemented in `server/index.ts`:
+There is no user-account system — instead two independent, password-based auth layers, both implemented in `server/middleware/auth.middleware.ts`:
 1. **Root auth** (`requireRootAuth`) — one global root password (`RootCredential` table), gates `/admin` and cross-event endpoints (list/create events, root/event-manager password rotation). Login: `POST /api/auth/root/login`.
 2. **Event manager auth** (`requireEventManagerAuth`) — one password per event (`EventManagerCredential`, unique on `eventId`), gates candidate management, judge-code management, voting lifecycle (start/close/reset), and rankings for that specific event. Login: `POST /api/auth/event/login`. This is what gates `/manager` (and, separately, the rankings view on `/score`).
 
@@ -60,8 +60,19 @@ Voter identity for public voting is **not** device-fingerprinted — there is no
 ### Judge tokens (opaque, hashed, streamed)
 Judges don't log in with the admin auth system — the admin issues single-use opaque tokens (`JudgeToken` model) shared via link/QR code. Tokens are generated with `generateOpaqueToken`, stored only as a hash (`hashOpaqueToken`) plus a `tokenPreview`, and carry a `VoterType` (`QUALIFICATA` weighted judge vs `POPOLARE` general public) and lifecycle `VoterStatus`/timestamps (`usedAt`, `finalizedAt`, `revokedAt`). A vote is unique per `(candidateId, judgeTokenId)`. `GET /api/events/:eventId/judge-tokens/stream` is an SSE endpoint (`judgeTokenStreamClients` map) pushing live token/progress updates to the admin voting-progress dashboard — new judge-token or voting-progress logic must keep both the mutation route and this stream in sync. On the frontend, `client/src/app/api/judge-token-stream.service.ts` wraps the native `EventSource` in an RxJS `Observable` for `JudgeCodeManagerComponent`.
 
+Because the opaque code is only ever stored hashed, a judge who loses it cannot recover the original — instead `POST /api/judge-tokens/:id/reissue` (event-manager auth) revokes the old token, mints a new one, and re-parents that judge's existing votes onto the new token id so their progress survives. `JudgeCodeManagerComponent` exposes this as a "Rigenera" button per judge.
+
+Voters are also gated by `Event.popularVoteMode` (`NUMERIC` default, or `SINGLE`) — see "Popular vote modes" below.
+
+### Popular vote modes (numeric vs single-choice)
+`Event.popularVoteMode` (`PopularVoteMode` enum: `NUMERIC` | `SINGLE`), chosen at event creation and **immutable afterward**. `QUALIFICATA` judges always vote numerically (1-10 per candidate), regardless of this setting — it only changes how `POPOLARE` voters vote:
+- `NUMERIC` (default): unchanged 1-10 scoring per candidate.
+- `SINGLE`: an election-style ballot — the voter picks exactly one candidate, `vote.service.ts` forces `score = 1` and deletes that judge token's other votes so only one stays active.
+
+`ranking.service.ts` branches on this in `avgPopolare`: for `SINGLE` events it's the share of expressed votes a candidate received, scaled to a 0-10 range, instead of the usual trimmed mean — so `enableTrimmedMean`/`trimmedMeanPercentage` are meaningless (and hidden in the admin UI) for `SINGLE` events.
+
 ### Ranking / scoring algorithm
-Implemented in `GET /api/rankings/:eventId` (`server/index.ts`) — not derivable from the schema alone:
+Implemented in `GET /api/rankings/:eventId` (`server/routes/rankings.routes.ts`, `server/services/ranking.service.ts`) — not derivable from the schema alone:
 - Qualified-judge average is divided by the count of *eligible non-revoked* `QUALIFICATA` tokens for the event (not just the judges who actually voted), so abstentions pull a candidate's average down.
 - Popular-vote average optionally uses a trimmed mean (`enableTrimmedMean` + `trimmedMeanPercentage` on `Event`) to reduce outlier impact, via `computeTrimmedMean`.
 - Final score blends both pools using per-event weights (`weightQualificata` / `weightPopolare`, default 70/30, expected to sum to 100).
@@ -72,15 +83,19 @@ Implemented in `GET /api/rankings/:eventId` (`server/index.ts`) — not derivabl
 ### Event lifecycle
 `POST /api/events/:eventId/start` runs a transaction that renumbers candidates sequentially, clears all votes, and reopens voting — treat it as a destructive reset, not an incremental update. `DELETE /api/candidates/:id` also renumbers remaining candidates to keep numbers contiguous. Voting itself is gated by `Event.votingClosed`/`PUT /api/events/:eventId/voting-state`, and candidate edits are blocked while voting is open (enforced in the admin UI).
 
+Opening the Classifica (`/score`) while `votingClosed` is `false` is blocked in the UI: the "Apri Classifica" action (event backstage, manager toolbar, admin toolbar) shows a dialog telling the operator to close voting first instead of navigating there (see `event-lifecycle-controls.ts`, and the duplicated check in `admin-shell.ts`/`event-manager-shell.ts`).
+
+Archiving reuses `Event.active` (previously always `true`) as an archive flag rather than a soft-delete: `PUT /api/events/:eventId/archive-state` flips it. Archived events drop out of the admin's active event selector/lists and surface only in the admin "Archiviati" section, which can disarchive them or clone them via `POST /api/events/:eventId/clone` — cloning duplicates the event, its candidates, its weights, and a fresh manager credential into a new event with a newly generated code (votes and judge tokens are not carried over).
+
 ### Frontend routing
 Angular Router (`client/src/app/app.routes.ts`) with exactly four flat top-level routes: `''` (voting, `VotingShellComponent`), `admin` (`AdminShellComponent`, root-only cross-event management), `manager` (`EventManagerShellComponent`, single-event operational management), `score` (`ScoreComponent`) — no nested path segments. This mirrors a hard backend constraint: `server/index.ts` only serves the SPA's `index.html` as a fallback for the exact paths `GET /`, `GET /admin`, `GET /manager`, `GET /score` (no wildcard), so a real Angular child route like `/admin/events` would 404 on direct load or refresh. Adding a fifth flat route means updating three places in lockstep: `app.routes.ts`, this `server/index.ts` fallback list, and `vercel.json`'s `rewrites`.
 
-Event context flows via `?eventCode=` query param; judge access via `?judgeToken=` (16-char opaque token, displayed/entered in 4x4 segments — see `client/src/app/shared/judge-token.util.ts`). Both `admin` and `manager` persist their active section in `?adminSection=` via `router.navigate` with `queryParamsHandling: 'merge'` (not real child routes, for the same reason) — `admin` only has `dashboard|events` (see `client/src/app/pages/admin-shell/admin.util.ts`); `manager` has its own `dashboard|candidates|voting-codes|voting-backstage` (see `client/src/app/pages/event-manager-shell/event-manager-shell.util.ts`).
+Event context flows via `?eventCode=` query param; judge access via `?judgeToken=` (16-char opaque token, displayed/entered in 4x4 segments — see `client/src/app/shared/judge-token.util.ts`). Both `admin` and `manager` persist their active section in `?adminSection=` via `router.navigate` with `queryParamsHandling: 'merge'` (not real child routes, for the same reason) — `admin` only has `dashboard|events|archived` (see `client/src/app/pages/admin-shell/admin.util.ts` — `archived` lists archived events with disarchive/clone actions, see "Event lifecycle" above); `manager` has its own `dashboard|candidates|voting-codes|voting-backstage` (see `client/src/app/pages/event-manager-shell/event-manager-shell.util.ts`).
 
 Auth gating for `/admin`, `/manager` and `/score` is inline (no `canActivate` guard/redirect): each shell component checks `AuthStateService`'s signals and renders either a password-prompt form (`ProtectedPageGateComponent`) or the real content. `/manager` additionally requires an `?eventCode=` query param first (via `EventCodeGateComponent`, same pattern as `/score`) to resolve which event's manager password to prompt for — there is no cross-event switcher on that page, by design (an event manager must never be able to see or reach another event).
 
 ### API layer boundary
-`client/src/app/api/*.api.ts` — one Angular service per backend resource area (`auth`, `events`, `candidates`, `voting`, `rankings`, `judge-tokens`) wrapping `HttpClient` — is the only place that should call the backend; components/pages go through these services, not `HttpClient` directly. When adding/changing a backend endpoint: update `server/index.ts`, add/update the matching method in the relevant `*.api.ts`, then wire it into the page/component. A functional `HttpInterceptorFn` (`client/src/app/api/auth.interceptor.ts`) attaches the `Authorization: Bearer` header for requests tagged with the `AUTH_TOKEN` `HttpContext` token (see `withAuth()`); errors are normalized via `client/src/app/api/http-error.util.ts`. Shared types live in `client/src/app/models/types.ts` (`EventData`, `CandidateData`); API-only shapes like `RankingEntry` live alongside their `*.api.ts` file.
+`client/src/app/api/*.api.ts` — one Angular service per backend resource area (`auth`, `events`, `candidates`, `voting`, `rankings`, `judge-tokens`) wrapping `HttpClient` — is the only place that should call the backend; components/pages go through these services, not `HttpClient` directly. When adding/changing a backend endpoint: update the relevant `server/routes/*.ts` (plus its `service`/`repository`), add/update the matching method in the relevant `*.api.ts`, then wire it into the page/component. A functional `HttpInterceptorFn` (`client/src/app/api/auth.interceptor.ts`) attaches the `Authorization: Bearer` header for requests tagged with the `AUTH_TOKEN` `HttpContext` token (see `withAuth()`); errors are normalized via `client/src/app/api/http-error.util.ts`. Shared types live in `client/src/app/models/types.ts` (`EventData`, `CandidateData`); API-only shapes like `RankingEntry` live alongside their `*.api.ts` file.
 
 ### Deployment duality (Vercel serverless vs long-running server)
 The same Express app (`server/index.ts`) runs two ways:
