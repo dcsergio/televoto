@@ -35,9 +35,9 @@ Notes:
 - Generated Prisma client: `src/generated/prisma/` (do not edit manually) — this is the only thing left under the repo-root `src/` directory; the former React app there has been fully replaced by `client/`.
 
 ## Backend API Surface
-Routes are split across `server/routes/*.ts` (~28 routes total). Key groups:
+Routes are split across `server/routes/*.ts` (~31 routes total). Key groups:
 - Auth (`auth.routes.ts`): `POST /api/auth/root/login`, `POST /api/auth/root/password`, `POST /api/auth/event/login`
-- Events (`events.routes.ts`): `GET/POST /api/events`, `GET /api/events/by-code/:eventCode`, `GET/PUT /api/events/:eventId`, `PUT /api/events/:eventId/manager-password`, `GET /api/events/:eventId/voting-progress`, `PUT /api/events/:eventId/voting-state`, `POST /api/events/:eventId/start`, `DELETE /api/events/:eventId/votes`
+- Events (`events.routes.ts`): `GET/POST /api/events`, `GET /api/events/by-code/:eventCode`, `GET/PUT /api/events/:eventId`, `PUT /api/events/:eventId/manager-password`, `GET /api/events/:eventId/voting-progress`, `PUT /api/events/:eventId/voting-state`, `POST /api/events/:eventId/start`, `DELETE /api/events/:eventId/votes`, `PUT /api/events/:eventId/archive-state` (root-only), `POST /api/events/:eventId/clone` (root-only)
 - Voting (`votes.routes.ts`): `POST /api/vote` (judge-token gated, not device-based, rate-limited)
 - Candidates (`candidates.routes.ts`): `GET /api/candidates/:eventId`, `POST /api/candidates`, `PUT /api/candidates/:id`, `DELETE /api/candidates/:id`
 - Judge tokens (`judge-tokens.routes.ts`): `GET/POST /api/events/:eventId/judge-tokens`, `GET /api/events/:eventId/judge-tokens/stream` (SSE), `POST /api/judge-tokens/validate`, `POST /api/judge-tokens/finalize`, `POST /api/judge-tokens/:id/reissue` (lost-judge-code recovery), `POST /api/judge-tokens/:id/revoke`
@@ -57,10 +57,12 @@ When adding/changing endpoints:
 - Root/event-manager bearer tokens are held as signals in `client/src/app/state/auth-state.service.ts` and persisted to `sessionStorage`.
 - Two auth layers, both password-based, no user-account system: root (`requireRootAuth`, one global password, gates `/admin` + cross-event endpoints, `/api/auth/root/login`) and event-manager (`requireEventManagerAuth`, one password per event, gates `/manager` + candidate/judge-token/voting-lifecycle endpoints, `/api/auth/event/login`). A root token is also accepted wherever an event-manager token is expected (deliberate superuser bypass) — `/manager` takes advantage of this so root can open any event without a manager password; `/score` deliberately does not.
 - Judges never use the root/manager auth system — they get single-use opaque `JudgeToken`s (link/QR), stored only as a hash + preview, carrying a `VoterType` (`QUALIFICATA` weighted vs `POPOLARE` general public).
+- Event archiving reuses `Event.active` (previously always `true`) as the archived flag: `false` = archived. Archived events are excluded from the admin event selector and active lists; the admin "Archiviati" section (`admin.util.ts`'s `AdminSection = 'archived'`) lists them for unarchiving or cloning. `POST /api/events/:eventId/clone` duplicates the event, its candidates, weights, and manager credential into a new event with a freshly generated code and `" (copia)"` appended to the name.
+- Root's `sessionStorage` token only survives a `window.open()` into a new tab if the opener relationship is intact — never pass `noopener`/`noreferrer` on same-origin admin→manager links (`handleManageEvent` in `admin-shell.ts`), or the new `/manager` tab loses the root token and wrongly prompts for the event password.
 
 ## Known Pitfalls
 - `DELETE /api/candidates/:id` reorders remaining candidate numbers to keep them sequential.
-- `POST /api/events/:eventId/start` performs a transaction that renumbers candidates, clears votes, and reopens voting — treat as a destructive reset, not an incremental update.
+- `POST /api/events/:eventId/start` performs a transaction that renumbers candidates, clears votes, resets all non-revoked judge tokens back to `ACTIVE` (clearing `usedAt`/`finalizedAt`), and reopens voting — treat as a destructive reset, not an incremental update. It also triggers a `judge-tokens/stream` SSE broadcast afterward so the admin progress dashboard reflects the reset tokens.
 - Do not hand-edit generated Prisma files in `src/generated/prisma/`; regenerate with `npx prisma generate` if needed.
 - After schema changes, use `npm run db:migrate` (not only `prisma db push`) to preserve migration history.
 - The backend only serves the SPA's `index.html` as a fallback for the exact paths `GET /`, `GET /admin`, `GET /manager`, `GET /score` (no wildcard route) — the Angular app must not introduce real nested routes under any of them (it uses query params instead, see `?adminSection=`, shared by both `admin` and `manager`). Adding a fifth top-level route means updating `client/src/app/app.routes.ts`, this fallback list in `server/index.ts`, and `vercel.json`'s `rewrites` together.
