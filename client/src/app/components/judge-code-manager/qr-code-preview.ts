@@ -11,17 +11,17 @@ import QRCode from 'qrcode';
       </div>
     } @else if (!qrDataUrl()) {
       <div
-        class="flex h-[124px] w-[124px] items-center justify-center rounded-xl border border-slate-700 bg-slate-950 text-xs text-text-secondary"
+        class="flex h-[124px] w-[124px] items-center justify-center rounded-xl border border-border-glass bg-bg-primary text-xs text-text-secondary"
       >
         QR...
       </div>
     } @else {
       <div class="space-y-2">
-        <img [src]="qrDataUrl()" [alt]="label()" class="h-[124px] w-[124px] rounded-xl border border-slate-700 bg-slate-950 p-1" />
+        <img [src]="qrDataUrl()" [alt]="label()" class="h-[124px] w-[124px] rounded-xl border border-border-glass bg-bg-primary p-1" />
         <a
           [href]="qrDataUrl()"
           [download]="label() + '.png'"
-          class="inline-flex rounded-lg border border-slate-700 px-2 py-1 text-[11px] font-semibold text-text-primary transition hover:bg-slate-800"
+          class="inline-flex rounded-lg border border-border-glass px-2 py-1 text-[11px] font-semibold text-text-primary transition hover:bg-bg-secondary"
         >
           Scarica PNG
         </a>
@@ -47,7 +47,7 @@ export class QrCodePreviewComponent {
         errorCorrectionLevel: 'M',
         margin: 1,
         width: 240,
-        color: { dark: '#e2e8f0', light: '#0f172acc' },
+        color: { dark: '#f4f4f5', light: '#0f0f12cc' },
       })
         .then((url) => {
           if (!cancelled) this.qrDataUrl.set(url);

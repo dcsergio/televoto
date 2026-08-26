@@ -1,6 +1,6 @@
 @if (loading()) {
   <div class="flex items-center justify-center min-h-dvh">
-    <div class="w-10 h-10 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
+    <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
   </div>
 } @else if (!eventCode()) {
   <app-event-code-gate (submitCode)="handleEventCodeSubmit($event)" />
@@ -18,10 +18,10 @@
     (cancel)="handleLoginCancel()"
   />
 } @else {
-  <mat-sidenav-container class="h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary">
+  <mat-sidenav-container class="h-dvh bg-bg-primary text-text-primary">
     <mat-sidenav
       #sidenav
-      class="w-72 border-r border-slate-700 !bg-slate-900/95"
+      class="w-72 border-r border-border-glass !bg-bg-secondary"
       [mode]="sidenavMode()"
       [opened]="sidenavOpened()"
       (openedChange)="sidenavOpened.set($event)"
@@ -60,7 +60,7 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="flex h-full flex-col">
-      <mat-toolbar class="app-shell-toolbar !h-auto !min-h-16 gap-2 !bg-slate-900/90 border-b border-slate-700 py-2 pl-4 backdrop-blur-xl sm:gap-3">
+      <mat-toolbar class="app-shell-toolbar !h-auto !min-h-16 gap-2 !bg-bg-primary/90 border-b border-border-glass py-2 pl-4 backdrop-blur-xl sm:gap-3">
         @if (isHandset()) {
           <button type="button" mat-icon-button (click)="toggleSidenav()" aria-label="Apri menu">
             <mat-icon>menu</mat-icon>
@@ -74,7 +74,7 @@
         <span
           [class]="
             event()!.votingClosed
-              ? 'text-lg font-extrabold uppercase tracking-wider text-red-400'
+              ? 'text-lg font-extrabold uppercase tracking-wider text-accent-cyan'
               : 'text-lg font-extrabold uppercase tracking-wider text-emerald-400'
           "
         >

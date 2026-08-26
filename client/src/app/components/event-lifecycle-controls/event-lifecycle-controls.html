@@ -1,8 +1,8 @@
 @if (error()) {
-  <div class="rounded-lg border border-red-500 bg-red-500/20 p-4 text-red-300">{{ error() }}</div>
+  <div class="rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
 }
 
-<div class="rounded-2xl border border-slate-700/90 bg-slate-900/90 p-4">
+<div class="rounded-2xl border border-border-glass bg-bg-secondary/90 p-4">
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Controlli televoto</p>
@@ -25,7 +25,7 @@
       <button
         type="button"
         (click)="handleOpenScore()"
-        class="rounded-2xl bg-accent-magenta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-magenta/90 transition"
+        class="rounded-2xl border border-border-glass bg-bg-secondary px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-bg-card-hover"
       >
         Apri Classifica
       </button>
