@@ -9,24 +9,27 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
-    <div class="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
-      <div class="w-full max-w-xl rounded-3xl border border-border-glass bg-slate-900/80 p-6 shadow-2xl">
-        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Codice evento</p>
-        <h2 class="mt-2 text-2xl font-bold text-text-primary">Inserisci il codice evento</h2>
-        <p class="mt-3 text-sm text-text-secondary">
+    <div class="flex min-h-dvh items-center justify-center px-4">
+      <div class="glass w-full max-w-xl p-7 sm:p-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-accent-cyan">Codice evento</p>
+        <h2 class="gradient-title mt-3 text-3xl font-bold uppercase leading-[0.98] sm:text-4xl">
+          Inserisci il codice
+        </h2>
+        <p class="mt-3 max-w-[48ch] text-sm text-text-secondary text-pretty">
           Per accedere al televoto o alla classifica devi indicare un codice evento valido.
         </p>
-        <form class="mt-5 flex flex-col gap-3 sm:flex-row" (ngSubmit)="handleSubmit()">
+        <form class="mt-6 flex flex-col gap-3 sm:flex-row" (ngSubmit)="handleSubmit()">
           <input
             type="text"
+            inputmode="numeric"
             [(ngModel)]="codeInput"
             name="eventCode"
             placeholder="Es. 00001"
-            class="flex-1 rounded-2xl border border-border-glass bg-slate-800 px-4 py-2 text-text-primary outline-none ring-0"
+            class="flex-1 rounded-xl border border-border-glass bg-bg-secondary px-4 py-2.5 font-display tabular-nums tracking-[0.1em] text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
           />
           <button
             type="submit"
-            class="rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
+            class="rounded-xl bg-accent-cyan px-5 py-2.5 font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 active:scale-95"
           >
             Entra
           </button>

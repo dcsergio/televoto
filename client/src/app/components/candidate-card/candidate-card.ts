@@ -9,7 +9,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
   imports: [NgClass, ScoreSelectorComponent],
   template: `
     <div
-      class="w-full animate-fade-in-up overflow-hidden rounded-2xl border transition-all duration-300 btn-tactile"
+      class="w-full animate-fade-in-up overflow-hidden rounded-2xl border btn-tactile transition-all duration-300"
       [ngClass]="containerClasses()"
       [style.animation-delay.ms]="delay()"
     >
@@ -50,7 +50,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
         </div>
 
         <span
-          class="font-display text-2xl md:text-3xl font-semibold tabular-nums"
+          class="font-display text-3xl md:text-4xl font-bold tabular-nums tracking-[-0.04em]"
           [style.color]="candidate().color"
           [style.opacity]="isVoted() && !selected() ? 0.4 : 0.95"
         >
@@ -150,6 +150,8 @@ export class CandidateCardComponent {
       glass: !selected && !voted,
       'border-border-glass': !selected,
       'hover:bg-bg-card-hover': !selected && !voted,
+      'hover:-translate-y-0.5': !selected && !voted,
+      'hover:shadow-lift': !selected && !voted,
     };
   });
 

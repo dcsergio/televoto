@@ -1,6 +1,6 @@
 @if (appLoading()) {
   <div class="flex items-center justify-center min-h-dvh">
-    <div class="w-10 h-10 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
+    <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
   </div>
 } @else if (!eventCode()) {
   <app-event-code-gate (submitCode)="handleEventCodeSubmit($event)" />
