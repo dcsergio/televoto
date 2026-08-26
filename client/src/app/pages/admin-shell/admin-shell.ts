@@ -23,6 +23,7 @@ import { AdminEventSummary, EventsApi } from '../../api/events.api';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
+import { openScoreGuarded } from '../../shared/open-score.util';
 import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
 @Component({
@@ -228,18 +229,7 @@ export class AdminShellComponent {
   protected handleOpenScore(): void {
     const ev = this.selectedEvent();
     if (!ev) return;
-    if (!ev.votingClosed) {
-      this.dialog.open(ConfirmDialogComponent, {
-        data: {
-          title: 'Televoto ancora aperto',
-          message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
-          confirmLabel: 'Ho capito',
-          hideCancel: true,
-        },
-      });
-      return;
-    }
-    window.open(`/score?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+    openScoreGuarded(this.dialog, ev.code, ev.votingClosed);
   }
 
   /**

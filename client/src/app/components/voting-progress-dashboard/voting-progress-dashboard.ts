@@ -3,18 +3,10 @@ import { NgClass } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { VotingApi, VotingProgress, VotingProgressJudge } from '../../api/voting.api';
 import { PartialRankingsPanelComponent } from '../partial-rankings-panel/partial-rankings-panel';
-
-function getStatusLabel(status: VotingProgressJudge['status']): string {
-  if (status === 'used') return 'Finalizzato';
-  if (status === 'revoked') return 'Revocato';
-  return 'Attivo';
-}
-
-function getStatusClass(status: VotingProgressJudge['status']): string {
-  if (status === 'used') return 'border-amber-500/30 bg-amber-500/15 text-amber-200';
-  if (status === 'revoked') return 'border-red-500/30 bg-red-500/15 text-red-200';
-  return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-200';
-}
+import {
+  getJudgeTokenStatusClass as getStatusClass,
+  getJudgeTokenStatusLabel as getStatusLabel,
+} from '../../shared/judge-token-status.util';
 
 const POLL_MS = 10000;
 

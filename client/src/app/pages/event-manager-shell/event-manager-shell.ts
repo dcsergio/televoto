@@ -6,21 +6,19 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { firstValueFrom, map } from 'rxjs';
+import { map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
-import { JudgeTokensApi, JudgeTokenRecord } from '../../api/judge-tokens.api';
 import { EventCodeGateComponent } from '../../components/event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { EventCandidatesManagerComponent } from '../../components/event-candidates-manager/event-candidates-manager';
 import { EventLifecycleControlsComponent, VotingStateChange } from '../../components/event-lifecycle-controls/event-lifecycle-controls';
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
 import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
-import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
+import { openScoreGuarded } from '../../shared/open-score.util';
 import {
   EVENT_MANAGER_SECTION_NAV,
   EventManagerSection,
@@ -42,7 +40,6 @@ import {
     MatListModule,
     MatIconModule,
     MatButtonModule,
-    MatCardModule,
     MatDividerModule,
   ],
   templateUrl: './event-manager-shell.html',
@@ -50,7 +47,6 @@ import {
 export class EventManagerShellComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly judgeTokensApi = inject(JudgeTokensApi);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly dialog = inject(MatDialog);
   protected readonly authState = inject(AuthStateService);
@@ -79,22 +75,6 @@ export class EventManagerShellComponent {
   protected readonly activeToken = computed(() => this.authState.rootAuthToken() ?? this.authState.eventManagerAuthToken());
   protected readonly isAuthenticated = computed(() => this.activeToken() !== null);
 
-  protected readonly judgeTokens = signal<JudgeTokenRecord[]>([]);
-  protected readonly judgeTokensLoading = signal(false);
-  protected readonly judgeTokenStats = computed(() => {
-    const tokens = this.judgeTokens();
-    return {
-      total: tokens.length,
-      qualificata: tokens.filter((t) => t.type === 'QUALIFICATA').length,
-      popolare: tokens.filter((t) => t.type === 'POPOLARE').length,
-      active: tokens.filter((t) => t.status === 'active').length,
-      used: tokens.filter((t) => t.status === 'used').length,
-      revoked: tokens.filter((t) => t.status === 'revoked').length,
-    };
-  });
-
-  private lastJudgeTokensKey: string | null = null;
-
   constructor() {
     effect(() => {
       this.sidenavOpened.set(!this.isHandset());
@@ -103,31 +83,6 @@ export class EventManagerShellComponent {
     effect(() => {
       void this.votingState.loadEventByCode(this.eventCode(), false);
     });
-
-    effect(() => {
-      const ev = this.event();
-      const token = this.activeToken();
-      if (!ev || !token) {
-        this.judgeTokens.set([]);
-        return;
-      }
-      const key = `${ev.id}:${token}`;
-      if (key === this.lastJudgeTokensKey) return;
-      this.lastJudgeTokensKey = key;
-      void this.loadJudgeTokens(ev.id, token);
-    });
-  }
-
-  private async loadJudgeTokens(eventId: string, token: string): Promise<void> {
-    this.judgeTokensLoading.set(true);
-    try {
-      const data = await firstValueFrom(this.judgeTokensApi.fetchJudgeTokens(eventId, token));
-      this.judgeTokens.set(data);
-    } catch {
-      this.judgeTokens.set([]);
-    } finally {
-      this.judgeTokensLoading.set(false);
-    }
   }
 
   protected toggleSidenav(): void {
@@ -188,18 +143,7 @@ export class EventManagerShellComponent {
   protected handleOpenScore(): void {
     const ev = this.event();
     if (!ev) return;
-    if (!ev.votingClosed) {
-      this.dialog.open(ConfirmDialogComponent, {
-        data: {
-          title: 'Televoto ancora aperto',
-          message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
-          confirmLabel: 'Ho capito',
-          hideCancel: true,
-        },
-      });
-      return;
-    }
-    window.open(`/score?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+    openScoreGuarded(this.dialog, ev.code, ev.votingClosed);
   }
 
   protected handleVotingStateChange(change: VotingStateChange): void {
