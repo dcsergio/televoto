@@ -16,9 +16,9 @@
   }
 } @else if (isJudgeAccessRejected() && judgeAccess().message) {
   <div class="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
-    <div class="w-full max-w-xl rounded-3xl border border-border-glass bg-slate-900/80 p-6 shadow-2xl">
-      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Accesso giudice</p>
-      <h2 class="mt-2 text-2xl font-bold text-text-primary">Codice non disponibile</h2>
+    <div class="w-full max-w-xl rounded-2xl border border-border-glass bg-bg-card p-6">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Accesso giudice</p>
+      <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">Codice non disponibile</h2>
       <p class="mt-3 text-sm text-text-secondary">{{ judgeAccess().message }}</p>
     </div>
   </div>
@@ -27,40 +27,45 @@
     <app-header />
 
     @if (judgeMode() && (judgeAccess().status === 'valid' || judgeAccess().status === 'used')) {
-      <div class="sticky top-14 z-40 w-full backdrop-blur-md bg-slate-950/80 border-b border-border-glass py-3 px-4 animate-fade-in-up">
-        <div class="max-w-2xl mx-auto flex items-center justify-between gap-4">
+      <div class="sticky top-14 z-40 w-full backdrop-blur-md bg-bg-primary/90 border-b border-border-glass py-3 px-4 animate-fade-in-up">
+        <div class="max-w-2xl mx-auto flex items-center gap-4">
           @if (!isSingleVoteMode()) {
-            <div class="flex-1">
-              <div class="flex justify-between items-center text-xs font-semibold uppercase tracking-wider mb-2">
-                <span class="text-text-secondary">Progresso Voto</span>
-                <span class="text-accent-cyan font-bold">{{ judgeVotesCount() }} / {{ event()!.candidates.length }}</span>
-              </div>
-              <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
-                <div
-                  class="h-full bg-gradient-to-r from-accent-cyan to-accent-magenta rounded-full transition-all duration-300 progress-bar-glow"
-                  [style.width.%]="progressPercent()"
-                ></div>
-              </div>
-              <p class="mt-2 text-xs text-text-secondary">
+            <div class="relative flex-shrink-0" aria-hidden="true">
+              <svg width="44" height="44" viewBox="0 0 44 44" class="-rotate-90">
+                <circle cx="22" cy="22" r="19" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4" />
+                <circle
+                  cx="22" cy="22" r="19" fill="none" stroke="var(--color-accent-cyan)" stroke-width="4"
+                  stroke-linecap="round" pathLength="100"
+                  [attr.stroke-dasharray]="progressPercent() + ' 100'"
+                  class="transition-all duration-500"
+                />
+              </svg>
+              <span class="absolute inset-0 flex items-center justify-center font-display text-[11px] font-semibold tabular-nums text-text-primary">
+                {{ judgeVotesCount() }}/{{ event()!.candidates.length }}
+              </span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">Progresso voto</p>
+              <p class="mt-0.5 text-sm text-text-primary">
                 @if (isQualifiedVoter()) {
-                  {{ missingVotes() > 0 ? 'Mancano ' + missingVotes() + ' voti alla conferma finale.' : 'Hai completato tutte le preferenze.' }}
+                  {{ missingVotes() > 0 ? 'Mancano ' + missingVotes() + ' voti alla conferma.' : 'Tutte le preferenze espresse.' }}
                 } @else {
-                  Voti popolari espressi: {{ judgeVotesCount() }}
+                  {{ judgeVotesCount() }} voti popolari espressi
                 }
               </p>
             </div>
           } @else {
-            <div class="flex-1">
-              <p class="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-2">Voto singolo</p>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">Voto singolo</p>
               @if (judgeVotesCount() > 0) {
-                <p class="text-sm text-text-primary">Hai scelto: <span class="font-bold text-accent-cyan">{{ singleVotedCandidateName() }}</span></p>
+                <p class="mt-0.5 text-sm text-text-primary">Hai scelto: <span class="font-semibold text-accent-cyan">{{ singleVotedCandidateName() }}</span></p>
               } @else {
-                <p class="text-sm text-text-secondary">Scegli un candidato</p>
+                <p class="mt-0.5 text-sm text-text-secondary">Scegli un candidato</p>
               }
             </div>
           }
           @if (judgeCodeStatusLabel()) {
-            <span class="flex-shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1.5 text-[11px] font-bold text-cyan-200">
+            <span class="hidden sm:inline-flex flex-shrink-0 rounded-lg border border-accent-cyan/25 bg-accent-cyan/10 px-2.5 py-1 text-[11px] font-semibold text-accent-cyan">
               {{ judgeCodeStatusLabel() }}
             </span>
           }
@@ -69,14 +74,14 @@
               type="button"
               (click)="openFinalizeDialog()"
               [disabled]="finalizeDisabled()"
-              class="flex-shrink-0 bg-accent-cyan text-slate-900 text-xs font-extrabold tracking-wide uppercase px-4 py-2 rounded-xl shadow-lg transition duration-200 hover:scale-105 active:scale-95 progress-bar-glow cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              class="hidden sm:block flex-shrink-0 rounded-xl bg-accent-cyan px-4 py-2 text-xs font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Conferma definitiva
             </button>
           }
           @if (isJudgeVoteLocked()) {
-            <span class="flex-shrink-0 flex items-center gap-1 text-[11px] font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-xl border border-emerald-500/20">
-              <span>&#10003; Bloccato</span>
+            <span class="flex-shrink-0 flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20">
+              &#10003; Bloccato
             </span>
           }
         </div>
@@ -85,14 +90,14 @@
 
     <main class="flex-1 w-full max-w-2xl mx-auto px-4 pb-8">
       @if (!votingClosed() && !judgeMode()) {
-        <div class="mb-6 rounded-3xl border border-slate-600 bg-slate-900/70 p-5 text-center text-slate-100 shadow-sm">
-          <p class="text-sm uppercase tracking-[0.2em] font-semibold text-accent-cyan">Accesso richiesto</p>
-          <p class="mt-1 text-base">
+        <div class="mb-6 rounded-2xl border border-border-glass bg-bg-card p-5 text-center text-text-primary">
+          <p class="text-xs uppercase tracking-[0.2em] font-semibold text-accent-cyan">Accesso richiesto</p>
+          <p class="mt-2 text-sm text-text-secondary">
             Per votare hai bisogno del Codice Voto. Scansiona il QR code direttamente con la fotocamera del tuo
             cellulare, oppure inserisci il codice qui sotto.
           </p>
           <form class="mt-4 flex flex-col gap-3" (ngSubmit)="handleManualJudgeCodeSubmit()">
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               @for (segment of manualJudgeCodeSegments(); track $index) {
                 <input
                   #segInput
@@ -108,16 +113,16 @@
                   (keydown)="handleManualJudgeCodeSegmentKeyDown($index, $event)"
                   (paste)="handleManualJudgeCodeSegmentPaste($event)"
                   placeholder="XXXX"
-                  class="w-full rounded-2xl border border-border-glass bg-slate-800 px-4 py-3 text-center font-mono text-lg uppercase tracking-[0.25em] text-text-primary outline-none ring-0"
+                  class="w-full rounded-xl border border-border-glass bg-bg-secondary px-3 py-3 text-center font-display text-lg uppercase tracking-[0.25em] text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
                 />
               }
             </div>
             @if (judgeCodeInlineError()) {
-              <p class="text-sm text-amber-200">{{ judgeCodeInlineError() }}</p>
+              <p class="text-sm text-amber-300">{{ judgeCodeInlineError() }}</p>
             }
             <button
               type="submit"
-              class="w-full sm:w-auto self-start rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90"
+              class="w-full sm:w-auto self-center rounded-xl bg-accent-cyan px-5 py-2.5 font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110"
             >
               Vai al voto
             </button>
@@ -126,29 +131,29 @@
       }
 
       @if (judgeMode() && isJudgeVoteLocked()) {
-        <div class="mb-6 rounded-3xl border border-emerald-400/40 bg-emerald-500/10 p-5 text-emerald-100 shadow-sm">
-          <p class="text-sm uppercase tracking-[0.2em] font-semibold">Codice bloccato</p>
-          <p class="mt-1 text-base">I voti sono definitivi e non modificabili.</p>
+        <div class="mb-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 text-emerald-100">
+          <p class="text-xs uppercase tracking-[0.2em] font-semibold">Codice bloccato</p>
+          <p class="mt-1 text-sm">I voti sono definitivi e non modificabili.</p>
         </div>
       }
 
       @if (votingClosed()) {
-        <div class="mb-6 rounded-3xl border border-amber-400/40 bg-amber-500/10 p-5 text-center text-amber-100 shadow-sm">
-          <p class="text-sm uppercase tracking-[0.2em] font-semibold">Televoto chiuso</p>
-          <p class="mt-1 text-base">Non &egrave; pi&ugrave; possibile esprimere voti.</p>
+        <div class="mb-6 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-5 text-center text-amber-100">
+          <p class="text-xs uppercase tracking-[0.2em] font-semibold">Televoto chiuso</p>
+          <p class="mt-1 text-sm">Non &egrave; pi&ugrave; possibile esprimere voti.</p>
         </div>
       }
 
       <app-hero-banner [name]="event()!.name" [subtitle]="event()!.subtitle" [compact]="judgeMode()" />
 
       @if (turnoutLabel()) {
-        <p class="mt-3 text-center text-xs uppercase tracking-[0.15em] text-text-secondary">{{ turnoutLabel() }}</p>
+        <p class="mt-2 text-center text-xs uppercase tracking-[0.15em] text-text-secondary">{{ turnoutLabel() }}</p>
       }
 
       <section class="mt-6">
-        <h2 class="flex items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase text-text-secondary mb-4">
-          <span class="text-base" aria-hidden="true">&#9835;</span>
-          <p>Scegli il tuo candidato</p>
+        <h2 class="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-text-secondary mb-4">
+          <span class="h-3 w-1 rounded-full bg-accent-cyan" aria-hidden="true"></span>
+          <span>Scegli il tuo candidato</span>
         </h2>
 
         <app-candidate-list
@@ -164,17 +169,17 @@
       </section>
 
       @if (votingClosed()) {
-        <div class="mt-8 rounded-2xl border border-amber-400/40 bg-amber-500/10 p-6 text-amber-100 text-center">
+        <div class="mt-8 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-6 text-amber-100 text-center text-sm">
           Il televoto &egrave; stato chiuso. I voti non sono pi&ugrave; accettati.
         </div>
       }
     </main>
 
     @if (judgeFinalizeOpen() && judgeToken()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6">
-        <div class="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Conferma giudice</p>
-          <h2 class="mt-2 text-2xl font-bold text-text-primary">Bloccare il codice?</h2>
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-6">
+        <div class="w-full max-w-lg rounded-2xl border border-border-glass bg-bg-card p-6 shadow-2xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Conferma giudice</p>
+          <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">Bloccare il codice?</h2>
           <p class="mt-3 text-sm text-text-secondary">
             Dopo la conferma, le preferenze diventano definitive e non potranno pi&ugrave; essere modificate da nessun
             dispositivo.
@@ -183,7 +188,7 @@
             <button
               type="button"
               (click)="closeFinalizeDialog()"
-              class="rounded-2xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm text-text-secondary hover:bg-slate-700 transition"
+              class="rounded-xl border border-border-glass bg-bg-secondary px-4 py-2 text-sm text-text-secondary hover:bg-bg-card-hover transition"
             >
               Annulla
             </button>
@@ -191,7 +196,7 @@
               type="button"
               (click)="handleFinalizeJudgeCode()"
               [disabled]="finalizingJudgeToken()"
-              class="rounded-2xl bg-accent-cyan px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-60"
+              class="rounded-xl bg-accent-cyan px-4 py-2 text-sm font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {{ finalizingJudgeToken() ? 'Blocco in corso...' : 'Conferma e blocca' }}
             </button>
@@ -201,12 +206,12 @@
     }
 
     @if (judgeMode() && canFinalizeJudge()) {
-      <div class="fixed bottom-0 left-0 right-0 z-40 border-t border-border-glass bg-slate-950/95 px-4 py-3 backdrop-blur sm:hidden">
+      <div class="fixed bottom-0 left-0 right-0 z-40 border-t border-border-glass bg-bg-primary/95 px-4 py-3 backdrop-blur sm:hidden">
         <button
           type="button"
           (click)="openFinalizeDialog()"
           [disabled]="finalizeDisabled()"
-          class="w-full rounded-2xl bg-accent-cyan px-4 py-3 text-sm font-extrabold uppercase tracking-wide text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+          class="w-full rounded-xl bg-accent-cyan px-4 py-3 text-sm font-bold uppercase tracking-[0.06em] text-[#1a1206] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Conferma definitiva
         </button>

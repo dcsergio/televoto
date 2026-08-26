@@ -7,6 +7,7 @@ import { RankingEntry, RankingsApi } from '../../api/rankings.api';
 import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { splitEventNameForDisplay } from '../../shared/event-name-display.util';
+import { CountUpDirective } from '../../shared/count-up.directive';
 import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../protected-page-gate/protected-page-gate';
 import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from './score.util';
@@ -14,7 +15,7 @@ import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from '
 @Component({
   selector: 'app-score',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, EventCodeGateComponent, ProtectedPageGateComponent],
+  imports: [NgClass, CountUpDirective, EventCodeGateComponent, ProtectedPageGateComponent],
   templateUrl: './score.html',
 })
 export class ScoreComponent {
@@ -94,6 +95,29 @@ export class ScoreComponent {
   );
   protected readonly eventNameParts = computed(() => splitEventNameForDisplay(this.event()?.name ?? ''));
   protected readonly waitingForClose = computed(() => !!this.event() && !this.event()!.votingClosed);
+
+  // ── Presenter-stage helpers ──
+  // The most recently revealed position (lowest index = best rank so far) is the
+  // headline "title card"; everything revealed before it drops into a ladder.
+  protected readonly presenterHeroIndex = computed(() => {
+    const revealed = this.revealedIndices();
+    return revealed.length > 0 ? Math.min(...revealed) : -1;
+  });
+  protected readonly presenterHeroEntry = computed<RankingEntry | null>(() => {
+    const index = this.presenterHeroIndex();
+    return index >= 0 ? this.rankings()[index] ?? null : null;
+  });
+  protected readonly presenterLadderEntries = computed<RankingEntry[]>(() => {
+    const heroIndex = this.presenterHeroIndex();
+    const revealed = this.revealedIndices();
+    return this.rankings()
+      .map((entry, index) => ({ entry, index }))
+      .filter(({ index }) => index !== heroIndex && revealed.includes(index))
+      .sort((a, b) => b.index - a.index)
+      .map(({ entry }) => entry);
+  });
+  protected readonly heroIsThirdPlace = computed(() => this.presenterHeroIndex() === 2);
+  protected readonly runnerUp = computed<RankingEntry | null>(() => this.rankings()[1] ?? null);
 
   private lastRankingsEventId: string | null = null;
 
@@ -275,15 +299,14 @@ export class ScoreComponent {
   protected finalistCardClasses(index: number): Record<string, boolean> {
     const isWinnerCard = this.showWinner() && (this.hasTopTie() || index === 0);
     return {
-      'scale-[1.05]': isWinnerCard,
-      'border-amber-400/80': isWinnerCard,
-      'bg-gradient-to-br': isWinnerCard,
-      'from-amber-500/30': isWinnerCard,
-      'via-slate-800': isWinnerCard,
-      'to-slate-900': isWinnerCard,
-      'shadow-[0_0_40px_rgba(251,191,36,0.35)]': isWinnerCard,
-      'border-slate-700': !isWinnerCard,
-      'bg-slate-800/70': !isWinnerCard,
+      'scale-[1.03]': isWinnerCard,
+      'border-accent-yellow/70': isWinnerCard,
+      'bg-gradient-to-b': isWinnerCard,
+      'from-accent-cyan/15': isWinnerCard,
+      'to-transparent': isWinnerCard,
+      'animate-winner-glow': isWinnerCard,
+      'border-border-glass': !isWinnerCard,
+      'bg-bg-card': !isWinnerCard,
     };
   }
 
@@ -294,18 +317,12 @@ export class ScoreComponent {
   protected entryCardClasses(entry: RankingEntry): Record<string, boolean> {
     const isThirdPlaceCard = this.isThirdPlaceStage() && this.rankingIndex(entry) === 2;
     return {
-      'bg-gradient-to-br': isThirdPlaceCard,
-      'from-amber-500/20': isThirdPlaceCard,
-      'via-slate-800': isThirdPlaceCard,
-      'to-slate-900': isThirdPlaceCard,
-      'shadow-[0_0_30px_rgba(251,191,36,0.18)]': isThirdPlaceCard,
-      'bg-gradient-to-r': !isThirdPlaceCard,
+      'bg-gradient-to-b': isThirdPlaceCard,
+      'from-accent-yellow/12': isThirdPlaceCard,
+      'to-transparent': isThirdPlaceCard,
+      'border-accent-yellow/40': isThirdPlaceCard,
+      'bg-bg-card': !isThirdPlaceCard,
     };
-  }
-
-  protected entryBackgroundColor(entry: RankingEntry): string | null {
-    const isThirdPlaceCard = this.isThirdPlaceStage() && this.rankingIndex(entry) === 2;
-    return isThirdPlaceCard ? null : `${entry.color}15`;
   }
 
   protected rankingIndex(entry: RankingEntry): number {

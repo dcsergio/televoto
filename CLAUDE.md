@@ -10,19 +10,7 @@ The repo is an npm workspace: the root `package.json` owns the Express/Prisma ba
 
 ## Commands
 
-| Task | Command |
-|------|---------|
-| Full dev (frontend + backend) | `npm run dev` |
-| Frontend only | `npm run dev:client` |
-| Backend only | `npm run dev:server` |
-| Build (backend typecheck + frontend) | `npm run build` |
-| Lint (backend only) | `npm run lint` |
-| Frontend smoke tests (Vitest) | `npm run test:client` |
-| DB seed | `npm run db:seed` |
-| DB migration (deploy) | `npm run db:migrate` |
-| DB migration via pooler | `npm run db:migrate:pooler` |
-| DB push (no migration history) | `npm run db:push` |
-| Prisma Studio | `npm run db:studio` |
+See `package.json` `scripts` for the full command list (dev, dev:client, dev:server, build, lint, test:client, db:seed, db:migrate, db:migrate:pooler, db:push, db:studio).
 
 Notes:
 - `npm run dev` starts the Angular dev server (`ng serve`, port 8080) and Express (port 3001) concurrently via `concurrently`. The Angular dev server proxies `/api/*` to `http://localhost:3001` (`client/proxy.conf.json`) — CORS is disabled server-side (`cors({origin:false})`), so this proxy is required, not optional. A port-8080 conflict fails startup outright.
@@ -111,22 +99,4 @@ Do not fork logic between these two entry points — `api/[...path].ts` should s
 - `scripts/create_db_from_zero.sql` recreates the database from scratch (drop + create) for local resets; `scripts/bootstrap-db.ts` handles programmatic bootstrap (e.g. seeding the root credential from `ROOT_ADMIN_PASSWORD`).
 
 ### Angular Material theming
-`client/src/styles/_material-theme.scss` defines a custom M3 theme (`mat.theme()`, dark, cyan/violet palettes) whose system CSS variables (`--mat-sys-primary`, `--mat-sys-surface`, etc.) are re-pointed at the same hex values as the app's pre-existing "Neon Dark" design tokens (`@theme` block in `client/src/styles.scss`, ported unchanged from the old `src/index.css`). Angular Material components are used for genuinely interactive chrome (`MatDialog` for the confirm-destructive-action pattern — see `ConfirmDialogComponent` — and `MatSnackBar` for toasts via `ToastService`); highly custom visual elements (score buttons, candidate cards, hero banner, Classifica reveal) stay hand-rolled CSS/Tailwind, matching the original design rather than being forced into Material components. Tailwind v4 is still used for utility classes, wired via `@tailwindcss/postcss` (not `@tailwindcss/vite`, since the Angular CLI's esbuild-based builder doesn't take Vite plugins).
-
-## Key files
-
-- `server/index.ts` — backend bootstrap (mounts `server/routes/*.ts`, static SPA fallback for the four top-level routes). Route handlers, auth, scoring, and SSE logic live in `server/routes/`, `server/middleware/`, `server/services/`, `server/repositories/`.
-- `client/src/app/app.routes.ts` — the four top-level routes.
-- `client/src/app/pages/voting-shell/` — public voting page (event-code gate, judge-code entry, candidate voting, 7s voting-state poll).
-- `client/src/app/pages/admin-shell/` — root-only SPA, cross-event concerns only (dashboard overview, event CRUD, weights, root/manager password rotation). Links out to `/manager?eventCode=` for day-to-day event operation.
-- `client/src/app/pages/event-manager-shell/` — single-event SPA (`/manager`), reachable via event code + manager password (or a root session). Hosts the components below; never exposes other events.
-- `client/src/app/components/score/` — final rankings display and reveal presentation flow (UI-labeled "Classifica" in Italian).
-- `client/src/app/components/event-candidates-manager/`, `event-lifecycle-controls/` — candidates CRUD and start/close/reset-ranking controls used by `event-manager-shell`; input/output-driven (`eventId`/`authToken`/`votingClosed`), not tied to a specific parent shell.
-- `client/src/app/components/judge-code-manager/`, `voting-progress-dashboard/` — judge-token issuance (SSE + QR + print) and live progress UI, same input-driven pattern, used by `event-manager-shell`.
-- `client/src/app/api/*.api.ts` — the only fetch boundary (see "API layer boundary" above).
-- `client/src/app/state/*.service.ts` — signal-based shared app state (`AuthStateService`, `VotingStateService`).
-- `prisma/schema.prisma` — data model.
-- `prisma.config.ts` — Prisma CLI datasource resolution.
-- `client/proxy.conf.json` — dev-server proxy config (`/api` → `http://localhost:3001`), the Angular CLI equivalent of the old `vite.config.ts` proxy.
-- `client/angular.json` — Angular CLI project config, including the `outputPath` override that makes the build land in repo-root `dist/`.
-- `api/[...path].ts` — Vercel serverless adapter around the Express app.
+See `client/CLAUDE.md`.

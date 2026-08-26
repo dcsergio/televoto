@@ -128,7 +128,6 @@ export class VotingStateService {
     const timer = setTimeout(async () => {
       try {
         await firstValueFrom(this.votingApi.castVote(candidateId, score, judgeToken));
-        this.toast.success('Voto salvato');
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Errore';
         this.toast.error(msg);

@@ -19,9 +19,9 @@
   />
 } @else if (waitingForClose()) {
   <div class="flex items-center justify-center min-h-dvh px-4">
-    <div class="max-w-md text-center rounded-2xl border border-slate-700 bg-slate-800/70 p-8">
+    <div class="max-w-md text-center rounded-2xl border border-border-glass bg-bg-card p-8">
       <p class="text-4xl mb-4">&#128274;</p>
-      <h1 class="text-2xl font-bold mb-2">Televoto ancora aperto</h1>
+      <h1 class="text-2xl font-bold mb-2 neon-text">Televoto ancora aperto</h1>
       <p class="text-text-secondary">
         La Classifica si sblocca automaticamente alla chiusura del televoto.
       </p>
@@ -29,7 +29,7 @@
         type="button"
         (click)="handleCloseTelevote()"
         [disabled]="closingTelevote()"
-        class="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/20 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+        class="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/15 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {{ closingTelevote() ? 'Chiusura...' : 'Chiudi televoto' }}
       </button>
@@ -40,229 +40,430 @@
     <div class="w-10 h-10 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
   </div>
 } @else {
-  <div
-    class="min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-text-primary"
-    [class.fixed]="presenterMode()"
-    [class.inset-0]="presenterMode()"
-    [class.z-40]="presenterMode()"
-    [class.overflow-y-auto]="presenterMode()"
-  >
-    <div class="mx-auto px-4 py-8" [class.max-w-6xl]="presenterMode()" [class.pt-12]="presenterMode()" [class.max-w-4xl]="!presenterMode()">
-      @if (!presenterMode() && !revealStarted()) {
-        <div class="text-center mb-8">
-          <h1 class="text-4xl font-bold mb-2">&#127942; Classifica</h1>
-          @if (eventNameParts().prefix) {
-            <p class="text-text-secondary text-lg">{{ eventNameParts().prefix }}</p>
-          }
-          <p class="text-2xl font-black uppercase gradient-title leading-tight">{{ eventNameParts().emphasized }}</p>
-          <p class="text-text-secondary text-sm mt-1">Codice evento: {{ eventCode() }}</p>
-        </div>
-      }
 
-      @if (presenterMode()) {
-        <div class="mb-8 text-center">
+  <!-- ═══════════════ PRESENTER STAGE ═══════════════ -->
+  @if (presenterMode()) {
+    <div class="fixed inset-0 z-40 overflow-y-auto bg-bg-primary text-text-primary">
+      <div class="min-h-dvh flex flex-col">
+        <header class="shrink-0 px-8 pt-8 text-center">
           @if (eventNameParts().prefix) {
-            <p class="text-text-secondary text-xl font-semibold uppercase tracking-wide">{{ eventNameParts().prefix }}</p>
+            <p class="text-xs md:text-sm font-semibold uppercase tracking-[0.3em] text-text-secondary">
+              {{ eventNameParts().prefix }}
+            </p>
           }
-          <h1 class="text-5xl font-black uppercase gradient-title leading-tight mb-2">
-            &#127942; {{ eventNameParts().emphasized }}
+          <h1 class="gradient-title mt-1 text-3xl font-bold uppercase md:text-4xl">
+            {{ eventNameParts().emphasized }}
           </h1>
-          <p class="text-text-secondary text-lg">Classifica finale</p>
-        </div>
-      }
+          <p class="mt-1 text-sm uppercase tracking-[0.25em] text-text-muted">Classifica finale</p>
+        </header>
 
-      @if (error()) {
-        <div class="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-300">{{ error() }}</div>
-      }
+        <div class="flex flex-1 items-center justify-center px-6 py-10 pb-28">
+          @if (error()) {
+            <div class="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">{{ error() }}</div>
+          } @else if (rankings().length === 0) {
+            <p class="text-lg text-text-secondary">Nessun voto ancora registrato.</p>
+          } @else if (showWinner() && finalists()[0]) {
+            <!-- ── Winner takeover ── -->
+            <div class="w-full max-w-5xl text-center">
+              @if (hasTopTie() && finalists()[1]) {
+                <!-- Pari merito: two equal co-winners -->
+                <p class="animate-stage-rise font-display text-base font-medium uppercase tracking-[0.35em] text-accent-yellow md:text-lg">
+                  Pari merito
+                </p>
+                <div class="mt-8 grid gap-6 md:grid-cols-2">
+                  @for (entry of finalists(); track entry.id) {
+                    <div
+                      class="animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-gradient-to-b from-accent-cyan/10 to-transparent px-6 py-10 md:px-8 md:py-12"
+                    >
+                      <div class="text-5xl md:text-6xl">{{ getMedalEmoji(0) }}</div>
+                      <div class="mt-3 flex items-center justify-center gap-3">
+                        <span class="h-8 w-1.5 shrink-0 rounded-full md:h-10" [style.background-color]="entry.color"></span>
+                        <h2 class="gradient-title text-3xl font-semibold uppercase leading-[1.05] md:text-5xl">
+                          {{ entry.name }}
+                        </h2>
+                      </div>
+                      <p class="mt-2 text-xs uppercase tracking-[0.2em] text-text-secondary">
+                        N. {{ entry.number }} &middot; Co-vincitore
+                      </p>
+                      <div class="mt-4">
+                        <span
+                          class="font-display text-4xl font-semibold tabular-nums text-accent-cyan md:text-6xl"
+                          [appCountUp]="entry.finalScore"
+                        >0.000</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <p class="mt-4 text-xs uppercase tracking-[0.25em] text-text-secondary">Punteggio finale</p>
+              } @else {
+                <!-- Single champion -->
+                <div
+                  class="animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-gradient-to-b from-accent-cyan/10 to-transparent px-8 py-12 md:px-14 md:py-16"
+                >
+                  <p class="font-display text-base font-medium uppercase tracking-[0.35em] text-accent-yellow md:text-lg">
+                    Campione
+                  </p>
+                  <div class="mt-5 text-6xl md:text-7xl">{{ getMedalEmoji(0) }}</div>
+                  <div class="mt-4 flex items-center justify-center gap-4">
+                    <span class="h-10 w-2 shrink-0 rounded-full md:h-14" [style.background-color]="finalists()[0].color"></span>
+                    <h2 class="gradient-title text-5xl font-semibold uppercase leading-[1.02] md:text-7xl">
+                      {{ finalists()[0].name }}
+                    </h2>
+                  </div>
+                  <p class="mt-3 text-sm uppercase tracking-[0.2em] text-text-secondary">N. {{ finalists()[0].number }}</p>
+                  <div class="mt-6">
+                    <span
+                      class="font-display text-5xl font-semibold tabular-nums text-accent-cyan md:text-7xl"
+                      [appCountUp]="finalists()[0].finalScore"
+                    >0.000</span>
+                    <p class="mt-1 text-xs uppercase tracking-[0.25em] text-text-secondary">Punteggio finale</p>
+                  </div>
+                </div>
 
-      @if (rankings().length === 0) {
-        <div class="text-center py-12">
-          <p class="text-text-secondary text-lg">Nessun voto ancora registrato.</p>
+                @if (runnerUp()) {
+                  <div
+                    class="mx-auto mt-6 flex max-w-xl items-center gap-4 rounded-2xl border border-border-glass bg-bg-card px-6 py-4"
+                  >
+                    <span class="text-2xl">{{ getMedalEmoji(1) }}</span>
+                    <span class="h-6 w-1.5 shrink-0 rounded-full" [style.background-color]="runnerUp()!.color"></span>
+                    <span class="flex-1 truncate text-left text-sm uppercase tracking-[0.08em] text-text-primary">
+                      {{ runnerUp()!.name }}
+                    </span>
+                    <span class="font-display tabular-nums text-text-secondary">{{ runnerUp()!.finalScore.toFixed(3) }}</span>
+                  </div>
+                }
+              }
+            </div>
+          } @else if (isFinalistsStage()) {
+            <!-- ── Finale a due ── -->
+            <div class="w-full max-w-5xl text-center animate-stage-rise">
+              <p class="font-display text-base font-medium uppercase tracking-[0.3em] text-accent-cyan md:text-lg">
+                Finale a due
+              </p>
+              <div class="mt-8 grid gap-6 md:grid-cols-2">
+                @for (entry of finalists(); track entry.id; let i = $index) {
+                  <div
+                    class="rounded-2xl border bg-bg-card px-8 py-10"
+                    [style.border-color]="entry.color + '66'"
+                  >
+                    <p class="text-xs uppercase tracking-[0.25em] text-text-secondary">
+                      {{ getFinalistLabel(i, false, hasTopTie()) }}
+                    </p>
+                    <div class="mt-4 flex items-center justify-center gap-3">
+                      <span class="h-8 w-1.5 shrink-0 rounded-full" [style.background-color]="entry.color"></span>
+                      <h2 class="font-display text-3xl font-semibold uppercase md:text-4xl">{{ entry.name }}</h2>
+                    </div>
+                    <p class="mt-2 text-sm text-text-secondary">N. {{ entry.number }}</p>
+                  </div>
+                }
+              </div>
+              <p class="mt-8 text-sm text-text-muted">
+                Premi &ldquo;{{ buttonLabel() }}&rdquo; per l&rsquo;esito finale
+              </p>
+            </div>
+          } @else if (presenterHeroEntry()) {
+            <!-- ── Position title card + ladder ── -->
+            <div class="w-full max-w-5xl">
+              @for (hero of [presenterHeroEntry()]; track hero!.id) {
+                <div
+                  class="animate-stage-rise"
+                  [ngClass]="heroIsThirdPlace() ? 'rounded-3xl border border-accent-yellow/40 bg-gradient-to-b from-accent-yellow/10 to-transparent p-8' : ''"
+                >
+                  <p class="font-display text-lg font-medium uppercase tracking-[0.3em] text-text-secondary">
+                    @if (heroIsThirdPlace()) {
+                      Il terzo classificato
+                    } @else {
+                      {{ presenterHeroIndex() + 1 }}&ordm; posto
+                    }
+                  </p>
+                  <div class="mt-4 flex items-center gap-6 md:gap-10">
+                    <span class="font-display text-[22vw] font-semibold leading-none tabular-nums text-text-primary/90 md:text-[11rem]">
+                      {{ presenterHeroIndex() + 1 }}
+                    </span>
+                    <div class="min-w-0 flex-1 text-left">
+                      <div class="flex items-center gap-3">
+                        <span class="h-8 w-1.5 shrink-0 rounded-full" [style.background-color]="hero!.color"></span>
+                        <span class="text-lg text-text-secondary md:text-xl">N. {{ hero!.number }}</span>
+                      </div>
+                      <h2 class="mt-2 font-display text-4xl font-semibold uppercase leading-[1.05] text-text-primary md:text-6xl">
+                        {{ hero!.name }}
+                      </h2>
+                      <div class="mt-4 flex items-baseline gap-3">
+                        <span
+                          class="font-display text-4xl font-semibold tabular-nums text-accent-cyan md:text-5xl"
+                          [appCountUp]="hero!.finalScore"
+                        >0.000</span>
+                        <span class="text-xs uppercase tracking-[0.2em] text-text-secondary">Punteggio finale</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (presenterLadderEntries().length > 0) {
+                <div class="mt-10 space-y-1 border-t border-border-glass pt-5">
+                  @for (entry of presenterLadderEntries(); track entry.id) {
+                    <div class="flex items-center gap-4 text-text-secondary">
+                      <span class="w-10 text-right font-display tabular-nums">{{ rankingIndex(entry) + 1 }}</span>
+                      <span class="h-4 w-1 shrink-0 rounded-full" [style.background-color]="entry.color"></span>
+                      <span class="flex-1 truncate text-sm uppercase tracking-[0.06em]">{{ entry.name }}</span>
+                      <span class="font-display text-sm tabular-nums">{{ entry.finalScore.toFixed(3) }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <!-- ── Idle ── -->
+            <div class="text-center animate-stage-rise">
+              <p class="font-display text-2xl uppercase tracking-[0.3em] text-text-secondary">In attesa</p>
+              <p class="mt-3 text-sm text-text-muted">Premi &ldquo;{{ buttonLabel() }}&rdquo; per iniziare il reveal</p>
+            </div>
+          }
         </div>
-      } @else {
+
+        <!-- discreet operator bar -->
         <div
-          class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-700 bg-slate-800/70 p-4"
-          [class.fixed]="presenterMode()"
-          [class.bottom-4]="presenterMode()"
-          [class.left-4]="presenterMode()"
-          [class.right-4]="presenterMode()"
-          [class.z-50]="presenterMode()"
-          [class.opacity-90]="presenterMode()"
+          class="fixed inset-x-4 bottom-4 z-50 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-glass bg-bg-card/90 p-3 backdrop-blur-md"
         >
-          <div>
-            <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
-            <p class="text-lg font-semibold text-text-primary">Mostra la classifica dal fondo verso l'alto</p>
-            <p class="mt-1 text-sm text-text-secondary">
-              Rivelati {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }}
-            </p>
-            <p class="mt-1 text-xs text-text-muted">
-              Scorciatoie: Spazio/Invio prossimo &middot; Backspace annulla &middot; F presentazione &middot; Esc esci
-            </p>
-          </div>
+          <p class="px-1 text-xs text-text-muted">
+            {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }} rivelati
+            &middot; Spazio prossimo &middot; Backspace annulla &middot; Esc esci
+          </p>
           <div class="flex flex-nowrap gap-2 overflow-x-auto">
-            <button
-              type="button"
-              (click)="handleExportCsv()"
-              class="shrink-0 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700"
-            >
-              Esporta CSV
-            </button>
             <button
               type="button"
               (click)="handleUndoReveal()"
               [disabled]="!canUndo()"
-              class="shrink-0 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 font-semibold text-text-secondary transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-3 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Annulla ultimo
+              Annulla
             </button>
             <button
               type="button"
               (click)="handleTogglePresenterMode()"
-              class="shrink-0 rounded-lg border border-violet-500/30 bg-violet-500/20 px-4 py-2 font-semibold text-violet-200 transition hover:bg-violet-500/30"
+              class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-3 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-card-hover"
             >
-              {{ presenterMode() ? 'Esci presentazione' : 'Modalità presentazione' }}
+              Esci
             </button>
             <button
               type="button"
               (click)="handleRevealNext()"
               [disabled]="revealDisabled()"
-              class="shrink-0 rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-slate-900 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              class="shrink-0 rounded-lg bg-accent-cyan px-4 py-2 text-sm font-bold uppercase tracking-[0.05em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ startingReveal() ? 'Avvio...' : buttonLabel() }}
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  } @else {
 
-        <div class="space-y-4">
-          @if (!presenterMode() && visibleEntries().length === 0 && !showFinalists()) {
-            <div class="w-full rounded-2xl border border-accent-cyan/40 bg-accent-cyan/10 p-5 text-left transition hover:bg-accent-cyan/15">
-              <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Avvio classifica</p>
-              <p class="mt-2 text-xl font-semibold text-text-primary">Premi &ldquo;{{ buttonLabel() }}&rdquo; per iniziare il reveal</p>
-            </div>
-          }
+    <!-- ═══════════════ OPERATOR VIEW ═══════════════ -->
+    <div class="min-h-dvh bg-bg-primary text-text-primary">
+      <div class="mx-auto max-w-4xl px-4 py-8">
+        @if (!revealStarted()) {
+          <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold neon-text">&#127942; Classifica</h1>
+            @if (eventNameParts().prefix) {
+              <p class="mt-2 text-sm uppercase tracking-[0.2em] text-text-secondary">{{ eventNameParts().prefix }}</p>
+            }
+            <p class="gradient-title text-2xl font-bold uppercase leading-tight">{{ eventNameParts().emphasized }}</p>
+            <p class="mt-1 text-sm text-text-muted">Codice evento: {{ eventCode() }}</p>
+          </div>
+        }
 
-          @if (showFinalists() && finalists().length > 0) {
-            <div class="grid gap-4 lg:grid-cols-2">
-              @for (entry of finalists(); track entry.id; let index = $index) {
-                <div
-                  class="rounded-2xl border p-6 transition-all duration-700"
-                  [ngClass]="finalistCardClasses(index)"
-                  [style.border-color]="entry.color"
-                >
-                  <div class="flex items-start justify-between gap-4">
-                    <div>
-                      <p class="text-sm uppercase tracking-[0.2em] text-text-secondary">
-                        {{ getFinalistLabel(index, showWinner(), hasTopTie()) }}
-                      </p>
-                      <h2 class="flex items-center gap-2 font-bold" [ngClass]="isFinalistWinnerCard(index) ? 'text-3xl' : 'text-xl'">
-                        @if (isFinalistWinnerCard(index)) {
-                          <span class="text-2xl">{{ getMedalEmoji(index) }}</span>
-                        }
-                        <span>{{ entry.name }}</span>
-                      </h2>
-                      @if (hasTopTie() && showWinner()) {
-                        <p class="mt-2 text-sm font-semibold uppercase tracking-[0.15em] text-sky-300">Pari merito</p>
-                      }
-                    </div>
-                    @if (isFinalistWinnerCard(index)) {
-                      <div class="rounded-full bg-amber-400/20 px-3 py-1 text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-                        {{ hasTopTie() ? 'Co-vincitore' : 'Campione' }}
-                      </div>
-                    }
-                  </div>
+        @if (error()) {
+          <div class="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-300">{{ error() }}</div>
+        }
 
-                  <div class="mt-4 flex items-center gap-3">
-                    <div class="h-4 w-4 rounded-full" [style.background-color]="entry.color"></div>
-                    <p class="text-sm text-text-secondary">Numero: {{ entry.number }}</p>
-                  </div>
-
-                  <div class="mt-6 flex items-end justify-between gap-4">
-                    @if (showWinner()) {
-                      <div>
-                        <div class="font-bold text-accent-cyan" [ngClass]="(hasTopTie() || index === 0) ? 'text-4xl' : 'text-3xl'">
-                          {{ entry.finalScore.toFixed(3) }}
-                        </div>
-                        <div class="text-sm text-text-secondary">Punteggio finale</div>
-                      </div>
-                      @if (entry.voteCount > 0) {
-                        <div class="text-right text-sm text-text-secondary">
-                          <div>Voti: {{ entry.voteCount }}</div>
-                          <div>Media complessiva: {{ entry.avgScore.toFixed(1) }}</div>
-                          <div>Media qualificata: {{ entry.avgQualificata.toFixed(2) }}</div>
-                          <div>Media popolare: {{ entry.avgPopolare.toFixed(2) }}</div>
-                        </div>
-                      }
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-
-          @for (entry of visibleEntries(); track entry.id) {
-            <div
-              class="p-6 rounded-lg border transition hover:shadow-lg animate-fade-in-up"
-              [ngClass]="entryCardClasses(entry)"
-              [style.border-color]="entry.color"
-              [style.background-color]="entryBackgroundColor(entry)"
-            >
-              <div class="flex items-center gap-6">
-                <div class="text-center min-w-16">
-                  <div class="text-2xl font-bold text-text-secondary">#{{ rankingIndex(entry) + 1 }}</div>
-                </div>
-
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <div class="w-4 h-4 rounded-full" [style.background-color]="entry.color"></div>
-                    <h2 class="flex items-center gap-2 text-xl font-bold">
-                      <span class="text-2xl">{{ getMedalEmoji(rankingIndex(entry)) }}</span>
-                      <span>{{ entry.name }}</span>
-                    </h2>
-                  </div>
-                  <div class="text-text-secondary text-sm">Numero: {{ entry.number }}</div>
-                </div>
-
-                <div class="text-right">
-                  <div class="text-3xl font-bold text-accent-cyan">{{ entry.finalScore.toFixed(3) }}</div>
-                  <div class="text-text-secondary text-sm">Punteggio finale</div>
-                  @if (entry.voteCount > 0) {
-                    <div class="mt-2 text-text-secondary text-sm">
-                      <div>Voti: {{ entry.voteCount }}</div>
-                      <div>Media complessiva: {{ entry.avgScore.toFixed(1) }}</div>
-                      <div>Media qualificata: {{ entry.avgQualificata.toFixed(2) }}</div>
-                      <div>Media popolare: {{ entry.avgPopolare.toFixed(2) }}</div>
-                    </div>
-                  }
-                </div>
-              </div>
-
-              <div class="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all" [style.background-color]="entry.color" [style.width.%]="barWidth(entry)"></div>
-              </div>
-            </div>
-          }
-        </div>
-      }
-
-      @if (!presenterMode() && rankings().length > 0 && !revealStarted()) {
-        <div class="mt-12 p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
-          <h3 class="text-lg font-semibold mb-4">Statistiche Evento</h3>
-          <div class="grid grid-cols-3 gap-4">
+        @if (rankings().length === 0) {
+          <div class="py-12 text-center">
+            <p class="text-lg text-text-secondary">Nessun voto ancora registrato.</p>
+          </div>
+        } @else {
+          <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-glass bg-bg-card p-4">
             <div>
-              <div class="text-2xl font-bold text-accent-cyan">{{ totalVotes() }}</div>
-              <div class="text-text-secondary text-sm">Voti Totali</div>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
+              <p class="mt-1 text-base font-semibold text-text-primary">Dalla posizione pi&ugrave; bassa verso la vetta</p>
+              <p class="mt-1 text-sm text-text-secondary">
+                Rivelati {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }}
+              </p>
+              <p class="mt-1 text-xs text-text-muted">
+                Spazio/Invio prossimo &middot; Backspace annulla &middot; F presentazione &middot; Esc esci
+              </p>
             </div>
-            <div>
-              <div class="text-2xl font-bold text-accent-cyan">{{ rankings().length }}</div>
-              <div class="text-text-secondary text-sm">Candidati</div>
-            </div>
-            <div>
-              <div class="text-2xl font-bold text-accent-cyan">{{ averageFinalScore().toFixed(3) }}</div>
-              <div class="text-text-secondary text-sm">Punteggio finale medio</div>
+            <div class="flex flex-nowrap gap-2 overflow-x-auto">
+              <button
+                type="button"
+                (click)="handleExportCsv()"
+                class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-4 py-2 font-semibold text-text-secondary transition hover:bg-bg-card-hover"
+              >
+                Esporta CSV
+              </button>
+              <button
+                type="button"
+                (click)="handleUndoReveal()"
+                [disabled]="!canUndo()"
+                class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-4 py-2 font-semibold text-text-secondary transition hover:bg-bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Annulla ultimo
+              </button>
+              <button
+                type="button"
+                (click)="handleTogglePresenterMode()"
+                class="shrink-0 rounded-lg border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 font-semibold text-accent-cyan transition hover:bg-accent-cyan/20"
+              >
+                Modalit&agrave; presentazione
+              </button>
+              <button
+                type="button"
+                (click)="handleRevealNext()"
+                [disabled]="revealDisabled()"
+                class="shrink-0 rounded-lg bg-accent-cyan px-4 py-2 font-bold uppercase tracking-[0.05em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {{ startingReveal() ? 'Avvio...' : buttonLabel() }}
+              </button>
             </div>
           </div>
-        </div>
-      }
+
+          <div class="space-y-4">
+            @if (visibleEntries().length === 0 && !showFinalists()) {
+              <div class="rounded-2xl border border-accent-cyan/30 bg-accent-cyan/10 p-5">
+                <p class="text-xs uppercase tracking-[0.2em] text-accent-cyan">Avvio classifica</p>
+                <p class="mt-2 text-lg font-semibold text-text-primary">
+                  Premi &ldquo;{{ buttonLabel() }}&rdquo; per iniziare il reveal
+                </p>
+              </div>
+            }
+
+            @if (showFinalists() && finalists().length > 0) {
+              <div class="grid gap-4 lg:grid-cols-2">
+                @for (entry of finalists(); track entry.id; let index = $index) {
+                  <div
+                    class="rounded-2xl border p-6 transition-all duration-700"
+                    [ngClass]="finalistCardClasses(index)"
+                    [style.border-color]="entry.color"
+                  >
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <p class="text-xs uppercase tracking-[0.2em] text-text-secondary">
+                          {{ getFinalistLabel(index, showWinner(), hasTopTie()) }}
+                        </p>
+                        <h2 class="flex items-center gap-2 font-display font-semibold uppercase" [ngClass]="isFinalistWinnerCard(index) ? 'text-3xl' : 'text-xl'">
+                          @if (isFinalistWinnerCard(index)) {
+                            <span class="text-2xl">{{ getMedalEmoji(index) }}</span>
+                          }
+                          <span>{{ entry.name }}</span>
+                        </h2>
+                        @if (hasTopTie() && showWinner()) {
+                          <p class="mt-2 text-sm font-semibold uppercase tracking-[0.15em] text-accent-yellow">Pari merito</p>
+                        }
+                      </div>
+                      @if (isFinalistWinnerCard(index)) {
+                        <div class="rounded-full bg-accent-yellow/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-accent-yellow">
+                          {{ hasTopTie() ? 'Co-vincitore' : 'Campione' }}
+                        </div>
+                      }
+                    </div>
+
+                    <div class="mt-4 flex items-center gap-3">
+                      <div class="h-4 w-4 rounded-full" [style.background-color]="entry.color"></div>
+                      <p class="text-sm text-text-secondary">Numero: {{ entry.number }}</p>
+                    </div>
+
+                    @if (showWinner()) {
+                      <div class="mt-6 flex items-end justify-between gap-4">
+                        <div>
+                          <div class="font-display font-semibold tabular-nums text-accent-cyan" [ngClass]="(hasTopTie() || index === 0) ? 'text-4xl' : 'text-3xl'">
+                            {{ entry.finalScore.toFixed(3) }}
+                          </div>
+                          <div class="text-sm text-text-secondary">Punteggio finale</div>
+                        </div>
+                        @if (entry.voteCount > 0) {
+                          <div class="text-right text-sm text-text-secondary">
+                            <div>Voti: {{ entry.voteCount }}</div>
+                            <div>Media complessiva: {{ entry.avgScore.toFixed(1) }}</div>
+                            <div>Media qualificata: {{ entry.avgQualificata.toFixed(2) }}</div>
+                            <div>Media popolare: {{ entry.avgPopolare.toFixed(2) }}</div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            @for (entry of visibleEntries(); track entry.id) {
+              <div
+                class="rounded-2xl border p-6 transition animate-fade-in-up"
+                [ngClass]="entryCardClasses(entry)"
+                [style.border-color]="entry.color + '66'"
+              >
+                <div class="flex items-center gap-6">
+                  <div class="min-w-16 text-center">
+                    <div class="font-display text-2xl font-semibold tabular-nums text-text-secondary">
+                      {{ rankingIndex(entry) + 1 }}
+                    </div>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="mb-2 flex items-center gap-3">
+                      <div class="h-4 w-4 rounded-full" [style.background-color]="entry.color"></div>
+                      <h2 class="flex items-center gap-2 font-display text-xl font-semibold uppercase">
+                        <span class="text-2xl">{{ getMedalEmoji(rankingIndex(entry)) }}</span>
+                        <span>{{ entry.name }}</span>
+                      </h2>
+                    </div>
+                    <div class="text-sm text-text-secondary">Numero: {{ entry.number }}</div>
+                  </div>
+
+                  <div class="text-right">
+                    <div class="font-display text-3xl font-semibold tabular-nums text-accent-cyan">
+                      {{ entry.finalScore.toFixed(3) }}
+                    </div>
+                    <div class="text-sm text-text-secondary">Punteggio finale</div>
+                    @if (entry.voteCount > 0) {
+                      <div class="mt-2 text-sm text-text-secondary">
+                        <div>Voti: {{ entry.voteCount }}</div>
+                        <div>Media complessiva: {{ entry.avgScore.toFixed(1) }}</div>
+                        <div>Media qualificata: {{ entry.avgQualificata.toFixed(2) }}</div>
+                        <div>Media popolare: {{ entry.avgPopolare.toFixed(2) }}</div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-bg-secondary">
+                  <div class="h-full rounded-full transition-all" [style.background-color]="entry.color" [style.width.%]="barWidth(entry)"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (rankings().length > 0 && !revealStarted()) {
+          <div class="mt-12 rounded-2xl border border-border-glass bg-bg-card p-6">
+            <h3 class="mb-4 text-lg font-semibold">Statistiche evento</h3>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ totalVotes() }}</div>
+                <div class="text-sm text-text-secondary">Voti totali</div>
+              </div>
+              <div>
+                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ rankings().length }}</div>
+                <div class="text-sm text-text-secondary">Candidati</div>
+              </div>
+              <div>
+                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ averageFinalScore().toFixed(3) }}</div>
+                <div class="text-sm text-text-secondary">Punteggio finale medio</div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     </div>
-  </div>
+  }
 }

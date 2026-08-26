@@ -20,7 +20,8 @@
     "db:migrate:pooler": "set PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1&& npx prisma migrate deploy",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
-    "docs:manuals": "tsx scripts/generate-manuals.ts"
+    "docs:manuals": "tsx scripts/generate-manuals.ts",
+    "docs:manuals:typ": "tsx scripts/generate-manuals-typ.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

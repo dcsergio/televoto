@@ -1,47 +1,27 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-interface ScoreColor {
-  gradient: string;
-  glow: string;
-}
-
-const SCORE_COLORS: ScoreColor[] = [
-  { gradient: 'linear-gradient(135deg, #f43f5e, #e11d48)', glow: 'rgba(244,63,94,0.5)' },
-  { gradient: 'linear-gradient(135deg, #f43f5e, #f97316)', glow: 'rgba(249,115,22,0.5)' },
-  { gradient: 'linear-gradient(135deg, #f97316, #eab308)', glow: 'rgba(234,179,8,0.5)' },
-  { gradient: 'linear-gradient(135deg, #eab308, #84cc16)', glow: 'rgba(132,204,22,0.5)' },
-  { gradient: 'linear-gradient(135deg, #84cc16, #22c55e)', glow: 'rgba(34,197,94,0.5)' },
-  { gradient: 'linear-gradient(135deg, #22c55e, #14b8a6)', glow: 'rgba(20,184,166,0.5)' },
-  { gradient: 'linear-gradient(135deg, #14b8a6, #06b6d4)', glow: 'rgba(6,182,212,0.5)' },
-  { gradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)', glow: 'rgba(59,130,246,0.5)' },
-  { gradient: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', glow: 'rgba(139,92,246,0.5)' },
-  { gradient: 'linear-gradient(135deg, #8b5cf6, #c026d3)', glow: 'rgba(192,38,211,0.5)' },
-];
-
 @Component({
   selector: 'app-score-selector',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div>
-      <div class="grid grid-cols-5 md:grid-cols-10 gap-3 md:gap-4 w-full">
+      <div class="grid grid-cols-5 gap-2.5 md:grid-cols-10 md:gap-3 w-full">
         @for (score of scores; track score) {
           <button
             type="button"
             (click)="change.emit(score)"
             class="score-btn"
             [class.active]="value() === score"
-            [style.--gradient]="colorFor(score).gradient"
-            [style.--glow-color]="colorFor(score).glow"
-            [style.background]="value() === score ? colorFor(score).gradient : 'rgba(20,20,50,0.6)'"
-            [style.color]="value() === score ? '#fff' : '#9ca3c0'"
+            [style.background]="value() === score ? 'var(--color-accent-cyan)' : fillFor(score)"
+            [style.color]="value() === score ? '#1a1206' : textFor(score)"
           >
             {{ score }}
           </button>
         }
       </div>
-      <div class="flex justify-between mt-2 px-1">
-        <span class="text-[10px] uppercase tracking-wider text-text-muted font-semibold">Minimo</span>
-        <span class="text-[10px] uppercase tracking-wider text-text-muted font-semibold">Massimo</span>
+      <div class="flex justify-between mt-2.5 px-0.5">
+        <span class="text-[10px] uppercase tracking-[0.15em] text-text-muted font-semibold">Minimo</span>
+        <span class="text-[10px] uppercase tracking-[0.15em] text-text-muted font-semibold">Massimo</span>
       </div>
     </div>
   `,
@@ -52,7 +32,13 @@ export class ScoreSelectorComponent {
 
   protected readonly scores = Array.from({ length: 10 }, (_, i) => i + 1);
 
-  protected colorFor(score: number): ScoreColor {
-    return SCORE_COLORS[score - 1];
+  /** Gold at rising opacity — the row reads as a meter that fills toward 10. */
+  protected fillFor(score: number): string {
+    const alpha = 0.05 + (score / 10) * 0.22;
+    return `rgba(255, 176, 32, ${alpha.toFixed(3)})`;
+  }
+
+  protected textFor(score: number): string {
+    return score >= 6 ? '#ffcf7a' : '#a1a1aa';
   }
 }

@@ -1,24 +1,32 @@
 @use './styles/material-theme' as material-theme;
 @use './styles/tailwind.css';
 
-/* ── Neon Dark Theme tokens (ported from the former src/index.css) ── */
+/* ──────────────────────────────────────────────────────────────
+   "Palco" theme — broadcast / awards language.
+   Dark stage, hairline surfaces, one reserved accent (electric gold).
+   Token NAMES are kept from the former "Neon Dark" set for compatibility
+   with existing utility classes across admin/manager; only the VALUES
+   changed. `accent-cyan` is now the single gold accent.
+   ────────────────────────────────────────────────────────────── */
 @theme {
-  --color-bg-primary: #0a0a1a;
-  --color-bg-secondary: #111128;
-  --color-bg-card: rgba(20, 20, 50, 0.6);
-  --color-bg-card-hover: rgba(30, 30, 70, 0.7);
-  --color-bg-card-selected: rgba(40, 40, 100, 0.8);
-  --color-border-glass: rgba(100, 100, 255, 0.15);
-  --color-border-neon: rgba(56, 189, 248, 0.6);
-  --color-text-primary: #f0f0ff;
-  --color-text-secondary: #9ca3c0;
-  --color-text-muted: #6b7294;
-  --color-accent-cyan: #38bdf8;
-  --color-accent-magenta: #c026d3;
+  --color-bg-primary: #09090b;
+  --color-bg-secondary: #0f0f12;
+  --color-bg-card: #141417;
+  --color-bg-card-hover: #1a1a1f;
+  --color-bg-card-selected: #201d16;
+  --color-border-glass: rgba(255, 255, 255, 0.08);
+  --color-border-neon: rgba(255, 176, 32, 0.55);
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-accent-cyan: #ffb020;
+  --color-accent-magenta: #ff7a45;
   --color-accent-coral: #f43f5e;
-  --color-accent-violet: #8b5cf6;
-  --color-accent-yellow: #eab308;
-  --color-neon-glow: rgba(56, 189, 248, 0.3);
+  --color-accent-violet: #a78bfa;
+  --color-accent-yellow: #ffcf4a;
+  --color-neon-glow: rgba(255, 176, 32, 0.18);
+
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
 }
 
 /* ── Base ── */
@@ -35,13 +43,9 @@ body {
   margin: 0;
   height: 100%;
   min-height: 100dvh;
-  background: linear-gradient(
-    170deg,
-    var(--color-bg-primary) 0%,
-    #0d0d2b 30%,
-    #12122e 60%,
-    #0a0a1a 100%
-  );
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 176, 32, 0.06), transparent 60%),
+    var(--color-bg-primary);
   color-scheme: dark;
 }
 
@@ -50,11 +54,9 @@ app-root {
   min-height: 100dvh;
 }
 
-/* ── Glass card ── */
+/* ── Surface card (name kept: `.glass`) ── */
 .glass {
   background: var(--color-bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--color-border-glass);
   border-radius: 16px;
 }
@@ -62,70 +64,59 @@ app-root {
 .glass-selected {
   background: var(--color-bg-card-selected);
   border-color: var(--color-border-neon);
-  box-shadow: 0 0 20px var(--color-neon-glow), inset 0 0 20px rgba(56, 189, 248, 0.05);
+  box-shadow: 0 0 0 1px var(--color-border-neon), 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 .glass-voted {
-  background: rgba(20, 20, 50, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  opacity: 0.85;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.72;
 }
 
-/* ── Neon text glow ── */
+/* ── Display text (name kept: `.neon-text`) ── */
 .neon-text {
-  text-shadow: 0 0 10px var(--color-accent-cyan), 0 0 30px rgba(56, 189, 248, 0.3);
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 /* ── Score button ── */
 .score-btn {
   position: relative;
   width: 100%;
-  max-width: 56px;
+  max-width: 3.25rem;
   aspect-ratio: 1 / 1;
-  border-radius: 50%;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background 0.14s ease, box-shadow 0.14s ease;
+  border: 1px solid var(--color-border-glass);
   flex-shrink: 0;
   touch-action: manipulation;
 }
 
-.score-btn::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  padding: 2px;
-  background: var(--gradient);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: xor;
-}
-
 .score-btn:hover {
-  transform: scale(1.1);
+  transform: translateY(-2px);
 }
 
 .score-btn:active {
-  transform: scale(0.9);
+  transform: scale(0.94);
 }
 
 .score-btn.active {
-  transform: scale(1.15);
-  box-shadow: 0 0 24px var(--glow-color, rgba(56, 189, 248, 0.65));
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-accent-cyan), 0 8px 20px var(--color-neon-glow);
 }
 
 @media (min-width: 768px) {
   .score-btn {
-    font-size: 1.35rem;
+    max-width: 3.5rem;
+    font-size: 1.25rem;
   }
 }
 
@@ -137,7 +128,7 @@ app-root {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 100, 255, 0.2);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 3px;
 }
 
@@ -145,7 +136,7 @@ app-root {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -154,20 +145,44 @@ app-root {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes pulse-neon {
-  0%, 100% {
-    box-shadow: 0 0 8px var(--color-neon-glow);
+/* Stage reveal — used by the Classifica presenter ceremony */
+@keyframes stageRise {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.965);
   }
-  50% {
-    box-shadow: 0 0 20px var(--color-neon-glow), 0 0 40px rgba(56, 189, 248, 0.15);
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
+.animate-stage-rise {
+  animation: stageRise 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes winnerGlow {
+  0% {
+    box-shadow: 0 0 0 1px rgba(255, 207, 74, 0.4), 0 0 0 rgba(255, 176, 32, 0);
+  }
+  60% {
+    box-shadow: 0 0 0 1px rgba(255, 207, 74, 0.7), 0 0 90px rgba(255, 176, 32, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 1px rgba(255, 207, 74, 0.5), 0 0 60px rgba(255, 176, 32, 0.2);
+  }
+}
+
+.animate-winner-glow {
+  animation: winnerGlow 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* legacy name kept — some admin/manager markup references it */
 .animate-pulse-neon {
-  animation: pulse-neon 2s ease-in-out infinite;
+  animation: none;
 }
 
 /* ── Toast ── */
@@ -188,22 +203,24 @@ app-root {
 
 .app-toast {
   &.toast-success .mdc-snackbar__surface {
-    background: rgba(16, 185, 129, 0.15) !important;
+    background: rgba(16, 185, 129, 0.16) !important;
     border: 1px solid rgba(16, 185, 129, 0.4);
   }
   &.toast-error .mdc-snackbar__surface {
-    background: rgba(244, 63, 94, 0.15) !important;
+    background: rgba(244, 63, 94, 0.16) !important;
     border: 1px solid rgba(244, 63, 94, 0.4);
   }
   .mdc-snackbar__surface {
-    backdrop-filter: blur(16px);
-    border-radius: 16px !important;
+    border-radius: 14px !important;
   }
 }
 
-/* ── Hero gradient text ── */
+/* ── Display title (name kept: `.gradient-title`) ──
+   Restrained: near-white with a subtle warm shift, not a rainbow. */
 .gradient-title {
-  background: linear-gradient(90deg, #f43f5e, #c026d3, #8b5cf6, #38bdf8, #22c55e, #eab308);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #ffffff 0%, #d9c9a6 130%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -225,19 +242,35 @@ app-root {
 }
 
 .progress-bar-glow {
-  box-shadow: 0 0 12px var(--color-accent-cyan), 0 0 4px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 12px var(--color-neon-glow);
 }
 
 .btn-tactile {
   transition: transform 0.1s ease, filter 0.2s ease;
 }
 .btn-tactile:active {
-  transform: scale(0.96);
-  filter: brightness(0.9);
+  transform: scale(0.97);
+  filter: brightness(0.94);
 }
 
 /* ── Shell toolbar spacing ── */
 .app-shell-toolbar {
   padding-top: 16px !important;
   padding-bottom: 16px !important;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-stage-rise,
+  .animate-winner-glow,
+  .animate-slide-down,
+  .toast-enter {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+  }
+  .score-btn,
+  .btn-tactile {
+    transition: none !important;
+  }
 }
