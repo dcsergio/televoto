@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { EventsApi } from '../../api/events.api';
 import { CandidateData } from '../../models/types';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
+import { openScoreGuarded } from '../../shared/open-score.util';
 
 export interface VotingStateChange {
   votingClosed: boolean;
@@ -28,7 +29,6 @@ export class EventLifecycleControlsComponent {
 
   readonly eventId = input.required<string>();
   readonly eventCode = input.required<string>();
-  readonly eventName = input.required<string>();
   readonly authToken = input.required<string>();
   readonly votingClosed = input.required<boolean>();
 
@@ -46,22 +46,7 @@ export class EventLifecycleControlsComponent {
   }
 
   protected handleOpenScore(): void {
-    if (!this.votingClosed()) {
-      this.notifyVotingStillOpen();
-      return;
-    }
-    window.open(`/score?eventCode=${encodeURIComponent(this.eventCode())}`, '_blank', 'noopener,noreferrer');
-  }
-
-  private notifyVotingStillOpen(): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Televoto ancora aperto',
-        message: 'La Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter continuare.',
-        confirmLabel: 'Ho capito',
-        hideCancel: true,
-      },
-    });
+    openScoreGuarded(this.dialog, this.eventCode(), this.votingClosed());
   }
 
   private confirmStartVoting(): void {
