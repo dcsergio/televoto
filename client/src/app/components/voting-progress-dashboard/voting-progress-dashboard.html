@@ -5,15 +5,10 @@
 } @else if (error() && !progress()) {
   <div class="mt-8 rounded-2xl border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
 } @else if (progress(); as p) {
-  <div class="mt-8 rounded-2xl border border-border-glass bg-bg-card p-6">
+  <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <h2 class="text-xl font-semibold text-text-primary">Progresso voti giudici</h2>
-      <button
-        type="button"
-        (click)="loadProgress()"
-        [disabled]="loading()"
-        class="rounded-2xl border border-border-glass bg-bg-secondary px-4 py-2 text-sm text-text-secondary hover:bg-bg-card-hover transition disabled:opacity-50"
-      >
+      <button type="button" (click)="loadProgress()" [disabled]="loading()" class="btn btn-ghost btn-sm">
         {{ loading() ? 'Aggiornamento...' : 'Aggiorna' }}
       </button>
     </div>
@@ -22,22 +17,22 @@
       <div class="mb-4 rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-3 text-sm text-accent-coral">{{ error() }}</div>
     }
 
-    <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <div class="rounded-xl border border-border-glass bg-bg-card p-4">
-        <div class="text-2xl font-bold text-emerald-300">{{ p.qualified.activeJudges }}</div>
-        <div class="text-sm text-text-secondary">Qualificata attivi</div>
+    <div class="surface-panel mb-6 grid grid-cols-2 divide-x divide-y divide-border-glass sm:grid-cols-4 sm:divide-y-0">
+      <div class="px-4 py-4">
+        <div class="font-display text-2xl font-semibold tabular-nums text-emerald-300">{{ p.qualified.activeJudges }}</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Qualificata attivi</div>
       </div>
-      <div class="rounded-xl border border-border-glass bg-bg-card p-4">
-        <div class="text-2xl font-bold text-amber-300">{{ p.qualified.submittedJudges }}</div>
-        <div class="text-sm text-text-secondary">Qualificata finalizzati</div>
+      <div class="px-4 py-4">
+        <div class="font-display text-2xl font-semibold tabular-nums text-amber-300">{{ p.qualified.submittedJudges }}</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Qualificata finalizzati</div>
       </div>
-      <div class="rounded-xl border border-border-glass bg-bg-card p-4">
-        <div class="text-2xl font-bold text-accent-cyan">{{ p.popular.activatedTokens }}</div>
-        <div class="text-sm text-text-secondary">Popolare QR attivati</div>
+      <div class="px-4 py-4">
+        <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ p.popular.activatedTokens }}</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Popolare QR attivati</div>
       </div>
-      <div class="rounded-xl border border-border-glass bg-bg-card p-4">
-        <div class="text-2xl font-bold text-accent-cyan">{{ p.popular.totalVotesCast }}</div>
-        <div class="text-sm text-text-secondary">Voti popolari espressi</div>
+      <div class="px-4 py-4">
+        <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ p.popular.totalVotesCast }}</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Voti popolari espressi</div>
       </div>
     </div>
 
@@ -82,7 +77,7 @@
                   }
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="rounded-full border px-2 py-0.5 text-xs" [ngClass]="getStatusClass(judge.status)">
+                  <span class="rounded-md border px-2 py-0.5 text-xs" [ngClass]="getStatusClass(judge.status)">
                     {{ getStatusLabel(judge.status) }}
                   </span>
                   <span class="text-sm text-text-secondary">{{ judge.votesCast }}/{{ judge.votesRequired }} voti</span>

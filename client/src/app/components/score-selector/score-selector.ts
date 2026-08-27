@@ -13,7 +13,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
             class="score-btn"
             [class.active]="value() === score"
             [style.background]="value() === score ? 'var(--color-accent-cyan)' : fillFor(score)"
-            [style.color]="value() === score ? '#1a1206' : textFor(score)"
+            [style.color]="value() === score ? 'var(--color-on-accent)' : textFor(score)"
           >
             {{ score }}
           </button>

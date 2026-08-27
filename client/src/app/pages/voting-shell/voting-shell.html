@@ -74,7 +74,7 @@
               type="button"
               (click)="openFinalizeDialog()"
               [disabled]="finalizeDisabled()"
-              class="hidden sm:block flex-shrink-0 rounded-xl bg-accent-cyan px-4 py-2 text-xs font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              class="btn btn-primary btn-sm hidden flex-shrink-0 sm:inline-flex"
             >
               Conferma definitiva
             </button>
@@ -113,17 +113,14 @@
                   (keydown)="handleManualJudgeCodeSegmentKeyDown($index, $event)"
                   (paste)="handleManualJudgeCodeSegmentPaste($event)"
                   placeholder="XXXX"
-                  class="w-full rounded-xl border border-border-glass bg-bg-secondary px-3 py-3 text-center font-display text-lg uppercase tracking-[0.25em] text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                  class="field-input py-3 text-center font-display text-lg uppercase tracking-[0.25em]"
                 />
               }
             </div>
             @if (judgeCodeInlineError()) {
               <p class="text-sm text-amber-300">{{ judgeCodeInlineError() }}</p>
             }
-            <button
-              type="submit"
-              class="w-full sm:w-auto self-center rounded-xl bg-accent-cyan px-5 py-2.5 font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110"
-            >
+            <button type="submit" class="btn btn-primary w-full self-center sm:w-auto">
               Vai al voto
             </button>
           </form>
@@ -185,18 +182,14 @@
             dispositivo.
           </p>
           <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              (click)="closeFinalizeDialog()"
-              class="rounded-xl border border-border-glass bg-bg-secondary px-4 py-2 text-sm text-text-secondary hover:bg-bg-card-hover transition"
-            >
+            <button type="button" (click)="closeFinalizeDialog()" class="btn btn-ghost">
               Annulla
             </button>
             <button
               type="button"
               (click)="handleFinalizeJudgeCode()"
               [disabled]="finalizingJudgeToken()"
-              class="rounded-xl bg-accent-cyan px-4 py-2 text-sm font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              class="btn btn-primary"
             >
               {{ finalizingJudgeToken() ? 'Blocco in corso...' : 'Conferma e blocca' }}
             </button>
@@ -211,7 +204,7 @@
           type="button"
           (click)="openFinalizeDialog()"
           [disabled]="finalizeDisabled()"
-          class="w-full rounded-xl bg-accent-cyan px-4 py-3 text-sm font-bold uppercase tracking-[0.06em] text-[#1a1206] disabled:cursor-not-allowed disabled:opacity-50"
+          class="btn btn-primary w-full py-3"
         >
           Conferma definitiva
         </button>
