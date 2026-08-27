@@ -42,6 +42,7 @@ import {
     MatButtonModule,
     MatDividerModule,
   ],
+  host: { class: 'theme-pro' },
   templateUrl: './event-manager-shell.html',
 })
 export class EventManagerShellComponent {
