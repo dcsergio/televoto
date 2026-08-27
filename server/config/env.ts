@@ -12,6 +12,7 @@ if (!adminAuthSecret) {
 
 export const env = {
   databaseUrl,
+  databaseSchema: process.env["DATABASE_SCHEMA"]?.trim() || "televoto",
   adminAuthSecret,
   rootAdminPassword: process.env["ROOT_ADMIN_PASSWORD"],
   port: process.env["PORT"] || 3001,

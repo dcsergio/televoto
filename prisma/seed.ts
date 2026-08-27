@@ -10,8 +10,10 @@ if (!databaseUrl) {
   throw new Error("Missing DATABASE_URL environment variable");
 }
 
+const databaseSchema = process.env["DATABASE_SCHEMA"]?.trim() || "televoto";
+
 const pool = new Pool({ connectionString: databaseUrl });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool, { schema: databaseSchema });
 const prisma = new PrismaClient({ adapter });
 const passwordHashIterations = 210000;
 

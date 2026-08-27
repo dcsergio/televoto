@@ -93,10 +93,11 @@ The same Express app (`server/index.ts`) runs two ways:
 Do not fork logic between these two entry points — `api/[...path].ts` should stay a thin adapter.
 
 ### Prisma
+- All application tables live in a dedicated PostgreSQL schema **`televoto`** (not `public`), and both table and column names are **snake_case** in the DB (`CandidateTemplate` → `candidate_template`, `votingClosed` → `voting_closed`). Prisma models/fields keep their camelCase names — the mapping is via `@@map`/`@map` in `prisma/schema.prisma` — so application code is unaffected. The schema name comes from `DATABASE_SCHEMA` (default `televoto`): the server/seed pass it to the `PrismaPg` adapter (`{ schema }`), and `prisma.config.ts` appends it as `?schema=` for the Prisma CLI. `scripts/create_db_televoto_schema.sql` is the hand-written DDL that provisions the schema (and migrates only the `root_credential` secret from a pre-existing `public` schema).
 - Generated client lives in `src/generated/prisma/` (custom `output` in `prisma/schema.prisma`) — never hand-edit; regenerate with `npx prisma generate` (also runs automatically via `prebuild`). This is the only thing left under the repo-root `src/` directory — the former React app that used to live there has been fully replaced by `client/`.
 - After schema changes, use `npm run db:migrate` (not just `db:push`) to preserve migration history, unless intentionally prototyping.
 - `prisma.config.ts` picks the CLI datasource URL from, in order: `PRISMA_CLI_URL` → `DIRECT_DATABASE_URL` → `SUPABASE_DIRECT_URL` → `DATABASE_URL` → `SUPABASE_DATABASE_URL`.
-- `scripts/create_db_from_zero.sql` recreates the database from scratch (drop + create) for local resets; `scripts/bootstrap-db.ts` handles programmatic bootstrap (e.g. seeding the root credential from `ROOT_ADMIN_PASSWORD`).
+- `scripts/create_db_televoto_schema.sql` provisions the `televoto` schema without touching data (secret migration aside); `scripts/create_db_from_zero.sql` drops and recreates the whole `televoto` schema with demo seed data for local resets; `scripts/bootstrap-db.ts` handles the same programmatic bootstrap (e.g. seeding the root credential from `ROOT_ADMIN_PASSWORD`). All three target the `televoto` schema with snake_case names.
 
 ### Angular Material theming
 See `client/CLAUDE.md`.

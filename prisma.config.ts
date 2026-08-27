@@ -12,18 +12,36 @@ function firstNonEmpty(...values: Array<string | undefined>) {
   return undefined;
 }
 
+// Tutte le tabelle applicative vivono nello schema "televoto" (non "public").
+// La CLI Prisma legge lo schema solo dal parametro `schema` della connection string,
+// quindi lo forziamo qui se non gia' presente.
+const databaseSchema = process.env["DATABASE_SCHEMA"]?.trim() || "televoto";
+
+function withSchema(url: string | undefined) {
+  if (!url) {
+    return url;
+  }
+  if (/[?&]schema=/.test(url)) {
+    return url;
+  }
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}schema=${databaseSchema}`;
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: firstNonEmpty(
-      process.env["PRISMA_CLI_URL"],
-      process.env["DIRECT_DATABASE_URL"],
-      process.env["SUPABASE_DIRECT_URL"],
-      process.env["DATABASE_URL"],
-      process.env["SUPABASE_DATABASE_URL"]
+    url: withSchema(
+      firstNonEmpty(
+        process.env["PRISMA_CLI_URL"],
+        process.env["DIRECT_DATABASE_URL"],
+        process.env["SUPABASE_DIRECT_URL"],
+        process.env["DATABASE_URL"],
+        process.env["SUPABASE_DATABASE_URL"]
+      )
     ),
   },
 });

@@ -8,6 +8,18 @@ if (!databaseUrl) {
   throw new Error("Missing DATABASE_URL environment variable");
 }
 
+const databaseSchema = process.env["DATABASE_SCHEMA"]?.trim() || "televoto";
+const passwordHashIterations = 210000;
+
+function createPasswordRecord(password: string) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return {
+    passwordHash: crypto.pbkdf2Sync(password, salt, passwordHashIterations, 64, "sha512").toString("hex"),
+    passwordSalt: salt,
+    passwordIterations: passwordHashIterations,
+  };
+}
+
 const pool = new Pool({ connectionString: databaseUrl });
 
 async function main() {
@@ -16,66 +28,64 @@ async function main() {
   try {
     await client.query("BEGIN");
 
-    await client.query('DROP TYPE IF EXISTS "VoterStatus" CASCADE;');
-    await client.query('DROP TYPE IF EXISTS "VoterType" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "Vote" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "JudgeToken" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "Candidate" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "EventManagerCredential" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "CandidateTemplate" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "Event" CASCADE;');
-    await client.query('DROP TABLE IF EXISTS "RootCredential" CASCADE;');
+    await client.query(`DROP SCHEMA IF EXISTS "${databaseSchema}" CASCADE;`);
+    await client.query(`CREATE SCHEMA "${databaseSchema}";`);
+    await client.query(`SET search_path TO "${databaseSchema}";`);
 
-    await client.query('CREATE TYPE "VoterType" AS ENUM (\'QUALIFICATA\', \'POPOLARE\');');
-    await client.query('CREATE TYPE "VoterStatus" AS ENUM (\'ACTIVE\', \'SUBMITTED\');');
+    await client.query(`CREATE TYPE "${databaseSchema}".voter_type AS ENUM ('QUALIFICATA', 'POPOLARE');`);
+    await client.query(`CREATE TYPE "${databaseSchema}".voter_status AS ENUM ('ACTIVE', 'SUBMITTED');`);
+    await client.query(`CREATE TYPE "${databaseSchema}".popular_vote_mode AS ENUM ('NUMERIC', 'SINGLE');`);
 
     await client.query(`
-      CREATE TABLE "Event" (
+      CREATE TABLE "${databaseSchema}".event (
         "id" TEXT NOT NULL PRIMARY KEY,
         "code" TEXT NOT NULL UNIQUE,
         "name" TEXT NOT NULL,
         "subtitle" TEXT,
         "active" BOOLEAN NOT NULL DEFAULT TRUE,
-        "votingClosed" BOOLEAN NOT NULL DEFAULT FALSE,
-        "weightQualificata" INTEGER NOT NULL DEFAULT 70,
-        "weightPopolare" INTEGER NOT NULL DEFAULT 30,
-        "enableTrimmedMean" BOOLEAN NOT NULL DEFAULT FALSE,
-        "trimmedMeanPercentage" DOUBLE PRECISION NOT NULL DEFAULT 10.0,
-        "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT "Event_weight_sum_100_check" CHECK ("weightQualificata" + "weightPopolare" = 100),
-        CONSTRAINT "Event_trimmed_mean_percentage_check" CHECK ("trimmedMeanPercentage" >= 0 AND "trimmedMeanPercentage" < 50)
+        "voting_closed" BOOLEAN NOT NULL DEFAULT FALSE,
+        "weight_qualificata" INTEGER NOT NULL DEFAULT 70,
+        "weight_popolare" INTEGER NOT NULL DEFAULT 30,
+        "enable_trimmed_mean" BOOLEAN NOT NULL DEFAULT FALSE,
+        "trimmed_mean_percentage" DOUBLE PRECISION NOT NULL DEFAULT 10.0,
+        "popular_vote_mode" "${databaseSchema}".popular_vote_mode NOT NULL DEFAULT 'NUMERIC',
+        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT "event_weight_sum_100_check" CHECK ("weight_qualificata" + "weight_popolare" = 100),
+        CONSTRAINT "event_trimmed_mean_percentage_check" CHECK ("trimmed_mean_percentage" >= 0 AND "trimmed_mean_percentage" < 50)
       );
     `);
 
     await client.query(`
-      CREATE TABLE "RootCredential" (
+      CREATE TABLE "${databaseSchema}".root_credential (
         "id" TEXT NOT NULL PRIMARY KEY,
-        "passwordHash" TEXT NOT NULL,
-        "passwordSalt" TEXT NOT NULL,
-        "passwordIterations" INTEGER NOT NULL,
-        "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        "password_hash" TEXT NOT NULL,
+        "password_salt" TEXT NOT NULL,
+        "password_iterations" INTEGER NOT NULL,
+        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
 
     await client.query(`
-      CREATE TABLE "EventManagerCredential" (
+      CREATE TABLE "${databaseSchema}".event_manager_credential (
         "id" TEXT NOT NULL PRIMARY KEY,
-        "eventId" TEXT NOT NULL UNIQUE,
-        "passwordHash" TEXT NOT NULL,
-        "passwordSalt" TEXT NOT NULL,
-        "passwordIterations" INTEGER NOT NULL,
-        "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT "EventManagerCredential_eventId_fkey"
-          FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+        "event_id" TEXT NOT NULL UNIQUE,
+        "password_hash" TEXT NOT NULL,
+        "password_salt" TEXT NOT NULL,
+        "password_iterations" INTEGER NOT NULL,
+        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT "event_manager_credential_event_id_fkey"
+          FOREIGN KEY ("event_id") REFERENCES "${databaseSchema}".event ("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
-    await client.query('CREATE INDEX "EventManagerCredential_eventId_idx" ON "EventManagerCredential" ("eventId");');
+    await client.query(
+      `CREATE INDEX "event_manager_credential_event_id_idx" ON "${databaseSchema}".event_manager_credential ("event_id");`
+    );
 
     await client.query(`
-      CREATE TABLE "CandidateTemplate" (
+      CREATE TABLE "${databaseSchema}".candidate_template (
         "id" TEXT NOT NULL PRIMARY KEY,
         "name" TEXT NOT NULL,
         "subtitle" TEXT,
@@ -84,51 +94,51 @@ async function main() {
     `);
 
     await client.query(`
-      CREATE TABLE "Candidate" (
+      CREATE TABLE "${databaseSchema}".candidate (
         "id" TEXT NOT NULL PRIMARY KEY,
-        "eventId" TEXT NOT NULL,
+        "event_id" TEXT NOT NULL,
         "number" INTEGER NOT NULL,
         "name" TEXT NOT NULL,
         "subtitle" TEXT,
         "color" TEXT NOT NULL DEFAULT '#6366f1',
-        "templateId" TEXT,
-        CONSTRAINT "Candidate_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT "Candidate_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "CandidateTemplate" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-        CONSTRAINT "Candidate_eventId_number_key" UNIQUE ("eventId", "number")
+        "template_id" TEXT,
+        CONSTRAINT "candidate_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "${databaseSchema}".event ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "candidate_template_id_fkey" FOREIGN KEY ("template_id") REFERENCES "${databaseSchema}".candidate_template ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+        CONSTRAINT "candidate_event_id_number_key" UNIQUE ("event_id", "number")
       );
     `);
 
     await client.query(`
-      CREATE TABLE "JudgeToken" (
+      CREATE TABLE "${databaseSchema}".judge_token (
         "id" TEXT NOT NULL PRIMARY KEY,
-        "eventId" TEXT NOT NULL,
+        "event_id" TEXT NOT NULL,
         "label" TEXT,
-        "type" "VoterType" NOT NULL DEFAULT 'QUALIFICATA',
-        "status" "VoterStatus" NOT NULL DEFAULT 'ACTIVE',
-        "tokenHash" TEXT NOT NULL UNIQUE,
-        "tokenPreview" TEXT NOT NULL,
-        "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        "finalizedAt" TIMESTAMPTZ,
-        "usedAt" TIMESTAMPTZ,
-        "revokedAt" TIMESTAMPTZ,
-        CONSTRAINT "JudgeToken_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+        "type" "${databaseSchema}".voter_type NOT NULL DEFAULT 'QUALIFICATA',
+        "status" "${databaseSchema}".voter_status NOT NULL DEFAULT 'ACTIVE',
+        "token_hash" TEXT NOT NULL UNIQUE,
+        "token_preview" TEXT NOT NULL,
+        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        "finalized_at" TIMESTAMPTZ,
+        "used_at" TIMESTAMPTZ,
+        "revoked_at" TIMESTAMPTZ,
+        CONSTRAINT "judge_token_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "${databaseSchema}".event ("id") ON DELETE CASCADE ON UPDATE CASCADE
       );
     `);
 
-    await client.query('CREATE INDEX "JudgeToken_eventId_idx" ON "JudgeToken" ("eventId");');
+    await client.query(`CREATE INDEX "judge_token_event_id_idx" ON "${databaseSchema}".judge_token ("event_id");`);
 
     await client.query(`
-      CREATE TABLE "Vote" (
+      CREATE TABLE "${databaseSchema}".vote (
         "id" TEXT NOT NULL PRIMARY KEY,
-        "candidateId" TEXT NOT NULL,
-        "deviceId" TEXT,
-        "judgeTokenId" TEXT,
+        "candidate_id" TEXT NOT NULL,
+        "device_id" TEXT,
+        "judge_token_id" TEXT,
         "score" INTEGER,
-        "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT "Vote_candidateId_fkey" FOREIGN KEY ("candidateId") REFERENCES "Candidate" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT "Vote_judgeTokenId_fkey" FOREIGN KEY ("judgeTokenId") REFERENCES "JudgeToken" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-        CONSTRAINT "Vote_candidateId_deviceId_key" UNIQUE ("candidateId", "deviceId"),
-        CONSTRAINT "Vote_candidateId_judgeTokenId_key" UNIQUE ("candidateId", "judgeTokenId")
+        "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT "vote_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "${databaseSchema}".candidate ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "vote_judge_token_id_fkey" FOREIGN KEY ("judge_token_id") REFERENCES "${databaseSchema}".judge_token ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+        CONSTRAINT "vote_candidate_id_device_id_key" UNIQUE ("candidate_id", "device_id"),
+        CONSTRAINT "vote_candidate_id_judge_token_id_key" UNIQUE ("candidate_id", "judge_token_id")
       );
     `);
 
@@ -148,17 +158,17 @@ async function main() {
 
     await client.query(
       `
-      INSERT INTO "Event" (
+      INSERT INTO "${databaseSchema}".event (
         "id",
         "code",
         "name",
         "subtitle",
         "active",
-        "votingClosed",
-        "weightQualificata",
-        "weightPopolare",
-        "enableTrimmedMean",
-        "trimmedMeanPercentage"
+        "voting_closed",
+        "weight_qualificata",
+        "weight_popolare",
+        "enable_trimmed_mean",
+        "trimmed_mean_percentage"
       )
       VALUES ($1, $2, $3, $4, TRUE, FALSE, 70, 30, FALSE, 10.0)
       `,
@@ -167,7 +177,7 @@ async function main() {
 
     await client.query(
       `
-      INSERT INTO "RootCredential" ("id", "passwordHash", "passwordSalt", "passwordIterations")
+      INSERT INTO "${databaseSchema}".root_credential ("id", "password_hash", "password_salt", "password_iterations")
       VALUES ($1, $2, $3, $4)
       `,
       ["root", rootPasswordRecord.passwordHash, rootPasswordRecord.passwordSalt, rootPasswordRecord.passwordIterations]
@@ -175,28 +185,35 @@ async function main() {
 
     await client.query(
       `
-      INSERT INTO "EventManagerCredential" ("id", "eventId", "passwordHash", "passwordSalt", "passwordIterations")
+      INSERT INTO "${databaseSchema}".event_manager_credential ("id", "event_id", "password_hash", "password_salt", "password_iterations")
       VALUES ($1, $2, $3, $4, $5)
       `,
-      [crypto.randomUUID(), eventId, managerPasswordRecord.passwordHash, managerPasswordRecord.passwordSalt, managerPasswordRecord.passwordIterations]
+      [
+        crypto.randomUUID(),
+        eventId,
+        managerPasswordRecord.passwordHash,
+        managerPasswordRecord.passwordSalt,
+        managerPasswordRecord.passwordIterations,
+      ]
     );
 
     for (const candidate of candidates) {
       await client.query(
-        'INSERT INTO "Candidate" ("id", "eventId", "number", "name", "subtitle", "color") VALUES ($1, $2, $3, $4, $5, $6)',
+        `INSERT INTO "${databaseSchema}".candidate ("id", "event_id", "number", "name", "subtitle", "color") VALUES ($1, $2, $3, $4, $5, $6)`,
         [crypto.randomUUID(), eventId, candidate.number, candidate.name, candidate.subtitle, candidate.color]
       );
     }
 
     await client.query("COMMIT");
 
-    const eventCount = await client.query('SELECT COUNT(*)::int AS count FROM "Event";');
-    const candidateCount = await client.query('SELECT COUNT(*)::int AS count FROM "Candidate";');
-    const rootCredentialCount = await client.query('SELECT COUNT(*)::int AS count FROM "RootCredential";');
+    const eventCount = await client.query(`SELECT COUNT(*)::int AS count FROM "${databaseSchema}".event;`);
+    const candidateCount = await client.query(`SELECT COUNT(*)::int AS count FROM "${databaseSchema}".candidate;`);
+    const rootCredentialCount = await client.query(`SELECT COUNT(*)::int AS count FROM "${databaseSchema}".root_credential;`);
 
     console.log(
       JSON.stringify({
         ok: true,
+        schema: databaseSchema,
         eventId,
         events: eventCount.rows[0]?.count ?? 0,
         candidates: candidateCount.rows[0]?.count ?? 0,
