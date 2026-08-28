@@ -14,9 +14,20 @@
       <button type="button" (click)="confirmPrimaryAction()" class="btn btn-tinted">
         {{ primaryActionLabel() }}
       </button>
-      <button type="button" (click)="handleOpenScore()" class="btn btn-ghost">Apri Classifica</button>
+      <button
+        type="button"
+        (click)="handleOpenScore()"
+        class="btn btn-ghost"
+        title="Vista pubblica (tema scuro) — si apre in una nuova scheda"
+      >
+        Apri Classifica
+        <span aria-hidden="true" class="ml-1.5 opacity-60">&#8599;</span>
+      </button>
     </div>
   </div>
+  <p class="mt-2 text-xs text-text-secondary">
+    La Classifica è la vista pubblica proiettata in sala: apre in una nuova scheda con il tema scuro.
+  </p>
   <div class="surface-panel mt-4 border-red-500/25 bg-red-500/10 p-3">
     <p class="text-xs font-semibold uppercase tracking-[0.15em] text-red-200">Zona pericolosa</p>
     <button type="button" (click)="confirmResetRanking()" class="btn btn-danger mt-2">
