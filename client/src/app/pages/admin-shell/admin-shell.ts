@@ -23,6 +23,8 @@ import { AdminEventSummary, EventsApi } from '../../api/events.api';
 import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
+import { CloneEventDialogComponent } from '../../components/clone-event-dialog/clone-event-dialog';
+import { ToastService } from '../../shared/toast.service';
 import { openScoreGuarded } from '../../shared/open-score.util';
 import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
@@ -56,6 +58,7 @@ export class AdminShellComponent {
   private readonly dialog = inject(MatDialog);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
+  protected readonly toast = inject(ToastService);
 
   protected readonly passwordError = signal('');
 
@@ -92,8 +95,6 @@ export class AdminShellComponent {
   protected readonly updatingManagerPassword = signal(false);
   protected readonly managerPasswordDraft = signal('');
   protected readonly rootPasswordDraft = signal({ currentPassword: '', newPassword: '', confirmPassword: '' });
-
-  protected readonly error = signal<string | null>(null);
 
   protected readonly eventNameSeparator = EVENT_NAME_SEPARATOR;
 
@@ -300,7 +301,7 @@ export class AdminShellComponent {
   protected async handleCreateEvent(): Promise<void> {
     const token = this.authState.rootAuthToken();
     if (!token) {
-      this.error.set("Sessione root non valida. Rientra nell'area admin.");
+      this.toast.error("Sessione root non valida. Rientra nell'area admin.");
       return;
     }
     const draft = this.newEvent();
@@ -309,15 +310,15 @@ export class AdminShellComponent {
     const trimmedSubtitle = draft.subtitle.trim();
 
     if (!trimmedName) {
-      this.error.set('Il nome evento è obbligatorio');
+      this.toast.error('Il nome evento è obbligatorio');
       return;
     }
     if (trimmedCode && !EVENT_CODE_REGEX.test(trimmedCode)) {
-      this.error.set('Il codice evento deve contenere da 1 a 5 cifre');
+      this.toast.error('Il codice evento deve contenere da 1 a 5 cifre');
       return;
     }
     if (draft.managerPassword.length < 8) {
-      this.error.set('La password manager evento deve avere almeno 8 caratteri');
+      this.toast.error('La password manager evento deve avere almeno 8 caratteri');
       return;
     }
 
@@ -339,9 +340,9 @@ export class AdminShellComponent {
       this.events.update((prev) => [created, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(created.id);
       this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC', maxPreferences: 1 });
-      this.error.set(null);
+      this.toast.success('Evento creato');
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore');
+      this.toast.error(err instanceof Error ? err.message : 'Errore');
     } finally {
       this.creatingEvent.set(false);
     }
@@ -353,11 +354,10 @@ export class AdminShellComponent {
     if (!ev || !token) return;
     const trimmedName = this.selectedEventNameDraft().trim();
     if (!trimmedName) {
-      this.error.set('Il nome evento è obbligatorio');
+      this.toast.error('Il nome evento è obbligatorio');
       return;
     }
     if (trimmedName === ev.name) {
-      this.error.set(null);
       return;
     }
     this.updatingSelectedEventName.set(true);
@@ -367,9 +367,8 @@ export class AdminShellComponent {
         prev.map((e) => (e.id === updated.id ? { ...e, name: updated.name, subtitle: updated.subtitle } : e)),
       );
       this.selectedEventNameDraft.set(updated.name);
-      this.error.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore');
+      this.toast.error(err instanceof Error ? err.message : 'Errore');
     } finally {
       this.updatingSelectedEventName.set(false);
     }
@@ -383,15 +382,15 @@ export class AdminShellComponent {
     const { weightQualificata, trimmedMeanPercentage, enableTrimmedMean } = this.eventSettingsDraft();
     const weightPopolare = this.eventSettingsWeightPopolare();
     if (!Number.isInteger(weightQualificata)) {
-      this.error.set('Il peso deve essere un numero intero.');
+      this.toast.error('Il peso deve essere un numero intero.');
       return;
     }
     if (weightQualificata < 0 || weightQualificata > 100) {
-      this.error.set('Il peso deve essere compreso tra 0 e 100.');
+      this.toast.error('Il peso deve essere compreso tra 0 e 100.');
       return;
     }
     if (trimmedMeanPercentage < 0 || trimmedMeanPercentage >= 50) {
-      this.error.set('La percentuale trimmed mean deve essere tra 0 e 49.99.');
+      this.toast.error('La percentuale trimmed mean deve essere tra 0 e 49.99.');
       return;
     }
 
@@ -417,9 +416,8 @@ export class AdminShellComponent {
             : e,
         ),
       );
-      this.error.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento impostazioni votazione");
+      this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento impostazioni votazione");
     } finally {
       this.updatingVotingSettings.set(false);
     }
@@ -428,25 +426,24 @@ export class AdminShellComponent {
   protected async handleUpdateRootPassword(): Promise<void> {
     const token = this.authState.rootAuthToken();
     if (!token) {
-      this.error.set("Sessione root non valida. Rientra nell'area admin.");
+      this.toast.error("Sessione root non valida. Rientra nell'area admin.");
       return;
     }
     const { currentPassword, newPassword, confirmPassword } = this.rootPasswordDraft();
     if (currentPassword.length < 8 || newPassword.length < 8) {
-      this.error.set('Le password root devono avere almeno 8 caratteri.');
+      this.toast.error('Le password root devono avere almeno 8 caratteri.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      this.error.set('La conferma della nuova password root non corrisponde.');
+      this.toast.error('La conferma della nuova password root non corrisponde.');
       return;
     }
     this.updatingRootPassword.set(true);
     try {
       await firstValueFrom(this.authApi.updateRootPassword(token, currentPassword, newPassword));
       this.rootPasswordDraft.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      this.error.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password root");
+      this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento password root");
     } finally {
       this.updatingRootPassword.set(false);
     }
@@ -458,16 +455,15 @@ export class AdminShellComponent {
     if (!ev || !token) return;
     const password = this.managerPasswordDraft();
     if (password.length < 8) {
-      this.error.set('La nuova password evento deve avere almeno 8 caratteri.');
+      this.toast.error('La nuova password evento deve avere almeno 8 caratteri.');
       return;
     }
     this.updatingManagerPassword.set(true);
     try {
       await firstValueFrom(this.eventsApi.updateEventManagerPassword(ev.id, password, token));
       this.managerPasswordDraft.set('');
-      this.error.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
+      this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
     } finally {
       this.updatingManagerPassword.set(false);
     }
@@ -495,7 +491,7 @@ export class AdminShellComponent {
   private async setEventArchivedState(eventId: string, archived: boolean): Promise<void> {
     const token = this.authState.rootAuthToken();
     if (!token) {
-      this.error.set("Sessione root non valida. Rientra nell'area admin.");
+      this.toast.error("Sessione root non valida. Rientra nell'area admin.");
       return;
     }
     this.archivingEventId.set(eventId);
@@ -505,29 +501,42 @@ export class AdminShellComponent {
       if (archived && this.selectedEventId() === eventId) {
         this.selectedEventId.set(this.activeEvents().find((e) => e.id !== eventId)?.id ?? null);
       }
-      this.error.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : "Errore nell'aggiornamento dell'archiviazione");
+      this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento dell'archiviazione");
     } finally {
       this.archivingEventId.set(null);
     }
   }
 
-  protected async handleCloneEvent(eventId: string): Promise<void> {
+  protected handleCloneEvent(eventId: string): void {
+    const ev = this.events().find((e) => e.id === eventId);
+    if (!ev) return;
+    const ref = this.dialog.open(CloneEventDialogComponent, {
+      data: { eventName: ev.name, defaultName: `${ev.name} (copia)` },
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) void this.cloneEvent(eventId, result);
+    });
+  }
+
+  private async cloneEvent(
+    eventId: string,
+    input: { managerPassword: string; name: string; code: string | null },
+  ): Promise<void> {
     const token = this.authState.rootAuthToken();
     if (!token) {
-      this.error.set("Sessione root non valida. Rientra nell'area admin.");
+      this.toast.error("Sessione root non valida. Rientra nell'area admin.");
       return;
     }
     this.cloningEventId.set(eventId);
     try {
-      const cloned = await firstValueFrom(this.eventsApi.cloneEvent(eventId, token));
+      const cloned = await firstValueFrom(this.eventsApi.cloneEvent(eventId, input, token));
       this.events.update((prev) => [cloned, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(cloned.id);
-      this.handleSectionChange('events');
-      this.error.set(null);
+      this.handleSectionChange('edit-events');
+      this.toast.success('Evento clonato');
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore nella clonazione evento');
+      this.toast.error(err instanceof Error ? err.message : 'Errore nella clonazione evento');
     } finally {
       this.cloningEventId.set(null);
     }
