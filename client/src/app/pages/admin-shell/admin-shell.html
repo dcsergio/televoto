@@ -145,7 +145,7 @@
             <div class="space-y-6">
               <div>
                 <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Dashboard</p>
-                <h2 class="mt-2 text-2xl font-semibold">Panoramica generale</h2>
+                <h2 class="mt-2 text-2xl font-bold text-text-primary">Panoramica generale</h2>
                 <p class="mt-1 text-sm text-text-secondary">Stato di tutti gli eventi e accesso rapido alla gestione dell'evento selezionato.</p>
               </div>
 
@@ -211,7 +211,7 @@
 
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold">Tutti gli eventi</h3>
+                    <h3 class="text-lg font-semibold text-text-primary">Tutti gli eventi</h3>
                     @if (archivedEvents().length > 0) {
                       <button type="button" mat-button (click)="handleSectionChange('archived')">
                         <mat-icon>archive</mat-icon>
@@ -281,7 +281,7 @@
               <mat-card-content class="space-y-4">
                 <div>
                   <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
-                  <h2 class="mt-2 text-2xl font-semibold">Anagrafica eventi</h2>
+                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Anagrafica eventi</h2>
                 </div>
 
                 @if (loadingEvents()) {
@@ -291,7 +291,7 @@
                 } @else {
                   <div class="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
                     <div class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
-                      <h3 class="text-lg font-semibold">Evento corrente</h3>
+                      <h3 class="text-lg font-semibold text-text-primary">Evento corrente</h3>
                       @if (selectedEvent(); as ev) {
                         <p class="text-sm text-text-secondary">{{ ev.code }} - <span class="font-semibold text-text-primary">{{ ev.name }}</span></p>
 
@@ -538,7 +538,7 @@
               <mat-card-content class="space-y-4">
                 <div>
                   <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
-                  <h2 class="mt-2 text-2xl font-semibold">Eventi archiviati</h2>
+                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Eventi archiviati</h2>
                   <p class="mt-1 text-sm text-text-secondary">
                     Gli eventi archiviati non compaiono più tra quelli attivi. Puoi ripristinarli o usarli come base per un nuovo evento.
                   </p>

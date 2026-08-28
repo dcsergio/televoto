@@ -2,7 +2,7 @@
   <mat-card-content class="space-y-6">
     <div>
       <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione candidati</p>
-      <h2 class="mt-2 text-2xl font-semibold">Candidati per evento selezionato</h2>
+      <h2 class="mt-2 text-2xl font-bold text-text-primary">Candidati per evento selezionato</h2>
     </div>
 
     @if (error()) {
@@ -23,7 +23,7 @@
       </div>
 
       <div class="surface-panel bg-bg-card/60 p-6">
-        <h3 class="mb-4 text-xl font-semibold">Aggiungi nuovo candidato</h3>
+        <h3 class="mb-4 text-xl font-semibold text-text-primary">Aggiungi nuovo candidato</h3>
         <form (ngSubmit)="handleAddCandidate()" class="space-y-4">
           <label class="space-y-1">
             <span class="text-sm font-medium text-text-secondary">Nome candidato</span>
@@ -98,7 +98,7 @@
       </div>
 
       <div class="space-y-4">
-        <h3 class="text-xl font-semibold">Candidati attuali ({{ candidates().length }})</h3>
+        <h3 class="text-xl font-semibold text-text-primary">Candidati attuali ({{ candidates().length }})</h3>
         @if (candidates().length === 0) {
           <p class="text-text-secondary">Nessun candidato ancora.</p>
         } @else {
