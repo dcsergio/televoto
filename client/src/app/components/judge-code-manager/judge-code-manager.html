@@ -184,7 +184,7 @@
         <div class="mt-4 space-y-3">
           @for (token of listTokens(); track token.id) {
             @let fresh = generatedById().get(token.id);
-            <div class="surface-panel bg-bg-secondary p-4" [class.border-amber-500]="fresh">
+            <div class="surface-panel bg-bg-secondary p-4" [class.border-amber-500]="!!fresh">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div class="flex flex-wrap items-center gap-2">
