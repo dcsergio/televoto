@@ -59,7 +59,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
 
         <div class="flex-1 min-w-0">
           <p
-            class="font-semibold text-sm md:text-base uppercase tracking-[0.04em] text-text-primary truncate"
+            class="truncate text-sm font-semibold text-text-primary md:text-base"
             [ngClass]="{ 'opacity-55': isVoted() && !selected() }"
           >
             {{ candidate().name }}
@@ -111,7 +111,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
                 type="button"
                 [disabled]="submitting()"
                 (click)="vote.emit({ candidateId: candidate().id, score: 1 })"
-                class="w-full rounded-xl bg-accent-cyan px-4 py-3 text-sm font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                class="btn btn-primary w-full py-3"
               >
                 Vota questo candidato
               </button>

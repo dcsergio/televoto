@@ -73,9 +73,8 @@
                 <div class="mt-8 grid gap-6 md:grid-cols-2">
                   @for (entry of finalists(); track entry.id) {
                     <div
-                      class="relative overflow-hidden animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-gradient-to-b from-accent-cyan/10 to-transparent px-6 py-10 md:px-8 md:py-12"
+                      class="animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-bg-card px-6 py-10 md:px-8 md:py-12"
                     >
-                      <span class="animate-spotlight-sweep" aria-hidden="true"></span>
                       <div class="animate-stage-slam text-6xl md:text-7xl">{{ getMedalEmoji(0) }}</div>
                       <div class="mt-3 flex items-center justify-center gap-3">
                         <span class="h-8 w-1.5 shrink-0 rounded-full md:h-10" [style.background-color]="entry.color"></span>
@@ -99,9 +98,8 @@
               } @else {
                 <!-- Single champion -->
                 <div
-                  class="relative overflow-hidden animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-gradient-to-b from-accent-cyan/10 to-transparent px-8 py-12 md:px-14 md:py-16"
+                  class="animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-bg-card px-8 py-12 md:px-14 md:py-16"
                 >
-                  <span class="animate-spotlight-sweep" aria-hidden="true"></span>
                   <p class="font-display text-base font-medium uppercase tracking-[0.35em] text-accent-yellow md:text-lg">
                     Campione
                   </p>
@@ -170,7 +168,7 @@
               @for (hero of [presenterHeroEntry()]; track hero!.id) {
                 <div
                   class="animate-stage-rise"
-                  [ngClass]="heroIsThirdPlace() ? 'rounded-3xl border border-accent-yellow/40 bg-gradient-to-b from-accent-yellow/10 to-transparent p-8' : ''"
+                  [ngClass]="heroIsThirdPlace() ? 'rounded-3xl border border-accent-yellow/40 bg-bg-card p-8' : ''"
                 >
                   <p class="font-display text-lg font-medium uppercase tracking-[0.3em] text-text-secondary">
                     @if (heroIsThirdPlace()) {
@@ -241,22 +239,18 @@
               type="button"
               (click)="handleUndoReveal()"
               [disabled]="!canUndo()"
-              class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-3 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
+              class="btn btn-ghost btn-sm shrink-0"
             >
               Annulla
             </button>
-            <button
-              type="button"
-              (click)="handleTogglePresenterMode()"
-              class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-3 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-card-hover"
-            >
+            <button type="button" (click)="handleTogglePresenterMode()" class="btn btn-ghost btn-sm shrink-0">
               Esci
             </button>
             <button
               type="button"
               (click)="handleRevealNext()"
               [disabled]="revealDisabled()"
-              class="shrink-0 rounded-lg bg-accent-cyan px-4 py-2 text-sm font-bold uppercase tracking-[0.05em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              class="btn btn-primary btn-sm shrink-0"
             >
               {{ startingReveal() ? 'Avvio...' : buttonLabel() }}
             </button>
@@ -271,7 +265,7 @@
       <div class="mx-auto max-w-4xl px-4 py-8">
         @if (!revealStarted()) {
           <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold neon-text">&#127942; Classifica</h1>
+            <h1 class="text-3xl font-bold neon-text">Classifica</h1>
             @if (eventNameParts().prefix) {
               <p class="mt-2 text-sm uppercase tracking-[0.2em] text-text-secondary">{{ eventNameParts().prefix }}</p>
             }
@@ -301,25 +295,21 @@
               </p>
             </div>
             <div class="flex flex-nowrap gap-2 overflow-x-auto">
-              <button
-                type="button"
-                (click)="handleExportCsv()"
-                class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-4 py-2 font-semibold text-text-secondary transition hover:bg-bg-card-hover"
-              >
+              <button type="button" (click)="handleExportCsv()" class="btn btn-ghost btn-sm shrink-0">
                 Esporta CSV
               </button>
               <button
                 type="button"
                 (click)="handleUndoReveal()"
                 [disabled]="!canUndo()"
-                class="shrink-0 rounded-lg border border-border-glass bg-bg-secondary px-4 py-2 font-semibold text-text-secondary transition hover:bg-bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
+                class="btn btn-ghost btn-sm shrink-0"
               >
                 Annulla ultimo
               </button>
               <button
                 type="button"
                 (click)="handleTogglePresenterMode()"
-                class="shrink-0 rounded-lg border border-accent-cyan/30 bg-accent-cyan/10 px-4 py-2 font-semibold text-accent-cyan transition hover:bg-accent-cyan/20"
+                class="btn btn-tinted btn-sm shrink-0"
               >
                 Modalit&agrave; presentazione
               </button>
@@ -327,7 +317,7 @@
                 type="button"
                 (click)="handleRevealNext()"
                 [disabled]="revealDisabled()"
-                class="shrink-0 rounded-lg bg-accent-cyan px-4 py-2 font-bold uppercase tracking-[0.05em] text-[#1a1206] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                class="btn btn-primary btn-sm shrink-0"
               >
                 {{ startingReveal() ? 'Avvio...' : buttonLabel() }}
               </button>
@@ -357,7 +347,7 @@
                         <p class="text-xs uppercase tracking-[0.2em] text-text-secondary">
                           {{ getFinalistLabel(index, showWinner(), hasTopTie()) }}
                         </p>
-                        <h2 class="flex items-center gap-2 font-display font-semibold uppercase" [ngClass]="isFinalistWinnerCard(index) ? 'text-3xl' : 'text-xl'">
+                        <h2 class="flex items-center gap-2 font-display font-semibold" [ngClass]="isFinalistWinnerCard(index) ? 'text-3xl' : 'text-xl'">
                           @if (isFinalistWinnerCard(index)) {
                             <span class="text-2xl">{{ getMedalEmoji(index) }}</span>
                           }
@@ -418,7 +408,7 @@
                   <div class="min-w-0 flex-1">
                     <div class="mb-2 flex items-center gap-3">
                       <div class="h-4 w-1.5 shrink-0 rounded-full" [style.background-color]="entry.color"></div>
-                      <h2 class="flex items-center gap-2 font-display text-xl font-semibold uppercase">
+                      <h2 class="flex items-center gap-2 font-display text-xl font-semibold">
                         <span class="text-2xl">{{ getMedalEmoji(rankingIndex(entry)) }}</span>
                         <span class="truncate">{{ entry.name }}</span>
                       </h2>
@@ -452,20 +442,20 @@
         }
 
         @if (rankings().length > 0 && !revealStarted()) {
-          <div class="mt-12 rounded-2xl border border-border-glass bg-bg-card p-6">
-            <h3 class="mb-4 text-lg font-semibold">Statistiche evento</h3>
-            <div class="grid grid-cols-3 gap-4">
-              <div>
-                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ totalVotes() }}</div>
-                <div class="text-sm text-text-secondary">Voti totali</div>
+          <div class="mt-12">
+            <h3 class="mb-3 text-xs uppercase tracking-[0.2em] text-text-secondary">Statistiche evento</h3>
+            <div class="surface-card flex flex-wrap divide-y divide-border-glass sm:divide-y-0 sm:divide-x">
+              <div class="min-w-[9rem] flex-1 px-5 py-4">
+                <div class="font-display text-2xl font-semibold tabular-nums text-text-primary">{{ totalVotes() }}</div>
+                <div class="mt-0.5 text-sm text-text-secondary">Voti totali</div>
               </div>
-              <div>
-                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ rankings().length }}</div>
-                <div class="text-sm text-text-secondary">Candidati</div>
+              <div class="min-w-[9rem] flex-1 px-5 py-4">
+                <div class="font-display text-2xl font-semibold tabular-nums text-text-primary">{{ rankings().length }}</div>
+                <div class="mt-0.5 text-sm text-text-secondary">Candidati</div>
               </div>
-              <div>
+              <div class="min-w-[9rem] flex-1 px-5 py-4">
                 <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ averageFinalScore().toFixed(3) }}</div>
-                <div class="text-sm text-text-secondary">Punteggio finale medio</div>
+                <div class="mt-0.5 text-sm text-text-secondary">Punteggio finale medio</div>
               </div>
             </div>
           </div>

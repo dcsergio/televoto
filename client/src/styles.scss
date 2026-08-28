@@ -19,21 +19,65 @@
   --color-text-primary: #f4f4f5;
   --color-text-secondary: #a1a1aa;
   --color-text-muted: #71717a;
+
+  /* One reserved accent. `accent-cyan` is the legacy name kept so the ~16
+     admin/manager files that reference it don't need editing. */
   --color-accent-cyan: #ffb020;
-  --color-accent-magenta: #ff7a45;
-  --color-accent-coral: #f43f5e;
-  --color-accent-violet: #a78bfa;
-  --color-accent-yellow: #ffcf4a;
+  /* `accent-yellow` is the champagne "victory" tone — distinct from the
+     interactive gold so the winner beat doesn't read as a clickable accent. */
+  --color-accent-yellow: #f2c86a;
+  /* `accent-coral` is the legacy error name — realigned to the warm brick
+     of the danger ramp below so it sits in one gray/warm family. */
+  --color-accent-coral: #df5b48;
+  /* legacy secondary aliases — kept pointing at the single accent so any
+     stray reference stays on-palette instead of resurrecting a 2nd hue. */
+  --color-accent-magenta: var(--color-accent-cyan);
+  --color-accent-violet: var(--color-accent-cyan);
+
+  /* Ink that sits on a filled accent surface (gold button, active score).
+     One token instead of a hard-coded `#1a1206` copied across 9 files;
+     `.theme-pro` flips it to white for the deep-amber Studio accent. */
+  --color-on-accent: #1a1206;
+
   --color-neon-glow: rgba(255, 176, 32, 0.18);
+
+  /* ── Status ramps ──────────────────────────────────────────────
+     Warm-shifted and desaturated so "aperto" green no longer reads
+     cool next to the gold stage, and "warning" amber is pulled toward
+     honey/ochre so it's not mistaken for the brand accent. Only the
+     steps actually referenced in markup are overridden. */
+  --color-emerald-100: #d6e8da;
+  --color-emerald-200: #a9d3b4;
+  --color-emerald-300: #8ac79b;
+  --color-emerald-400: #5fb37f;
+  --color-emerald-500: #3f9366;
+  --color-amber-100: #f0dcc2;
+  --color-amber-200: #e6c8a2;
+  --color-amber-300: #dcae6f;
+  --color-amber-400: #c9923f;
+  --color-amber-500: #a9741f;
+  --color-red-100: #f0d5d0;
+  --color-red-200: #e0aaa2;
+  --color-red-300: #d68d82;
+  --color-red-500: #d94f3d;
 
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
 
-  /* Warm, near-black tinted shadows — never flat #000 at low opacity.
-     A faint gold ambient rides along so elevation reads on the dark stage. */
+  /* ── Radius scale ──────────────────────────────────────────────
+     Re-pointed so the steps cluster instead of jumping 8 → 24px:
+     small controls land ~10–12, cards ~16, big surfaces ~20. Siblings
+     that mix `rounded-lg`/`rounded-2xl` now read as one system. */
+  --radius-sm: 0.375rem; /* 6px  — chips, tags */
+  --radius-md: 0.625rem; /* 10px — inputs, mini buttons */
+  --radius-lg: 0.75rem; /*  12px — buttons */
+  --radius-xl: 0.875rem; /* 14px — nested panels */
+  --radius-2xl: 1rem; /*    16px — cards */
+  --radius-3xl: 1.25rem; /* 20px — hero / takeover surfaces */
+
+  /* Warm, near-black tinted shadows — never flat #000 at low opacity. */
   --shadow-card: 0 1px 2px rgba(8, 5, 2, 0.45), 0 10px 30px -12px rgba(6, 4, 1, 0.7);
   --shadow-lift:
-    0 2px 6px rgba(8, 5, 2, 0.5), 0 20px 48px -16px rgba(0, 0, 0, 0.72),
-    0 0 0 1px rgba(255, 176, 32, 0.05);
+    0 2px 6px rgba(8, 5, 2, 0.5), 0 20px 48px -16px rgba(0, 0, 0, 0.72);
   --shadow-gold:
     0 0 0 1px var(--color-border-neon), 0 14px 44px -10px rgba(255, 176, 32, 0.24),
     0 10px 28px rgba(0, 0, 0, 0.5);
@@ -105,7 +149,7 @@ p {
 .glass {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border-glass);
-  border-radius: 16px;
+  border-radius: var(--radius-2xl);
   /* hairline top highlight (edge catching the stage light) + tinted drop */
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-card);
 }
@@ -134,7 +178,7 @@ p {
   width: 100%;
   max-width: 3.25rem;
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,7 +195,7 @@ p {
 
 .score-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px -6px rgba(255, 176, 32, 0.28);
+  box-shadow: var(--shadow-card);
 }
 
 .score-btn:active {
@@ -160,7 +204,7 @@ p {
 
 .score-btn.active {
   border-color: transparent;
-  box-shadow: 0 0 0 2px var(--color-accent-cyan), 0 8px 20px var(--color-neon-glow);
+  box-shadow: 0 0 0 2px var(--color-accent-cyan);
 }
 
 @media (min-width: 768px) {
@@ -256,48 +300,6 @@ p {
   animation: stageSlam 0.5s var(--ease-spring) forwards;
 }
 
-/* A single light sweep across the winner takeover, once. */
-@keyframes spotlightSweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-120%) skewX(-12deg);
-  }
-  18% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(120%) skewX(-12deg);
-  }
-}
-
-.animate-spotlight-sweep {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: inherit;
-}
-.animate-spotlight-sweep::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 45%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    rgba(255, 214, 130, 0.22),
-    transparent
-  );
-  animation: spotlightSweep 1.5s var(--ease-out-quart) 0.2s forwards;
-}
-
-/* legacy name kept — some admin/manager markup references it */
-.animate-pulse-neon {
-  animation: none;
-}
-
 /* ── Stage loader — an equalizer motif, on-brand for the broadcast look ── */
 @keyframes barPulse {
   0%,
@@ -353,15 +355,15 @@ p {
 
 .app-toast {
   &.toast-success .mdc-snackbar__surface {
-    background: rgba(16, 185, 129, 0.16) !important;
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    background: color-mix(in srgb, var(--color-emerald-500) 18%, var(--color-bg-card)) !important;
+    border: 1px solid color-mix(in srgb, var(--color-emerald-500) 45%, transparent);
   }
   &.toast-error .mdc-snackbar__surface {
-    background: rgba(244, 63, 94, 0.16) !important;
-    border: 1px solid rgba(244, 63, 94, 0.4);
+    background: color-mix(in srgb, var(--color-red-500) 18%, var(--color-bg-card)) !important;
+    border: 1px solid color-mix(in srgb, var(--color-red-500) 45%, transparent);
   }
   .mdc-snackbar__surface {
-    border-radius: 14px !important;
+    border-radius: var(--radius-xl) !important;
   }
 }
 
@@ -411,6 +413,160 @@ p {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   Shared component primitives. Before this, every hand-rolled
+   button/card/input re-declared the same ~8 utilities inline (and
+   drifted: three radii for the same field, `text-[#1a1206]` copied
+   into 9 files). These classes are the single source; call sites
+   add only layout utilities (`w-full`, `flex-1`, sizing).
+   ────────────────────────────────────────────────────────────── */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-lg);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      transform 0.12s ease,
+      background-color 0.16s ease,
+      border-color 0.16s ease,
+      filter 0.16s ease;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Primary — the one filled accent action per view. */
+  .btn-primary {
+    background: var(--color-accent-cyan);
+    color: var(--color-on-accent);
+    border: 1px solid transparent;
+  }
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  /* Tinted — a lower-commitment accent action (was the `border-accent-cyan/50
+     bg-accent-cyan/20` pattern hand-written across the admin forms). */
+  .btn-tinted {
+    background: color-mix(in srgb, var(--color-accent-cyan) 14%, transparent);
+    color: var(--color-accent-cyan);
+    border: 1px solid color-mix(in srgb, var(--color-accent-cyan) 32%, transparent);
+  }
+  .btn-tinted:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-accent-cyan) 22%, transparent);
+  }
+
+  /* Ghost — secondary / cancel. */
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-glass);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+  }
+
+  /* Danger — destructive, warm brick not pure red. */
+  .btn-danger {
+    background: color-mix(in srgb, var(--color-red-500) 14%, transparent);
+    color: var(--color-red-300);
+    border: 1px solid color-mix(in srgb, var(--color-red-500) 28%, transparent);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-red-500) 22%, transparent);
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* Surface — the flat hairline card. Same look as `.glass` but usable
+     as a class name that reads as intent at the call site. */
+  .surface-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-glass);
+    border-radius: var(--radius-2xl);
+  }
+  .surface-panel {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-glass);
+    border-radius: var(--radius-xl);
+  }
+
+  /* Text input — one declaration for the field styling copy-pasted
+     across ~15 inputs at three different radii. */
+  .field-input {
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-glass);
+    background: var(--color-bg-secondary);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-text-primary);
+    outline: none;
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+  .field-input::placeholder {
+    color: var(--color-text-muted);
+  }
+  .field-input:focus {
+    border-color: var(--color-accent-cyan);
+    box-shadow: 0 0 0 1px var(--color-accent-cyan);
+  }
+  .field-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Native form controls — checkbox / radio / colour picker.
+   These were browser-default (blue tick, square swatch) in the admin
+   voting-settings and candidate forms, out of step with the rest. ── */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-accent-cyan);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--color-border-glass);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  cursor: pointer;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-md) - 3px);
+}
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-md) - 3px);
+}
+
+/* ──────────────────────────────────────────────────────────────
    "Studio" — the professional light theme for the /admin and
    /manager workspaces. Set as a host class on the two shell
    components; the public voting page and the /score reveal keep
@@ -439,9 +595,9 @@ p {
   --color-text-secondary: #55585f;
   --color-text-muted: #83868e;
   --color-accent-cyan: #b45309;
-  --color-accent-magenta: #b45309;
   --color-accent-coral: #dc2626;
   --color-accent-yellow: #a16207;
+  --color-on-accent: #ffffff;
   --color-neon-glow: rgba(180, 83, 9, 0.14);
 
   /* Status ramps — darkened for legibility on paper. */
@@ -449,13 +605,16 @@ p {
   --color-emerald-200: #047857;
   --color-emerald-300: #047857;
   --color-emerald-400: #047857;
+  --color-emerald-500: #047857;
   --color-amber-100: #b45309;
   --color-amber-200: #b45309;
   --color-amber-300: #b45309;
   --color-amber-400: #d97706;
+  --color-amber-500: #b45309;
   --color-red-100: #dc2626;
   --color-red-200: #dc2626;
   --color-red-300: #dc2626;
+  --color-red-500: #dc2626;
 
   --shadow-card: 0 1px 2px rgba(18, 20, 24, 0.06), 0 1px 3px rgba(18, 20, 24, 0.04);
   --shadow-lift: 0 2px 4px rgba(18, 20, 24, 0.06), 0 14px 30px -14px rgba(18, 20, 24, 0.16);
@@ -489,14 +648,6 @@ app-event-manager-shell.theme-pro {
   min-height: 100dvh;
 }
 
-/* Shared gate/button markup hard-codes dark-ink-on-gold (`text-[#1a1206]`,
-   correct for the Palco stage). On the Studio accent (deep amber) that text
-   is unreadable — flip it to white wherever it lands inside `.theme-pro`
-   (the /manager event-code + password gates reuse that markup). */
-.theme-pro .text-\[\#1a1206\] {
-  color: #ffffff;
-}
-
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -511,11 +662,8 @@ app-event-manager-shell.theme-pro {
     animation-duration: 0.001s !important;
     animation-iteration-count: 1 !important;
   }
-  .animate-spotlight-sweep::after {
-    animation: none !important;
-    display: none;
-  }
   .score-btn,
+  .btn,
   .btn-tactile {
     transition: none !important;
   }

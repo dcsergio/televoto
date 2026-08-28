@@ -25,14 +25,9 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
             [(ngModel)]="codeInput"
             name="eventCode"
             placeholder="Es. 00001"
-            class="flex-1 rounded-xl border border-border-glass bg-bg-secondary px-4 py-2.5 font-display tabular-nums tracking-[0.1em] text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+            class="field-input flex-1 font-display tabular-nums tracking-[0.1em]"
           />
-          <button
-            type="submit"
-            class="rounded-xl bg-accent-cyan px-5 py-2.5 font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 active:scale-95"
-          >
-            Entra
-          </button>
+          <button type="submit" class="btn btn-primary">Entra</button>
         </form>
       </div>
     </div>
