@@ -127,7 +127,7 @@
                     <span class="text-2xl">{{ getMedalEmoji(1) }}</span>
                     <span class="h-6 w-1.5 shrink-0 rounded-full" [style.background-color]="runnerUp()!.color"></span>
                     <span class="flex-1 truncate text-left text-sm uppercase tracking-[0.08em] text-text-primary">
-                      {{ runnerUp()!.name }}
+                      <span class="text-text-secondary">2&ordm; classificato &middot;</span> {{ runnerUp()!.name }}
                     </span>
                     <span class="font-display tabular-nums text-text-secondary">{{ formatScore(runnerUp()!.finalScore) }}</span>
                   </div>

@@ -53,7 +53,7 @@ export function getButtonLabel(options: {
 
 export function getFinalistLabel(index: number, showWinner: boolean, hasTopTie: boolean): string {
   if (showWinner && hasTopTie) return 'Vincitore';
-  if (showWinner && index === 0) return 'Vincitore';
+  if (showWinner) return index === 0 ? 'Vincitore' : '2º classificato';
   if (index === 0) return 'Finalista 1';
   return 'Finalista 2';
 }
