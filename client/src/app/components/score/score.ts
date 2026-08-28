@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { RankingEntry, RankingsApi } from '../../api/rankings.api';
 import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { splitEventNameForDisplay } from '../../shared/event-name-display.util';
+import { buildPageTitle } from '../../shared/page-title.util';
 import { CountUpDirective } from '../../shared/count-up.directive';
 import { formatScore } from '../../shared/format-score.util';
 import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
@@ -25,6 +27,7 @@ export class ScoreComponent {
   private readonly rankingsApi = inject(RankingsApi);
   protected readonly votingState = inject(VotingStateService);
   protected readonly authState = inject(AuthStateService);
+  private readonly title = inject(Title);
 
   private readonly queryParamMap = toSignal(this.route.queryParamMap, { requireSync: true });
   protected readonly eventCode = computed(() => this.queryParamMap().get('eventCode'));
@@ -148,6 +151,10 @@ export class ScoreComponent {
   private lastRankingsEventId: string | null = null;
 
   constructor() {
+    effect(() => {
+      this.title.setTitle(buildPageTitle('Classifica', this.event()?.name));
+    });
+
     effect(() => {
       const code = this.eventCode();
       void this.votingState.loadEventByCode(code, false);

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -19,6 +20,7 @@ import { EventLifecycleControlsComponent, VotingStateChange } from '../../compon
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
 import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
 import { openScoreGuarded } from '../../shared/open-score.util';
+import { buildPageTitle } from '../../shared/page-title.util';
 import {
   EVENT_MANAGER_SECTION_NAV,
   EventManagerSection,
@@ -53,6 +55,7 @@ export class EventManagerShellComponent {
   private readonly dialog = inject(MatDialog);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
+  private readonly title = inject(Title);
 
   protected readonly passwordError = signal('');
 
@@ -84,6 +87,10 @@ export class EventManagerShellComponent {
   constructor() {
     effect(() => {
       this.sidenavOpened.set(!this.isHandset());
+    });
+
+    effect(() => {
+      this.title.setTitle(buildPageTitle('Regia', this.event()?.name));
     });
 
     effect(() => {
