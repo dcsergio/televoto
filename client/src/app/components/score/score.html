@@ -129,7 +129,7 @@
                     <span class="flex-1 truncate text-left text-sm uppercase tracking-[0.08em] text-text-primary">
                       {{ runnerUp()!.name }}
                     </span>
-                    <span class="font-display tabular-nums text-text-secondary">{{ runnerUp()!.finalScore.toFixed(3) }}</span>
+                    <span class="font-display tabular-nums text-text-secondary">{{ formatScore(runnerUp()!.finalScore) }}</span>
                   </div>
                 }
               }
@@ -211,7 +211,7 @@
                       <span class="w-10 text-right font-display tabular-nums">{{ rankingIndex(entry) + 1 }}</span>
                       <span class="h-4 w-1 shrink-0 rounded-full" [style.background-color]="entry.color"></span>
                       <span class="flex-1 truncate text-sm uppercase tracking-[0.06em]">{{ entry.name }}</span>
-                      <span class="font-display text-sm tabular-nums">{{ entry.finalScore.toFixed(3) }}</span>
+                      <span class="font-display text-sm tabular-nums">{{ formatScore(entry.finalScore) }}</span>
                     </div>
                   }
                 </div>
@@ -373,16 +373,16 @@
                       <div class="mt-6 flex items-end justify-between gap-4">
                         <div>
                           <div class="font-display font-semibold tabular-nums text-accent-cyan" [ngClass]="(hasTopTie() || index === 0) ? 'text-4xl' : 'text-3xl'">
-                            {{ entry.finalScore.toFixed(3) }}
+                            {{ formatScore(entry.finalScore) }}
                           </div>
                           <div class="text-sm text-text-secondary">Punteggio finale</div>
                         </div>
                         @if (entry.voteCount > 0) {
                           <div class="text-right text-sm text-text-secondary">
                             <div>Voti: {{ entry.voteCount }}</div>
-                            <div>Media complessiva: {{ entry.avgScore.toFixed(1) }}</div>
-                            <div>Media qualificata: {{ entry.avgQualificata.toFixed(2) }}</div>
-                            <div>Media popolare: {{ entry.avgPopolare.toFixed(2) }}</div>
+                            <div>Media complessiva: {{ formatScore(entry.avgScore) }}</div>
+                            <div>Media qualificata: {{ formatScore(entry.avgQualificata) }}</div>
+                            <div>Media popolare: {{ formatScore(entry.avgPopolare) }}</div>
                           </div>
                         }
                       </div>
@@ -425,9 +425,9 @@
                     @if (entry.voteCount > 0) {
                       <div class="mt-2 text-sm text-text-secondary">
                         <div>Voti: {{ entry.voteCount }}</div>
-                        <div>Media complessiva: {{ entry.avgScore.toFixed(1) }}</div>
-                        <div>Media qualificata: {{ entry.avgQualificata.toFixed(2) }}</div>
-                        <div>Media popolare: {{ entry.avgPopolare.toFixed(2) }}</div>
+                        <div>Media complessiva: {{ formatScore(entry.avgScore) }}</div>
+                        <div>Media qualificata: {{ formatScore(entry.avgQualificata) }}</div>
+                        <div>Media popolare: {{ formatScore(entry.avgPopolare) }}</div>
                       </div>
                     }
                   </div>
@@ -454,7 +454,7 @@
                 <div class="mt-0.5 text-sm text-text-secondary">Candidati</div>
               </div>
               <div class="min-w-[9rem] flex-1 px-5 py-4">
-                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ averageFinalScore().toFixed(3) }}</div>
+                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ formatScore(averageFinalScore()) }}</div>
                 <div class="mt-0.5 text-sm text-text-secondary">Punteggio finale medio</div>
               </div>
             </div>

@@ -8,6 +8,7 @@ import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { splitEventNameForDisplay } from '../../shared/event-name-display.util';
 import { CountUpDirective } from '../../shared/count-up.directive';
+import { formatScore } from '../../shared/format-score.util';
 import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../protected-page-gate/protected-page-gate';
 import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from './score.util';
@@ -45,6 +46,7 @@ export class ScoreComponent {
 
   protected readonly getMedalEmoji = getMedalEmoji;
   protected readonly getFinalistLabel = getFinalistLabel;
+  protected readonly formatScore = formatScore;
 
   protected readonly nonFinalistCount = computed(() => Math.max(this.rankings().length - 2, 0));
   protected readonly nextRevealIndex = computed(() => this.rankings().length - 1 - this.revealedIndices().length);

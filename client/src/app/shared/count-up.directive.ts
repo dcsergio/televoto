@@ -12,7 +12,7 @@ export class CountUpDirective implements OnDestroy {
   private readonly el = inject(ElementRef<HTMLElement>);
 
   readonly appCountUp = input.required<number>();
-  readonly appCountUpDecimals = input(3);
+  readonly appCountUpDecimals = input(2);
   readonly appCountUpDurationMs = input(1200);
 
   private frame = 0;
@@ -45,7 +45,10 @@ export class CountUpDirective implements OnDestroy {
   }
 
   private render(value: number, decimals: number): void {
-    this.el.nativeElement.textContent = value.toFixed(decimals);
+    this.el.nativeElement.textContent = value.toLocaleString('it-IT', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
   }
 
   private cancel(): void {

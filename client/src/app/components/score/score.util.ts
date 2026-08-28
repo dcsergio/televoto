@@ -1,4 +1,5 @@
 import { RankingEntry } from '../../api/rankings.api';
+import { formatScore } from '../../shared/format-score.util';
 
 function escapeCsvField(value: string | number): string {
   const text = String(value);
@@ -11,7 +12,7 @@ export function rankingsToCsv(entries: RankingEntry[]): string {
     index + 1,
     entry.number,
     entry.name,
-    entry.finalScore.toFixed(3),
+    formatScore(entry.finalScore),
     entry.qualifiedVoteCount,
     entry.popularVoteCount,
   ]);

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { PartialRankingEntry, PartialRankings, RankingsApi } from '../../api/rankings.api';
+import { formatScore } from '../../shared/format-score.util';
 
 function getMedalEmoji(position: number): string {
   if (position === 1) return '\u{1F947}';
@@ -15,7 +16,6 @@ interface RankingColumn {
   scoreLabel: string;
   scoreKey: 'avgQualificata' | 'avgPopolare' | 'finalScore';
   voteCountKey: 'qualifiedVoteCount' | 'popularVoteCount' | 'totalVoteCount';
-  scoreDecimals: number;
   emptyMessage: string;
 }
 
@@ -34,6 +34,7 @@ export class PartialRankingsPanelComponent {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly getMedalEmoji = getMedalEmoji;
+  protected readonly formatScore = formatScore;
 
   constructor() {
     effect(() => {
@@ -70,7 +71,6 @@ export class PartialRankingsPanelComponent {
         scoreLabel: 'Media',
         scoreKey: 'avgQualificata',
         voteCountKey: 'qualifiedVoteCount',
-        scoreDecimals: 2,
         emptyMessage: 'Nessun voto qualificato registrato.',
       },
       {
@@ -79,7 +79,6 @@ export class PartialRankingsPanelComponent {
         scoreLabel: 'Media',
         scoreKey: 'avgPopolare',
         voteCountKey: 'popularVoteCount',
-        scoreDecimals: 2,
         emptyMessage: 'Nessun voto popolare registrato.',
       },
       {
@@ -88,7 +87,6 @@ export class PartialRankingsPanelComponent {
         scoreLabel: 'Punteggio',
         scoreKey: 'finalScore',
         voteCountKey: 'totalVoteCount',
-        scoreDecimals: 3,
         emptyMessage: 'Nessun voto registrato.',
       },
     ];
