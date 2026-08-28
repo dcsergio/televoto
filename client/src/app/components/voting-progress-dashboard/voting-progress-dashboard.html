@@ -8,9 +8,17 @@
   <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <h2 class="text-xl font-semibold text-text-primary">Progresso voti giudici</h2>
-      <button type="button" (click)="loadProgress()" [disabled]="loading()" class="btn btn-ghost btn-sm">
-        {{ loading() ? 'Aggiornamento...' : 'Aggiorna' }}
-      </button>
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="text-xs text-text-secondary">
+          @if (streamConnected()) {
+            <span class="text-emerald-300">In ascolto</span> &middot;
+          }
+          {{ lastUpdatedLabel() ?? 'aggiornamento...' }}
+        </span>
+        <button type="button" (click)="refreshAll()" [disabled]="loading()" class="btn btn-ghost btn-sm">
+          {{ loading() ? 'Aggiornamento...' : 'Aggiorna' }}
+        </button>
+      </div>
     </div>
 
     @if (error()) {

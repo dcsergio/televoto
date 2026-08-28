@@ -41,7 +41,11 @@ export class PartialRankingsPanelComponent {
     });
   }
 
-  protected async loadRankings(eventId?: string, authToken?: string): Promise<void> {
+  /**
+   * Public so the hosting `VotingProgressDashboardComponent` can drive it from the
+   * single consolidated "Aggiorna" control and from the shared SSE-stream refresh.
+   */
+  async loadRankings(eventId?: string, authToken?: string): Promise<void> {
     const id = eventId ?? this.eventId();
     const token = authToken ?? this.authToken();
     this.loading.set(true);
