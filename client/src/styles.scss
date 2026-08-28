@@ -353,17 +353,29 @@ p {
   animation: slideInRight 0.3s ease-out forwards;
 }
 
+/* The snackbar renders in the CDK overlay, outside `.theme-pro` and outside any
+   Material snackbar theming — MDC's dark-theme default gives the label the DARK
+   `inverse-on-surface` ink (meant for a light snackbar). Our tinted surfaces are
+   dark, so the label has to be forced light or it reads as ~invisible. Values
+   are explicit (not tokens) because this overlay always paints on a dark chip
+   regardless of which page opened it. */
 .app-toast {
-  &.toast-success .mdc-snackbar__surface {
-    background: color-mix(in srgb, var(--color-emerald-500) 18%, var(--color-bg-card)) !important;
-    border: 1px solid color-mix(in srgb, var(--color-emerald-500) 45%, transparent);
-  }
-  &.toast-error .mdc-snackbar__surface {
-    background: color-mix(in srgb, var(--color-red-500) 18%, var(--color-bg-card)) !important;
-    border: 1px solid color-mix(in srgb, var(--color-red-500) 45%, transparent);
-  }
+  --mdc-snackbar-supporting-text-color: #f4f4f5;
+
   .mdc-snackbar__surface {
     border-radius: var(--radius-xl) !important;
+  }
+  .mdc-snackbar__label {
+    color: #f4f4f5 !important;
+  }
+
+  &.toast-success .mdc-snackbar__surface {
+    background: color-mix(in srgb, var(--color-emerald-500) 30%, #101014) !important;
+    border: 1px solid color-mix(in srgb, var(--color-emerald-400) 55%, transparent);
+  }
+  &.toast-error .mdc-snackbar__surface {
+    background: color-mix(in srgb, var(--color-red-500) 28%, #101014) !important;
+    border: 1px solid color-mix(in srgb, var(--color-red-500) 55%, transparent);
   }
 }
 
