@@ -154,31 +154,23 @@
                   <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
                 </div>
               } @else {
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <mat-card appearance="outlined" class="!bg-bg-card">
-                    <mat-card-content>
-                      <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi totali</p>
-                      <p class="mt-1 text-3xl font-bold text-text-primary">{{ eventsOverview().total }}</p>
-                    </mat-card-content>
-                  </mat-card>
-                  <mat-card appearance="outlined" class="!bg-bg-card">
-                    <mat-card-content>
-                      <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi attivi</p>
-                      <p class="mt-1 text-3xl font-bold text-accent-cyan">{{ eventsOverview().active }}</p>
-                    </mat-card-content>
-                  </mat-card>
-                  <mat-card appearance="outlined" class="!bg-bg-card">
-                    <mat-card-content>
-                      <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Televoto aperto</p>
-                      <p class="mt-1 text-3xl font-bold text-emerald-300">{{ eventsOverview().votingOpen }}</p>
-                    </mat-card-content>
-                  </mat-card>
-                  <mat-card appearance="outlined" class="!bg-bg-card">
-                    <mat-card-content>
-                      <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Televoto chiuso</p>
-                      <p class="mt-1 text-3xl font-bold text-text-secondary">{{ eventsOverview().votingClosed }}</p>
-                    </mat-card-content>
-                  </mat-card>
+                <div class="surface-card flex flex-wrap divide-y divide-border-glass sm:divide-y-0 sm:divide-x">
+                  <div class="min-w-[8rem] flex-1 px-5 py-4">
+                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi totali</p>
+                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{{ eventsOverview().total }}</p>
+                  </div>
+                  <div class="min-w-[8rem] flex-1 px-5 py-4">
+                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi attivi</p>
+                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-accent-cyan">{{ eventsOverview().active }}</p>
+                  </div>
+                  <div class="min-w-[8rem] flex-1 px-5 py-4">
+                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Televoto aperto</p>
+                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-emerald-300">{{ eventsOverview().votingOpen }}</p>
+                  </div>
+                  <div class="min-w-[8rem] flex-1 px-5 py-4">
+                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Televoto chiuso</p>
+                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-secondary">{{ eventsOverview().votingClosed }}</p>
+                  </div>
                 </div>
 
                 @if (selectedEvent(); as ev) {
@@ -310,12 +302,12 @@
                             (ngModelChange)="selectedEventNameDraft.set($event)"
                             name="selectedEventNameDraft"
                             placeholder="Nuovo nome evento"
-                            class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                            class="field-input text-sm"
                           />
                           <button
                             type="submit"
                             [disabled]="updatingSelectedEventName()"
-                            class="rounded-2xl border border-accent-cyan/50 bg-accent-cyan/20 px-4 py-2 text-sm font-semibold text-accent-cyan hover:bg-accent-cyan/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                            class="btn btn-tinted btn-sm"
                           >
                             {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Rinomina' }}
                           </button>
@@ -338,12 +330,12 @@
                             (ngModelChange)="managerPasswordDraft.set($event)"
                             name="managerPasswordDraft"
                             placeholder="Nuova password manager evento"
-                            class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                            class="field-input text-sm"
                           />
                           <button
                             type="submit"
                             [disabled]="updatingManagerPassword()"
-                            class="rounded-2xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                            class="btn btn-tinted btn-sm"
                           >
                             {{ updatingManagerPassword() ? 'Aggiornamento...' : 'Aggiorna password evento' }}
                           </button>
@@ -361,7 +353,7 @@
                                 [ngModel]="eventSettingsDraft().weightQualificata"
                                 (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightQualificata: $event })"
                                 name="weightQualificata"
-                                class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                                class="field-input text-sm"
                               />
                             </label>
                             <label class="space-y-1">
@@ -371,7 +363,7 @@
                                 [ngModel]="eventSettingsWeightPopolare()"
                                 name="weightPopolare"
                                 disabled
-                                class="w-full rounded-2xl border border-border-glass bg-bg-card/60 px-3 py-2 text-sm text-text-secondary"
+                                class="field-input text-sm"
                               />
                             </label>
                           </div>
@@ -399,14 +391,14 @@
                                 (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), trimmedMeanPercentage: $event })"
                                 name="trimmedMeanPercentage"
                                 [disabled]="!eventSettingsDraft().enableTrimmedMean"
-                                class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan disabled:opacity-50"
+                                class="field-input text-sm"
                               />
                             </label>
                           }
                           <button
                             type="submit"
                             [disabled]="updatingVotingSettings()"
-                            class="rounded-2xl border border-accent-cyan/40 bg-accent-cyan/15 px-4 py-2 text-sm font-semibold text-accent-cyan hover:bg-accent-cyan/25 transition disabled:cursor-not-allowed disabled:opacity-60"
+                            class="btn btn-tinted btn-sm"
                           >
                             {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva impostazioni voto' }}
                           </button>
@@ -426,7 +418,7 @@
                           (ngModelChange)="newEvent.set({ ...newEvent(), name: $event })"
                           name="newEventName"
                           [placeholder]="'Es. Finale regionale ' + eventNameSeparator + ' GRAN FINALE'"
-                          class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                          class="field-input"
                         />
                         <p class="text-xs text-text-muted">
                           Separatore titolo evidenziato: <span class="font-semibold text-text-secondary">{{ eventNameSeparator }}</span>
@@ -440,7 +432,7 @@
                           (ngModelChange)="newEvent.set({ ...newEvent(), subtitle: $event })"
                           name="newEventSubtitle"
                           placeholder="Es. Edizione 2026"
-                          class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                          class="field-input"
                         />
                       </label>
                       <label class="block space-y-1">
@@ -451,7 +443,7 @@
                           (ngModelChange)="newEvent.set({ ...newEvent(), code: $event })"
                           name="newEventCode"
                           placeholder="Es. 01234"
-                          class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                          class="field-input"
                         />
                       </label>
                       <div class="block space-y-1">
@@ -490,7 +482,7 @@
                           (ngModelChange)="newEvent.set({ ...newEvent(), managerPassword: $event })"
                           name="newEventManagerPassword"
                           placeholder="Password dedicata al manager dell'evento"
-                          class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                          class="field-input"
                         />
                       </label>
                       <button
@@ -513,7 +505,7 @@
                         (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), currentPassword: $event })"
                         name="rootCurrentPassword"
                         placeholder="Password root attuale"
-                        class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                        class="field-input text-sm"
                       />
                       <input
                         type="password"
@@ -521,7 +513,7 @@
                         (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), newPassword: $event })"
                         name="rootNewPassword"
                         placeholder="Nuova password root"
-                        class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                        class="field-input text-sm"
                       />
                       <input
                         type="password"
@@ -529,13 +521,13 @@
                         (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), confirmPassword: $event })"
                         name="rootConfirmPassword"
                         placeholder="Conferma nuova password root"
-                        class="w-full rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                        class="field-input text-sm"
                       />
                     </div>
                     <button
                       type="submit"
                       [disabled]="updatingRootPassword()"
-                      class="rounded-2xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/30 transition disabled:cursor-not-allowed disabled:opacity-60"
+                      class="btn btn-tinted btn-sm"
                     >
                       {{ updatingRootPassword() ? 'Aggiornamento...' : 'Aggiorna password root' }}
                     </button>

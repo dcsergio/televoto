@@ -22,7 +22,7 @@
         </span>
       </div>
 
-      <div class="rounded-lg border border-border-glass bg-bg-card/60 p-6">
+      <div class="surface-panel bg-bg-card/60 p-6">
         <h3 class="mb-4 text-xl font-semibold">Aggiungi nuovo candidato</h3>
         <form (ngSubmit)="handleAddCandidate()" class="space-y-4">
           <label class="space-y-1">
@@ -34,7 +34,7 @@
               (ngModelChange)="newCandidate.set({ ...newCandidate(), name: $event })"
               name="newCandidateName"
               [disabled]="!votingClosed()"
-              class="w-full rounded-xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary placeholder-text-secondary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan disabled:cursor-not-allowed disabled:opacity-50"
+              class="field-input"
             />
           </label>
           <label class="space-y-1">
@@ -46,7 +46,7 @@
               (ngModelChange)="newCandidate.set({ ...newCandidate(), subtitle: $event })"
               name="newCandidateSubtitle"
               [disabled]="!votingClosed()"
-              class="w-full rounded-xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary placeholder-text-secondary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan disabled:cursor-not-allowed disabled:opacity-50"
+              class="field-input"
             />
           </label>
           <div class="space-y-4">
@@ -59,7 +59,7 @@
                 type="button"
                 (click)="regenerateNewCandidateColor()"
                 [disabled]="!votingClosed()"
-                class="rounded-2xl border border-border-glass px-4 py-2 text-sm text-text-primary hover:bg-bg-card-hover transition disabled:cursor-not-allowed disabled:opacity-50"
+                class="btn btn-ghost btn-sm"
               >
                 Rigenera colore
               </button>
@@ -107,7 +107,7 @@
           <p class="text-text-secondary">Nessun candidato ancora.</p>
         } @else {
           @for (candidate of candidates(); track candidate.id) {
-            <div class="relative flex items-center gap-4 rounded-lg border border-border-glass bg-bg-card/60 p-4">
+            <div class="surface-panel relative flex items-center gap-4 bg-bg-card/60 p-4">
               <div class="h-6 w-6 rounded" [style.background-color]="candidate.color"></div>
               <div class="flex-1">
                 <div class="font-semibold">{{ candidate.number }}. {{ candidate.name }}</div>
@@ -121,7 +121,7 @@
                   (click)="editing() === candidate.id ? cancelEditingCandidate() : startEditingCandidate(candidate)"
                   [disabled]="modificationsLocked()"
                   [title]="modificationsLocked() ? modificationLockMessage : 'Modifica candidato'"
-                  class="rounded bg-bg-card px-3 py-1 text-sm transition hover:bg-bg-card-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  class="btn btn-ghost btn-sm"
                 >
                   {{ editing() === candidate.id ? 'Annulla' : 'Modifica' }}
                 </button>
@@ -130,14 +130,14 @@
                   (click)="confirmDeleteCandidate(candidate.id)"
                   [disabled]="modificationsLocked()"
                   [title]="modificationsLocked() ? modificationLockMessage : 'Elimina candidato'"
-                  class="rounded bg-red-500/20 px-3 py-1 text-sm text-red-300 transition hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="btn btn-danger btn-sm"
                 >
                   Elimina
                 </button>
               </div>
 
               @if (editing() === candidate.id && editDraft(); as draft) {
-                <div class="mt-4 w-full rounded-2xl border border-border-glass bg-bg-card p-4">
+                <div class="surface-panel mt-4 w-full bg-bg-card p-4">
                   <div class="grid gap-3 md:grid-cols-[1fr,1fr,auto]">
                     <label class="space-y-1">
                       <span class="text-xs uppercase tracking-[0.12em] text-text-secondary">Nome</span>
@@ -146,7 +146,7 @@
                         [ngModel]="draft.name"
                         (ngModelChange)="editDraft.set({ ...draft, name: $event })"
                         name="editDraftName"
-                        class="w-full rounded-lg border border-border-glass bg-bg-secondary px-2 py-1.5 text-sm outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                        class="field-input text-sm"
                         placeholder="Nome"
                       />
                     </label>
@@ -157,7 +157,7 @@
                         [ngModel]="draft.subtitle"
                         (ngModelChange)="editDraft.set({ ...draft, subtitle: $event })"
                         name="editDraftSubtitle"
-                        class="w-full rounded-lg border border-border-glass bg-bg-secondary px-2 py-1.5 text-sm outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+                        class="field-input text-sm"
                         placeholder="Nome performance"
                       />
                     </label>
@@ -168,7 +168,7 @@
                         [ngModel]="draft.color"
                         (ngModelChange)="editDraft.set({ ...draft, color: $event })"
                         name="editDraftColor"
-                        class="h-10 w-16 cursor-pointer rounded border-0"
+                        class="h-10 w-16"
                       />
                     </label>
                   </div>
@@ -180,11 +180,7 @@
                     >
                       Salva
                     </button>
-                    <button
-                      type="button"
-                      (click)="cancelEditingCandidate()"
-                      class="rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-sm text-text-secondary hover:bg-bg-card-hover transition"
-                    >
+                    <button type="button" (click)="cancelEditingCandidate()" class="btn btn-ghost btn-sm">
                       Annulla
                     </button>
                   </div>

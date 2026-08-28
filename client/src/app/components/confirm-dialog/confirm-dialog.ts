@@ -13,18 +13,12 @@ export interface ConfirmDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatDialogModule],
   template: `
-    <div class="rounded-3xl border border-border-glass bg-bg-secondary p-6 shadow-2xl">
+    <div class="surface-card bg-bg-secondary p-6 shadow-2xl">
       <h2 class="text-xl font-semibold text-text-primary">{{ data.title }}</h2>
       <p class="mt-3 text-sm text-text-secondary">{{ data.message }}</p>
       <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
         @if (!data.hideCancel) {
-          <button
-            type="button"
-            (click)="dialogRef.close(false)"
-            class="rounded-2xl border border-border-glass bg-bg-secondary px-4 py-2 text-sm text-text-secondary hover:bg-bg-card-hover transition"
-          >
-            Annulla
-          </button>
+          <button type="button" (click)="dialogRef.close(false)" class="btn btn-ghost">Annulla</button>
         }
         <button
           type="button"
