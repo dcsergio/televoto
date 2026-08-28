@@ -53,7 +53,27 @@ export function getButtonLabel(options: {
 
 export function getFinalistLabel(index: number, showWinner: boolean, hasTopTie: boolean): string {
   if (showWinner && hasTopTie) return 'Vincitore';
-  if (showWinner && index === 0) return 'Vincitore';
+  if (showWinner) return index === 0 ? 'Vincitore' : '2º classificato';
   if (index === 0) return 'Finalista 1';
   return 'Finalista 2';
+}
+
+/**
+ * Phase label for the ceremony progress indicator. Replaces the "Rivelati X/Y"
+ * counter, which froze during the third-place and finale-a-due beats
+ * (audit D3 / E4).
+ */
+export function getRevealPhaseLabel(options: {
+  showWinner: boolean;
+  isFinalistsStage: boolean;
+  isThirdPlaceStage: boolean;
+  revealedCount: number;
+  heroPosition: number;
+}): string {
+  const { showWinner, isFinalistsStage, isThirdPlaceStage, revealedCount, heroPosition } = options;
+  if (showWinner) return 'Vincitore';
+  if (isFinalistsStage) return 'Finale a due';
+  if (isThirdPlaceStage) return '3º posto';
+  if (revealedCount > 0 && heroPosition > 0) return `${heroPosition}º posto`;
+  return 'Classifica non iniziata';
 }

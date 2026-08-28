@@ -8,7 +8,7 @@
   <div class="flex items-center justify-center min-h-dvh px-4">
     <p class="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
   </div>
-} @else if (!authState.isEventManagerAuthenticated()) {
+} @else if (!isAuthenticated()) {
   <app-protected-page-gate
     pageLabel="Classifica"
     passwordPrompt="Inserisci la password dell'evento per accedere alla classifica."
@@ -127,7 +127,7 @@
                     <span class="text-2xl">{{ getMedalEmoji(1) }}</span>
                     <span class="h-6 w-1.5 shrink-0 rounded-full" [style.background-color]="runnerUp()!.color"></span>
                     <span class="flex-1 truncate text-left text-sm uppercase tracking-[0.08em] text-text-primary">
-                      {{ runnerUp()!.name }}
+                      <span class="text-text-secondary">2&ordm; classificato &middot;</span> {{ runnerUp()!.name }}
                     </span>
                     <span class="font-display tabular-nums text-text-secondary">{{ formatScore(runnerUp()!.finalScore) }}</span>
                   </div>
@@ -231,7 +231,7 @@
           class="fixed inset-x-4 bottom-4 z-50 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-glass bg-bg-card/90 p-3 backdrop-blur-md"
         >
           <p class="px-1 text-xs text-text-muted">
-            {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }} rivelati
+            <span class="font-semibold uppercase tracking-[0.15em] text-text-secondary">{{ revealPhaseLabel() }}</span>
             &middot; Spazio prossimo &middot; Backspace annulla &middot; Esc esci
           </p>
           <div class="flex flex-nowrap gap-2 overflow-x-auto">
@@ -288,7 +288,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
               <p class="mt-1 text-base font-semibold text-text-primary">Dalla posizione pi&ugrave; bassa verso la vetta</p>
               <p class="mt-1 text-sm text-text-secondary">
-                Rivelati {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }}
+                Fase: <span class="font-semibold text-text-primary">{{ revealPhaseLabel() }}</span>
               </p>
               <p class="mt-1 text-xs text-text-muted">
                 Spazio/Invio prossimo &middot; Backspace annulla &middot; F presentazione &middot; Esc esci
@@ -381,8 +381,8 @@
                           <div class="text-right text-sm text-text-secondary">
                             <div>Voti: {{ entry.voteCount }}</div>
                             <div>Media complessiva: {{ formatScore(entry.avgScore) }}</div>
-                            <div>Media qualificata: {{ formatScore(entry.avgQualificata) }}</div>
-                            <div>Media popolare: {{ formatScore(entry.avgPopolare) }}</div>
+                            <div>Media giuria: {{ formatScore(entry.avgQualificata) }}</div>
+                            <div>Media pubblico: {{ formatScore(entry.avgPopolare) }}</div>
                           </div>
                         }
                       </div>
@@ -426,8 +426,8 @@
                       <div class="mt-2 text-sm text-text-secondary">
                         <div>Voti: {{ entry.voteCount }}</div>
                         <div>Media complessiva: {{ formatScore(entry.avgScore) }}</div>
-                        <div>Media qualificata: {{ formatScore(entry.avgQualificata) }}</div>
-                        <div>Media popolare: {{ formatScore(entry.avgPopolare) }}</div>
+                        <div>Media giuria: {{ formatScore(entry.avgQualificata) }}</div>
+                        <div>Media pubblico: {{ formatScore(entry.avgPopolare) }}</div>
                       </div>
                     }
                   </div>
@@ -441,7 +441,7 @@
           </div>
         }
 
-        @if (rankings().length > 0 && !revealStarted()) {
+        @if (rankings().length > 0 && (!revealStarted() || showWinner())) {
           <div class="mt-12">
             <h3 class="mb-3 text-xs uppercase tracking-[0.2em] text-text-secondary">Statistiche evento</h3>
             <div class="surface-card flex flex-wrap divide-y divide-border-glass sm:divide-y-0 sm:divide-x">
@@ -453,10 +453,13 @@
                 <div class="font-display text-2xl font-semibold tabular-nums text-text-primary">{{ rankings().length }}</div>
                 <div class="mt-0.5 text-sm text-text-secondary">Candidati</div>
               </div>
-              <div class="min-w-[9rem] flex-1 px-5 py-4">
-                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ formatScore(averageFinalScore()) }}</div>
-                <div class="mt-0.5 text-sm text-text-secondary">Punteggio finale medio</div>
-              </div>
+              <!-- Il punteggio finale medio anticipa l'esito: mostrato solo a cerimonia conclusa (audit D4). -->
+              @if (showWinner()) {
+                <div class="min-w-[9rem] flex-1 px-5 py-4">
+                  <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ formatScore(averageFinalScore()) }}</div>
+                  <div class="mt-0.5 text-sm text-text-secondary">Punteggio finale medio</div>
+                </div>
+              }
             </div>
           </div>
         }
