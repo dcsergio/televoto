@@ -262,17 +262,23 @@ export async function setEventArchivedState(eventId: string, archived: boolean) 
   }
 }
 
-export async function cloneEvent(eventId: string) {
+export type CloneEventInput = {
+  managerPassword: string;
+  name: string;
+  requestedCode: string | null;
+};
+
+export async function cloneEvent(eventId: string, input: CloneEventInput) {
   const source = await eventRepository.findEventForClone(eventId);
   if (!source) {
     throw new AppError(404, "Evento non trovato");
   }
 
-  const code = await createUniqueEventCode();
-  const clonedName = `${source.name} (copia)`;
+  const code = input.requestedCode ?? (await createUniqueEventCode());
+  const managerPasswordRecord = createPasswordRecord(input.managerPassword);
 
   try {
-    return await eventRepository.cloneEvent(source, code, clonedName);
+    return await eventRepository.cloneEvent(source, code, input.name, managerPasswordRecord);
   } catch (e: unknown) {
     if (isPrismaKnownError(e, "P2022")) {
       throw new AppError(500, schemaOutdatedMessage);

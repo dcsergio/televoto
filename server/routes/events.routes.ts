@@ -3,6 +3,7 @@ import { requireEventManagerAuth, requireRootAuth } from "../middleware/auth.mid
 import { parseBody } from "../validation/validate.js";
 import {
   archiveStateSchema,
+  cloneEventSchema,
   createEventSchema,
   setManagerPasswordSchema,
   votingStateSchema,
@@ -124,6 +125,7 @@ eventsRouter.post("/api/events/:eventId/clone", async (req, res) => {
   if (!requireRootAuth(req, res)) return;
 
   const { eventId } = req.params;
-  const cloned = await eventService.cloneEvent(eventId);
+  const { name, managerPassword, requestedCode } = parseBody(cloneEventSchema, req.body);
+  const cloned = await eventService.cloneEvent(eventId, { managerPassword, name, requestedCode });
   res.status(201).json(cloned);
 });
