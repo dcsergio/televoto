@@ -3,9 +3,10 @@
     <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
   </div>
 } @else if (!eventCode()) {
-  <app-event-code-gate (submitCode)="handleEventCodeSubmit($event)" />
+  <app-event-code-gate [showBranding]="true" (submitCode)="handleEventCodeSubmit($event)" />
 } @else if (!event()) {
   <app-event-code-gate
+    [showBranding]="true"
     [initialCode]="eventCode() ?? ''"
     error="Codice non valido. Controlla le cifre e riprova."
     (submitCode)="handleEventCodeSubmit($event)"
@@ -130,8 +131,32 @@
 
       @if (judgeMode() && isJudgeVoteLocked()) {
         <div class="mb-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 text-emerald-100">
-          <p class="text-xs uppercase tracking-[0.2em] font-semibold">Codice bloccato</p>
-          <p class="mt-1 text-sm">I voti sono definitivi e non modificabili.</p>
+          <p class="text-xs uppercase tracking-[0.2em] font-semibold text-emerald-300">Voto registrato</p>
+          <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">
+            @if (isQualifiedVoter()) {
+              Grazie, le tue valutazioni sono state registrate
+            } @else {
+              Grazie, il tuo voto &egrave; stato registrato
+            }
+          </h2>
+          @if (votedRecap().length > 0) {
+            <p class="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+              {{ isPreferenceVoteMode() ? 'Le tue preferenze' : 'Le tue valutazioni' }}
+            </p>
+            <ul class="mt-2 flex flex-col divide-y divide-white/10">
+              @for (item of votedRecap(); track item.id) {
+                <li class="flex items-center justify-between gap-3 py-1.5 text-sm text-text-primary">
+                  <span class="font-semibold">{{ item.name }}</span>
+                  @if (!isPreferenceVoteMode()) {
+                    <span class="tabular-nums text-text-secondary">{{ item.score }}/10</span>
+                  }
+                </li>
+              }
+            </ul>
+          }
+          <p class="mt-4 text-xs text-emerald-200">
+            I voti sono definitivi e non modificabili da nessun dispositivo.
+          </p>
         </div>
       }
 
@@ -153,6 +178,14 @@
           <span class="h-3 w-1 rounded-full bg-accent-cyan" aria-hidden="true"></span>
           <span>Scegli il tuo candidato</span>
         </h2>
+
+        @if (showPopularNumericHint()) {
+          <p class="mb-4 rounded-xl border border-border-glass bg-bg-card px-4 py-3 text-sm text-text-secondary">
+            Assegna un voto da 1 a 10 agli artisti che preferisci, poi premi
+            <span class="font-semibold text-text-primary">&laquo;Conferma definitiva&raquo;</span>.
+            Non &egrave; necessario valutarli tutti.
+          </p>
+        }
 
         <app-candidate-list
           [candidates]="event()!.candidates"

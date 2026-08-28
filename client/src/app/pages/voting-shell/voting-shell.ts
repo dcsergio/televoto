@@ -95,6 +95,23 @@ export class VotingShellComponent {
     return ev.candidates.filter((c) => votedIds.has(c.id)).map((c) => c.name);
   });
   protected readonly singleVotedCandidateName = computed(() => this.votedCandidateNames().join(', ') || null);
+  /**
+   * Up-front disclosure for a POPOLARE voter in NUMERIC mode: they score 1-10
+   * per artist but are free to confirm without rating everyone (see
+   * `finalizeDisabled`), which the n/n progress ring alone doesn't convey.
+   */
+  protected readonly showPopularNumericHint = computed(
+    () => this.canVote() && this.isPopularVoter() && !this.isPreferenceVoteMode(),
+  );
+  /** Post-finalization recap: the voter's own picks, by candidate order. */
+  protected readonly votedRecap = computed(() => {
+    const ev = this.event();
+    if (!ev) return [] as { id: string; name: string; score: number }[];
+    const votes = this.myVotes();
+    return ev.candidates
+      .filter((candidate) => votes[candidate.id] !== undefined)
+      .map((candidate) => ({ id: candidate.id, name: candidate.name, score: votes[candidate.id] }));
+  });
   protected readonly allJudgeVotesCast = computed(() => {
     const ev = this.event();
     if (!ev) return false;
