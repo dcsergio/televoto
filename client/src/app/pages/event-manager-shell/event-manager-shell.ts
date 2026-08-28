@@ -22,6 +22,7 @@ import { openScoreGuarded } from '../../shared/open-score.util';
 import {
   EVENT_MANAGER_SECTION_NAV,
   EventManagerSection,
+  contextualDefaultEventManagerSection,
   eventManagerSectionFromQueryParam,
 } from './event-manager-shell.util';
 
@@ -61,6 +62,10 @@ export class EventManagerShellComponent {
     eventManagerSectionFromQueryParam(this.route.snapshot.queryParamMap.get('adminSection')),
   );
 
+  /** True when the operator arrived with an explicit `?adminSection=` — suppresses the contextual default (C8). */
+  private readonly hadExplicitSection = this.route.snapshot.queryParamMap.get('adminSection') !== null;
+  private contextualDefaultApplied = false;
+
   protected readonly sectionNav = EVENT_MANAGER_SECTION_NAV;
   protected readonly isHandset = toSignal(
     this.breakpointObserver.observe(Breakpoints.Handset).pipe(map((result) => result.matches)),
@@ -83,6 +88,21 @@ export class EventManagerShellComponent {
 
     effect(() => {
       void this.votingState.loadEventByCode(this.eventCode(), false);
+    });
+
+    // C8 — contextual landing section for a freshly-opened event (only when the
+    // URL didn't pin one). Runs once, after the event resolves.
+    effect(() => {
+      const ev = this.event();
+      if (!ev || this.hadExplicitSection || this.contextualDefaultApplied) return;
+      this.contextualDefaultApplied = true;
+      const section = contextualDefaultEventManagerSection({
+        candidateCount: ev.candidates?.length ?? 0,
+        votingClosed: ev.votingClosed,
+      });
+      if (section !== this.activeSection()) {
+        this.handleSectionChange(section);
+      }
     });
   }
 
@@ -137,6 +157,13 @@ export class EventManagerShellComponent {
   protected handleLoginCancel(): void {
     this.passwordError.set('');
     this.router.navigate(['/']);
+  }
+
+  protected handleBackToAdmin(): void {
+    this.router.navigate(['/admin']);
+    if (this.isHandset()) {
+      this.sidenavOpened.set(false);
+    }
   }
 
   protected handleLogout(): void {

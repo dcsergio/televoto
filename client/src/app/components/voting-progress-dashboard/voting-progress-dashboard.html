@@ -7,7 +7,7 @@
 } @else if (progress(); as p) {
   <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-xl font-semibold text-text-primary">Progresso voti giudici</h2>
+      <h2 class="text-xl font-semibold text-text-primary">Progresso votazioni</h2>
       <div class="flex flex-wrap items-center gap-3">
         <span class="text-xs text-text-secondary">
           @if (streamConnected()) {
@@ -28,28 +28,33 @@
     <div class="surface-panel mb-6 grid grid-cols-2 divide-x divide-y divide-border-glass sm:grid-cols-4 sm:divide-y-0">
       <div class="px-4 py-4">
         <div class="font-display text-2xl font-semibold tabular-nums text-emerald-300">{{ p.qualified.activeJudges }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Qualificata attivi</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Giuria attivi</div>
       </div>
       <div class="px-4 py-4">
         <div class="font-display text-2xl font-semibold tabular-nums text-amber-300">{{ p.qualified.submittedJudges }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Qualificata finalizzati</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Giuria finalizzati</div>
       </div>
       <div class="px-4 py-4">
         <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ p.popular.activatedTokens }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Popolare QR attivati</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Televoto QR attivati</div>
       </div>
       <div class="px-4 py-4">
         <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ p.popular.totalVotesCast }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Voti popolari espressi</div>
+        <div class="mt-0.5 text-sm text-text-secondary">Voti televoto espressi</div>
       </div>
     </div>
 
     @if (p.candidateCount > 0 && p.totalJudges > 0) {
       <div class="mb-6 rounded-xl border border-accent-cyan/20 bg-accent-cyan/10 p-4">
         <p class="text-sm text-accent-cyan">
-          {{ p.qualified.submittedJudges }} giudici qualificati su {{ p.qualified.totalJudges }} hanno bloccato il codice.
+          {{ p.qualified.submittedJudges }} {{ pluralize(p.qualified.submittedJudges, 'giurato', 'giurati') }} su
+          {{ p.qualified.totalJudges }} {{ pluralize(p.qualified.submittedJudges, 'ha', 'hanno') }} bloccato il codice.
           @if (activeIncompleteJudges().length > 0) {
-            <span> {{ activeIncompleteJudges().length }} giudici attivi non hanno ancora completato tutti i voti.</span>
+            <span
+              >{{ activeIncompleteJudges().length }}
+              {{ pluralize(activeIncompleteJudges().length, 'giurato attivo non ha', 'giurati attivi non hanno') }} ancora
+              completato tutti i voti.</span
+            >
           }
         </p>
       </div>
@@ -64,7 +69,10 @@
           @for (candidate of p.incompleteCandidates; track candidate.candidateId) {
             <div class="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm">
               <span class="text-text-primary">#{{ candidate.candidateNumber }} {{ candidate.candidateName }}</span>
-              <span class="text-amber-200">Mancano {{ candidate.missingJudgeCount }} giudici</span>
+              <span class="text-amber-200">
+                {{ pluralize(candidate.missingJudgeCount, 'Manca', 'Mancano') }} {{ candidate.missingJudgeCount }}
+                {{ pluralize(candidate.missingJudgeCount, 'giurato', 'giurati') }}
+              </span>
             </div>
           }
         </div>
@@ -73,7 +81,7 @@
 
     @if (activeIncompleteJudges().length > 0) {
       <div>
-        <h3 class="mb-3 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">Giudici attivi incompleti</h3>
+        <h3 class="mb-3 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">Giurati attivi incompleti</h3>
         <div class="space-y-2">
           @for (judge of activeIncompleteJudges(); track judge.id) {
             <div class="rounded-lg border border-border-glass bg-bg-card/60 px-4 py-3">
@@ -103,7 +111,7 @@
     }
 
     @if (p.totalJudges === 0) {
-      <p class="text-sm text-text-secondary">Nessun codice giudice generato per questo evento.</p>
+      <p class="text-sm text-text-secondary">Nessun codice di voto generato per questo evento.</p>
     }
 
     <app-partial-rankings-panel [eventId]="eventId()" [authToken]="authToken()" />

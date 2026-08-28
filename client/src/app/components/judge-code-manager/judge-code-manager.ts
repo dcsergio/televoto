@@ -52,7 +52,7 @@ export class JudgeCodeManagerComponent {
   protected readonly copyMessage = signal<string | null>(null);
   protected readonly generatorForm = signal<GeneratorForm>({
     count: 5,
-    labelPrefix: 'Giudice',
+    labelPrefix: 'Giuria',
     voterType: 'QUALIFICATA',
     baseUrl: window.location.origin,
   });
@@ -68,6 +68,24 @@ export class JudgeCodeManagerComponent {
   protected readonly activeTokens = computed(() => this.tokens().filter((t) => t.status === 'active'));
   protected readonly qualifiedTokens = computed(() => this.tokens().filter((t) => t.type === 'QUALIFICATA'));
   protected readonly popularTokens = computed(() => this.tokens().filter((t) => t.type === 'POPOLARE'));
+
+  // C2 — one consolidated list. Freshly-generated codes (plaintext still in
+  // memory) are looked up by id and rendered inline with a «nuovo» badge, QR and
+  // copy affordances; every row keeps Rigenera/Revoca.
+  protected readonly generatedById = computed(() => {
+    const map = new Map<string, GeneratedJudgeToken>();
+    for (const token of this.generatedTokens()) map.set(token.id, token);
+    return map;
+  });
+  protected readonly hasFreshCodes = computed(() => this.generatedTokens().length > 0);
+  protected readonly listTokens = computed(() => {
+    const fresh = this.generatedById();
+    return [...this.activeTokens()].sort(
+      (a, b) => (fresh.has(b.id) ? 1 : 0) - (fresh.has(a.id) ? 1 : 0),
+    );
+  });
+  protected readonly typeLabel = (type: 'QUALIFICATA' | 'POPOLARE'): string =>
+    type === 'QUALIFICATA' ? 'Giuria' : 'Televoto';
 
   private lastLoadedEventId: string | null = null;
 
@@ -126,7 +144,7 @@ export class JudgeCodeManagerComponent {
     const type = value === 'POPOLARE' ? 'POPOLARE' : 'QUALIFICATA';
     this.updateGeneratorForm({
       voterType: type,
-      labelPrefix: type === 'QUALIFICATA' ? 'Giudice tecnico' : 'Giudice popolare',
+      labelPrefix: type === 'QUALIFICATA' ? 'Giuria' : 'Pubblico',
     });
   }
 
@@ -236,8 +254,8 @@ export class JudgeCodeManagerComponent {
       this.generatedTokens.update((prev) => [result.code, ...prev]);
       await this.loadTokens();
       this.toast.success('Codice rigenerato');
-      this.copyMessage.set('Nuovo codice generato: vedi "Ultimi codici generati" qui sopra');
-      setTimeout(() => this.copyMessage.set(null), 3000);
+      this.copyMessage.set('Nuovo codice generato ed evidenziato con il badge «nuovo» nell’elenco.');
+      setTimeout(() => this.copyMessage.set(null), 4000);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella rigenerazione del codice');
     } finally {

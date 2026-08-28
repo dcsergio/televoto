@@ -30,6 +30,17 @@
     >
       <div class="flex h-full flex-col">
         <div class="px-5 py-6">
+          @if (authState.rootAuthToken()) {
+            <button
+              type="button"
+              (click)="handleBackToAdmin()"
+              data-testid="event-manager-back-to-admin"
+              class="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary transition hover:text-accent-cyan"
+            >
+              <span aria-hidden="true">&larr;</span>
+              Area admin
+            </button>
+          }
           <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
           <p class="mt-1 text-[10px] uppercase tracking-[0.2em] text-text-muted">Gestione evento</p>
         </div>

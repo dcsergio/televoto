@@ -50,41 +50,76 @@
             />
           </label>
           <div class="space-y-4">
-            <div class="flex flex-wrap items-center gap-4">
-              <div class="flex items-center gap-2 rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
-                <div class="h-6 w-6 rounded" [style.background-color]="newCandidate().color"></div>
-                <span class="text-sm text-text-secondary">Colore assegnato automaticamente</span>
-              </div>
-              <button
-                type="button"
-                (click)="regenerateNewCandidateColor()"
-                [disabled]="!votingClosed()"
-                class="btn btn-ghost btn-sm"
-              >
-                Rigenera colore
-              </button>
-              <label class="flex cursor-pointer items-center gap-2 rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
-                <span class="text-sm text-text-secondary">Palette personalizzata</span>
-                <input
-                  type="color"
-                  [ngModel]="newCandidate().color"
-                  (ngModelChange)="newCandidate.set({ ...newCandidate(), color: $event })"
-                  name="newCandidateColor"
-                  [disabled]="!votingClosed()"
-                  class="h-10 w-12 cursor-pointer border-0 p-0 disabled:cursor-not-allowed"
-                />
-              </label>
-            </div>
-            <div class="grid grid-cols-5 gap-2">
-              @for (paletteColor of candidateColorPalette; track paletteColor) {
+            <div class="space-y-3">
+              <span class="text-sm font-medium text-text-secondary">Colore</span>
+              <div class="inline-flex rounded-2xl border border-border-glass bg-bg-secondary p-1">
                 <button
                   type="button"
-                  (click)="newCandidate.set({ ...newCandidate(), color: paletteColor })"
+                  (click)="setColorMode('auto')"
                   [disabled]="!votingClosed()"
-                  class="h-10 rounded-full border-2 transition disabled:cursor-not-allowed disabled:opacity-50"
-                  [style.background-color]="paletteColor"
-                  [style.border-color]="newCandidate().color === paletteColor ? 'var(--color-text-primary)' : 'transparent'"
-                ></button>
+                  class="rounded-xl px-3 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                  [class]="colorMode() === 'auto' ? 'bg-accent-cyan/15 text-accent-cyan' : 'text-text-secondary'"
+                >
+                  Automatico
+                </button>
+                <button
+                  type="button"
+                  (click)="setColorMode('custom')"
+                  [disabled]="!votingClosed()"
+                  class="rounded-xl px-3 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                  [class]="colorMode() === 'custom' ? 'bg-accent-cyan/15 text-accent-cyan' : 'text-text-secondary'"
+                >
+                  Scegli colore
+                </button>
+              </div>
+
+              @if (colorMode() === 'auto') {
+                <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
+                  <div class="h-6 w-6 rounded" [style.background-color]="newCandidate().color"></div>
+                  <span class="text-sm text-text-secondary">Prossimo colore assegnato automaticamente</span>
+                  <button
+                    type="button"
+                    (click)="regenerateNewCandidateColor()"
+                    [disabled]="!votingClosed()"
+                    class="btn btn-ghost btn-sm ml-auto"
+                  >
+                    Cambia
+                  </button>
+                </div>
+              } @else {
+                <div class="space-y-3">
+                  <label class="flex w-fit cursor-pointer items-center gap-2 rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
+                    <span class="text-sm text-text-secondary">Colore personalizzato</span>
+                    <input
+                      type="color"
+                      [ngModel]="newCandidate().color"
+                      (ngModelChange)="pickCandidateColor($event)"
+                      name="newCandidateColor"
+                      [disabled]="!votingClosed()"
+                      class="h-10 w-12 cursor-pointer border-0 p-0 disabled:cursor-not-allowed"
+                    />
+                  </label>
+                  <div>
+                    <span class="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                      Palette consigliata
+                    </span>
+                    <div class="grid grid-cols-5 gap-2">
+                      @for (paletteColor of candidateColorPalette; track paletteColor) {
+                        <button
+                          type="button"
+                          (click)="pickCandidateColor(paletteColor)"
+                          [disabled]="!votingClosed()"
+                          [attr.aria-label]="'Colore ' + paletteColor"
+                          [attr.aria-pressed]="newCandidate().color === paletteColor"
+                          [title]="paletteColor"
+                          class="h-10 rounded-full border-2 transition disabled:cursor-not-allowed disabled:opacity-50"
+                          [style.background-color]="paletteColor"
+                          [style.border-color]="newCandidate().color === paletteColor ? 'var(--color-text-primary)' : 'transparent'"
+                        ></button>
+                      }
+                    </div>
+                  </div>
+                </div>
               }
             </div>
             <button type="submit" [disabled]="!votingClosed()" class="btn btn-primary w-full">
@@ -106,7 +141,7 @@
             <div class="surface-panel relative flex items-center gap-4 bg-bg-card/60 p-4">
               <div class="h-6 w-6 rounded" [style.background-color]="candidate.color"></div>
               <div class="flex-1">
-                <div class="font-semibold">{{ candidate.number }}. {{ candidate.name }}</div>
+                <div class="font-semibold text-text-primary">{{ candidate.number }}. {{ candidate.name }}</div>
                 @if (candidate.subtitle) {
                   <div class="text-sm text-text-secondary">{{ candidate.subtitle }}</div>
                 }
