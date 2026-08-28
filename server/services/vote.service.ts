@@ -73,5 +73,5 @@ export async function castVote(input: CastVoteInput) {
     });
   });
 
-  return { ok: true, vote };
+  return { ok: true, vote, eventId: candidate.eventId };
 }
