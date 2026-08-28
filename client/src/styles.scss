@@ -300,67 +300,6 @@ p {
   animation: stageSlam 0.5s var(--ease-spring) forwards;
 }
 
-/* A single light sweep across the winner takeover, once. */
-@keyframes spotlightSweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-120%) skewX(-12deg);
-  }
-  18% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(120%) skewX(-12deg);
-  }
-}
-
-.animate-spotlight-sweep {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: inherit;
-}
-.animate-spotlight-sweep::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 45%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    rgba(255, 214, 130, 0.22),
-    transparent
-  );
-  animation: spotlightSweep 1.5s var(--ease-out-quart) 0.2s forwards;
-}
-
-/* ── Reveal ceremony motion (Classifica presenter) ──
-   A position title card lands hard: the big number arrives oversized and
-   slightly soft, then snaps to place. */
-@keyframes stageSlam {
-  0% {
-    opacity: 0;
-    transform: scale(1.18) translateY(-6px);
-    filter: blur(6px);
-  }
-  60% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0);
-  }
-}
-
-.animate-stage-slam {
-  animation: stageSlam 0.5s var(--ease-spring) forwards;
-}
-
 /* ── Stage loader — an equalizer motif, on-brand for the broadcast look ── */
 @keyframes barPulse {
   0%,
@@ -474,6 +413,160 @@ p {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   Shared component primitives. Before this, every hand-rolled
+   button/card/input re-declared the same ~8 utilities inline (and
+   drifted: three radii for the same field, `text-[#1a1206]` copied
+   into 9 files). These classes are the single source; call sites
+   add only layout utilities (`w-full`, `flex-1`, sizing).
+   ────────────────────────────────────────────────────────────── */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-lg);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      transform 0.12s ease,
+      background-color 0.16s ease,
+      border-color 0.16s ease,
+      filter 0.16s ease;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* Primary — the one filled accent action per view. */
+  .btn-primary {
+    background: var(--color-accent-cyan);
+    color: var(--color-on-accent);
+    border: 1px solid transparent;
+  }
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+
+  /* Tinted — a lower-commitment accent action (was the `border-accent-cyan/50
+     bg-accent-cyan/20` pattern hand-written across the admin forms). */
+  .btn-tinted {
+    background: color-mix(in srgb, var(--color-accent-cyan) 14%, transparent);
+    color: var(--color-accent-cyan);
+    border: 1px solid color-mix(in srgb, var(--color-accent-cyan) 32%, transparent);
+  }
+  .btn-tinted:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-accent-cyan) 22%, transparent);
+  }
+
+  /* Ghost — secondary / cancel. */
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-glass);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+  }
+
+  /* Danger — destructive, warm brick not pure red. */
+  .btn-danger {
+    background: color-mix(in srgb, var(--color-red-500) 14%, transparent);
+    color: var(--color-red-300);
+    border: 1px solid color-mix(in srgb, var(--color-red-500) 28%, transparent);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-red-500) 22%, transparent);
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* Surface — the flat hairline card. Same look as `.glass` but usable
+     as a class name that reads as intent at the call site. */
+  .surface-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-glass);
+    border-radius: var(--radius-2xl);
+  }
+  .surface-panel {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-glass);
+    border-radius: var(--radius-xl);
+  }
+
+  /* Text input — one declaration for the field styling copy-pasted
+     across ~15 inputs at three different radii. */
+  .field-input {
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-glass);
+    background: var(--color-bg-secondary);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-text-primary);
+    outline: none;
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+  .field-input::placeholder {
+    color: var(--color-text-muted);
+  }
+  .field-input:focus {
+    border-color: var(--color-accent-cyan);
+    box-shadow: 0 0 0 1px var(--color-accent-cyan);
+  }
+  .field-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Native form controls — checkbox / radio / colour picker.
+   These were browser-default (blue tick, square swatch) in the admin
+   voting-settings and candidate forms, out of step with the rest. ── */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--color-accent-cyan);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--color-border-glass);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  cursor: pointer;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-md) - 3px);
+}
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: calc(var(--radius-md) - 3px);
+}
+
+/* ──────────────────────────────────────────────────────────────
    "Studio" — the professional light theme for the /admin and
    /manager workspaces. Set as a host class on the two shell
    components; the public voting page and the /score reveal keep
@@ -502,9 +595,9 @@ p {
   --color-text-secondary: #55585f;
   --color-text-muted: #83868e;
   --color-accent-cyan: #b45309;
-  --color-accent-magenta: #b45309;
   --color-accent-coral: #dc2626;
   --color-accent-yellow: #a16207;
+  --color-on-accent: #ffffff;
   --color-neon-glow: rgba(180, 83, 9, 0.14);
 
   /* Status ramps — darkened for legibility on paper. */
@@ -512,13 +605,16 @@ p {
   --color-emerald-200: #047857;
   --color-emerald-300: #047857;
   --color-emerald-400: #047857;
+  --color-emerald-500: #047857;
   --color-amber-100: #b45309;
   --color-amber-200: #b45309;
   --color-amber-300: #b45309;
   --color-amber-400: #d97706;
+  --color-amber-500: #b45309;
   --color-red-100: #dc2626;
   --color-red-200: #dc2626;
   --color-red-300: #dc2626;
+  --color-red-500: #dc2626;
 
   --shadow-card: 0 1px 2px rgba(18, 20, 24, 0.06), 0 1px 3px rgba(18, 20, 24, 0.04);
   --shadow-lift: 0 2px 4px rgba(18, 20, 24, 0.06), 0 14px 30px -14px rgba(18, 20, 24, 0.16);
@@ -552,14 +648,6 @@ app-event-manager-shell.theme-pro {
   min-height: 100dvh;
 }
 
-/* Shared gate/button markup hard-codes dark-ink-on-gold (`text-[#1a1206]`,
-   correct for the Palco stage). On the Studio accent (deep amber) that text
-   is unreadable — flip it to white wherever it lands inside `.theme-pro`
-   (the /manager event-code + password gates reuse that markup). */
-.theme-pro .text-\[\#1a1206\] {
-  color: #ffffff;
-}
-
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -573,10 +661,6 @@ app-event-manager-shell.theme-pro {
   .toast-enter {
     animation-duration: 0.001s !important;
     animation-iteration-count: 1 !important;
-  }
-  .animate-spotlight-sweep::after {
-    animation: none !important;
-    display: none;
   }
   .score-btn,
   .btn,
