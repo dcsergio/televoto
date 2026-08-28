@@ -5,9 +5,11 @@
 } @else if (!eventCode()) {
   <app-event-code-gate (submitCode)="handleEventCodeSubmit($event)" />
 } @else if (!event()) {
-  <div class="flex items-center justify-center min-h-dvh px-4">
-    <p class="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
-  </div>
+  <app-event-code-gate
+    [initialCode]="eventCode() ?? ''"
+    error="Codice non valido. Controlla le cifre e riprova."
+    (submitCode)="handleEventCodeSubmit($event)"
+  />
 } @else if (!isAuthenticated()) {
   <app-protected-page-gate
     pageLabel="Gestione evento"
