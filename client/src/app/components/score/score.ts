@@ -29,6 +29,19 @@ export class ScoreComponent {
   private readonly queryParamMap = toSignal(this.route.queryParamMap, { requireSync: true });
   protected readonly eventCode = computed(() => this.queryParamMap().get('eventCode'));
 
+  /**
+   * Gating token for the Classifica: a root token is accepted here too (mirrors
+   * `/manager`'s documented superuser escalation — the backend already lets a
+   * root token pass every event-manager-scoped route), so a root operator who
+   * opened Classifica from admin/manager enters without re-entering a password.
+   * A non-root event-manager token still works as before; the backend keeps
+   * enforcing `eventId`, so it grants no cross-event access.
+   */
+  protected readonly activeToken = computed(
+    () => this.authState.rootAuthToken() ?? this.authState.eventManagerAuthToken(),
+  );
+  protected readonly isAuthenticated = computed(() => this.activeToken() !== null);
+
   protected readonly event = this.votingState.event;
   protected readonly loading = this.votingState.loading;
 
@@ -131,7 +144,7 @@ export class ScoreComponent {
 
     effect(() => {
       const ev = this.event();
-      const token = this.authState.eventManagerAuthToken();
+      const token = this.activeToken();
       if (!ev || !token || !ev.votingClosed) return;
       if (ev.id === this.lastRankingsEventId) return;
       this.lastRankingsEventId = ev.id;
@@ -175,7 +188,7 @@ export class ScoreComponent {
   // silent = the one-off reveal-start refetch (see handleRevealNext); no full-page loading state.
   private async loadRankings(silent = false): Promise<boolean> {
     const ev = this.event();
-    const token = this.authState.eventManagerAuthToken();
+    const token = this.activeToken();
     if (!ev || !token || !ev.votingClosed) return false;
     if (silent) {
       this.startingReveal.set(true);
@@ -287,7 +300,7 @@ export class ScoreComponent {
   }
 
   protected async handleCloseTelevote(): Promise<void> {
-    const token = this.authState.eventManagerAuthToken();
+    const token = this.activeToken();
     if (this.event()?.votingClosed || this.closingTelevote() || !token) return;
 
     this.closingTelevote.set(true);

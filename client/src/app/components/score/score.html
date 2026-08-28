@@ -8,7 +8,7 @@
   <div class="flex items-center justify-center min-h-dvh px-4">
     <p class="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
   </div>
-} @else if (!authState.isEventManagerAuthenticated()) {
+} @else if (!isAuthenticated()) {
   <app-protected-page-gate
     pageLabel="Classifica"
     passwordPrompt="Inserisci la password dell'evento per accedere alla classifica."
