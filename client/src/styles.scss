@@ -658,6 +658,17 @@ input[type="color"]::-moz-color-swatch {
   opacity: 1;
 }
 
+/* Section headings on the Studio surface default to the primary ink.
+   A few admin/manager `<h2>`/`<h3>` shipped with no colour class and
+   leant on inheritance, which read washed-out next to the accent
+   eyebrow above them. Kept in `@layer base` and behind `:where()` so an
+   explicit `text-*` utility on a heading still wins. */
+@layer base {
+  .theme-pro :where(h1, h2, h3, h4) {
+    color: var(--color-text-primary);
+  }
+}
+
 /* Layout only on the shell hosts — never on `.theme-pro` overlay panes
    (confirm dialog, select panel), which must size to their content. */
 app-admin-shell.theme-pro,
