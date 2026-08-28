@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { EventsApi } from '../../api/events.api';
 import { CandidateData } from '../../models/types';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
+import { ToastService } from '../../shared/toast.service';
 import { openScoreGuarded } from '../../shared/open-score.util';
 
 export interface VotingStateChange {
@@ -26,6 +27,7 @@ export interface VotingStateChange {
 export class EventLifecycleControlsComponent {
   private readonly eventsApi = inject(EventsApi);
   private readonly dialog = inject(MatDialog);
+  private readonly toast = inject(ToastService);
 
   readonly eventId = input.required<string>();
   readonly eventCode = input.required<string>();
@@ -67,6 +69,7 @@ export class EventLifecycleControlsComponent {
       const result = await firstValueFrom(this.eventsApi.startEvent(this.eventId(), this.authToken()));
       this.votingStateChange.emit({ votingClosed: result.votingClosed, candidates: result.candidates });
       this.error.set(null);
+      this.toast.success('Votazione avviata');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'avvio della votazione");
     }
@@ -90,6 +93,7 @@ export class EventLifecycleControlsComponent {
       const result = await firstValueFrom(this.eventsApi.updateEventVotingState(this.eventId(), true, this.authToken()));
       this.votingStateChange.emit({ votingClosed: result.votingClosed });
       this.error.set(null);
+      this.toast.success('Televoto chiuso');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella chiusura del televoto');
     }
@@ -108,6 +112,7 @@ export class EventLifecycleControlsComponent {
     try {
       await firstValueFrom(this.eventsApi.resetEventVotes(this.eventId(), this.authToken()));
       this.error.set(null);
+      this.toast.success('Classifica azzerata');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'azzeramento della classifica");
     }

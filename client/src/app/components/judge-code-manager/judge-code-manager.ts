@@ -10,6 +10,7 @@ import {
 } from '../../api/judge-tokens.api';
 import { JudgeTokenStreamService } from '../../api/judge-token-stream.service';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
+import { ToastService } from '../../shared/toast.service';
 import { QrCodePreviewComponent } from './qr-code-preview';
 import { PrintService } from './print.service';
 import { formatDate, formatJudgeToken, getStatusClass, getStatusLabel } from './judge-code-manager.util';
@@ -32,6 +33,7 @@ export class JudgeCodeManagerComponent {
   private readonly stream = inject(JudgeTokenStreamService);
   private readonly printService = inject(PrintService);
   private readonly dialog = inject(MatDialog);
+  private readonly toast = inject(ToastService);
 
   readonly eventId = input.required<string>();
   readonly eventCode = input.required<string>();
@@ -155,6 +157,9 @@ export class JudgeCodeManagerComponent {
       this.validationResult.set(null);
       this.validationInput.set('');
       await this.loadTokens();
+      this.toast.success(
+        result.codes.length === 1 ? '1 codice generato' : `${result.codes.length} codici generati`,
+      );
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella generazione');
     } finally {
@@ -213,6 +218,7 @@ export class JudgeCodeManagerComponent {
       const updated = await firstValueFrom(this.judgeTokensApi.revokeJudgeToken(id, this.authToken()));
       this.tokens.update((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
       this.generatedTokens.update((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
+      this.toast.success('Codice revocato');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella revoca');
     } finally {
@@ -229,6 +235,7 @@ export class JudgeCodeManagerComponent {
       );
       this.generatedTokens.update((prev) => [result.code, ...prev]);
       await this.loadTokens();
+      this.toast.success('Codice rigenerato');
       this.copyMessage.set('Nuovo codice generato: vedi "Ultimi codici generati" qui sopra');
       setTimeout(() => this.copyMessage.set(null), 3000);
     } catch (err) {
