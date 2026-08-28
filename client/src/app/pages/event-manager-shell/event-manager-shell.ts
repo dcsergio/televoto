@@ -107,6 +107,16 @@ export class EventManagerShellComponent {
   }
 
   protected handleEventCodeSubmit(code: string): void {
+    // Drop the stale error so a corrected code isn't stuck on the dead-end URL.
+    this.votingState.eventLoadError.set(null);
+
+    if (code === this.eventCode()) {
+      // Same code re-submitted (retry after a failed load): the query param
+      // wouldn't change, so trigger the reload explicitly.
+      void this.votingState.loadEventByCode(code, false);
+      return;
+    }
+
     this.router.navigate([], { relativeTo: this.route, queryParams: { eventCode: code }, queryParamsHandling: 'merge' });
   }
 
