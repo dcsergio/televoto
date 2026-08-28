@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
             [(ngModel)]="password"
             name="password"
             [placeholder]="passwordPlaceholder()"
-            class="w-full rounded-xl border border-border-glass bg-bg-secondary px-3.5 py-2.5 text-text-primary outline-none transition focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
+            class="field-input"
           />
 
           @if (error()) {
@@ -27,19 +27,8 @@ import { FormsModule } from '@angular/forms';
           }
 
           <div class="flex gap-3 pt-1">
-            <button
-              type="submit"
-              class="flex-1 rounded-xl bg-accent-cyan px-4 py-2.5 font-bold uppercase tracking-[0.06em] text-[#1a1206] transition hover:brightness-110 active:scale-95"
-            >
-              Accedi
-            </button>
-            <button
-              type="button"
-              (click)="cancel.emit()"
-              class="rounded-xl border border-border-glass px-4 py-2.5 font-semibold text-text-secondary transition hover:bg-bg-card-hover"
-            >
-              Annulla
-            </button>
+            <button type="submit" class="btn btn-primary flex-1">Accedi</button>
+            <button type="button" (click)="cancel.emit()" class="btn btn-ghost">Annulla</button>
           </div>
         </form>
       </div>

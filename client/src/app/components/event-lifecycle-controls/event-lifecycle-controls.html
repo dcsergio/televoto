@@ -2,7 +2,7 @@
   <div class="rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
 }
 
-<div class="rounded-2xl border border-border-glass bg-bg-secondary/90 p-4">
+<div class="surface-card bg-bg-secondary/90 p-4">
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
       <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Controlli televoto</p>
@@ -11,33 +11,15 @@
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        (click)="confirmPrimaryAction()"
-        [class]="
-          votingClosed()
-            ? 'rounded-2xl border border-emerald-500/30 bg-emerald-500/20 px-4 py-2 text-emerald-200 hover:bg-emerald-500/30 transition'
-            : 'rounded-2xl border border-amber-500/30 bg-amber-500/20 px-4 py-2 text-amber-200 hover:bg-amber-500/30 transition'
-        "
-      >
+      <button type="button" (click)="confirmPrimaryAction()" class="btn btn-tinted">
         {{ primaryActionLabel() }}
       </button>
-      <button
-        type="button"
-        (click)="handleOpenScore()"
-        class="rounded-2xl border border-border-glass bg-bg-secondary px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-bg-card-hover"
-      >
-        Apri Classifica
-      </button>
+      <button type="button" (click)="handleOpenScore()" class="btn btn-ghost">Apri Classifica</button>
     </div>
   </div>
-  <div class="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3">
+  <div class="surface-panel mt-4 border-red-500/25 bg-red-500/10 p-3">
     <p class="text-xs font-semibold uppercase tracking-[0.15em] text-red-200">Zona pericolosa</p>
-    <button
-      type="button"
-      (click)="confirmResetRanking()"
-      class="mt-2 rounded-2xl border border-red-500/30 bg-red-500/20 px-4 py-2 text-red-200 hover:bg-red-500/30 transition"
-    >
+    <button type="button" (click)="confirmResetRanking()" class="btn btn-danger mt-2">
       Azzera classifica
     </button>
   </div>

@@ -44,6 +44,7 @@ import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQuer
     MatFormFieldModule,
     MatSelectModule,
   ],
+  host: { class: 'theme-pro' },
   templateUrl: './admin-shell.html',
 })
 export class AdminShellComponent {

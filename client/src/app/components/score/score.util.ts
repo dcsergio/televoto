@@ -42,12 +42,12 @@ export function getButtonLabel(options: {
   const { showWinner, revealedCount, rankingsLength, isAboutToRevealThirdPlace, isThirdPlaceStage, isFinalistsStage } =
     options;
   if (showWinner) return 'Vincitore rivelato';
-  if (revealedCount >= rankingsLength) return 'Classifica completa';
-  if (isFinalistsStage) return 'Mostra esito finale';
+  if (revealedCount >= rankingsLength) return 'Sipario — classifica completa';
+  if (isFinalistsStage) return 'Apri la busta';
   if (isThirdPlaceStage) return 'Vai alla finale a due';
   if (isAboutToRevealThirdPlace) return 'Proclama il terzo classificato';
-  if (revealedCount === 0) return 'Avvia';
-  return 'Mostra il prossimo posto';
+  if (revealedCount === 0) return 'Si parte';
+  return 'Prossimo verdetto';
 }
 
 export function getFinalistLabel(index: number, showWinner: boolean, hasTopTie: boolean): string {
