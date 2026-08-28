@@ -15,13 +15,9 @@ import {
   splitJudgeTokenSegments,
 } from '../../shared/judge-token.util';
 import { buildPageTitle } from '../../shared/page-title.util';
+import { pluralize } from '../../shared/pluralize.util';
 
 const VOTING_STATE_POLL_MS = 7000;
-
-/** Tiny Italian pluralization helper (count === 1 → singular, else plural). */
-function pluralize(count: number, singular: string, plural: string): string {
-  return count === 1 ? singular : plural;
-}
 
 @Component({
   selector: 'app-voting-shell',

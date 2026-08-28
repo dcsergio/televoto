@@ -7,7 +7,7 @@ function escapeCsvField(value: string | number): string {
 }
 
 export function rankingsToCsv(entries: RankingEntry[]): string {
-  const header = ['Posizione', 'Numero', 'Nome', 'Punteggio', 'Voti Qualificata', 'Voti Popolare'];
+  const header = ['Posizione', 'Numero', 'Nome', 'Punteggio', 'Voti giuria', 'Voti pubblico'];
   const rows = entries.map((entry, index) => [
     index + 1,
     entry.number,
