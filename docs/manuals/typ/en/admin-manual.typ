@@ -10,9 +10,9 @@
   subtitle: "Operational guide to cross-event management on the Televoto platform.",
   meta: [
     *Audience:* administrators with access to the global root password. \
-    *Scope:* the `/admin` panel — overview dashboard, event registry, event archiving and
-    cloning, scoring weights, credential security. \
-    *Document version:* 1.1 · August 2026
+    *Scope:* the `/admin` panel — overview dashboard, creating and editing events, event
+    archiving and cloning, scoring weights, security settings. \
+    *Document version:* 1.2 · August 2026
   ],
 )
 
@@ -43,11 +43,17 @@ Televoto uses a two-tier authentication model, independent of one another:
   root still has to enter that specific event's manager password.
 ]
 
-The `/admin` area is designed exclusively for *cross-event* operations: creating and
-maintaining the event registry, archiving and cloning events, scoring weights, password
-security. It does not manage candidates, judge codes, or starting/closing voting for a single
-event: for those operations you need to reach the dedicated `/manager` area for that event (see
-Chapter 9).
+The `/admin` area is designed exclusively for *cross-event* operations: creating and editing
+the event registry, archiving and cloning events, scoring weights, password security. It does
+not manage candidates, judge codes, or starting/closing voting for a single event: for those
+operations you need to reach the dedicated `/manager` area for that event (see Chapter 9).
+
+#nota(title: "Five-section side menu")[
+  Since the August 2026 release the Admin area is organised into five sections: *Dashboard*,
+  *Create Events*, *Edit Events*, *Archived* and *Settings* (URL parameter
+  `?adminSection=dashboard|create-events|edit-events|archived|settings`). Creating an event and
+  editing an existing one, once bundled in a single "Events" section, are now separate.
+]
 
 = Accessing the Admin area (root login)
 #chapter-subtitle[How to authenticate with the root password.]
@@ -73,10 +79,9 @@ Chapter 9).
 = Dashboard overview
 #chapter-subtitle["Dashboard" section in the side menu — an overview across all events.]
 
-After logging in, the Admin area shows a side menu with three entries: *Dashboard*, *Events*
-and *Archived* (URL parameter `?adminSection=dashboard|events|archived`), the last one
-dedicated to managing archived events (see Chapter 4). Dashboard is the default section and
-shows:
+After logging in, the Admin area shows the five-entry side menu described above. *Dashboard* is
+the default section and provides a read-only overview of every event, with quick access to the
+operational management of each.
 
 == Overview summary (number cards)
 
@@ -89,47 +94,49 @@ shows:
   [Voting closed], [Events with voting closed],
 )
 
-== Selected event
-
-At the top of the toolbar there's a dropdown selector *"Selected event"* listing all events
-(code + name). The chosen event stays selected even when moving between sections, and it
-determines the detail card shown in Dashboard, with:
-
-- Status: #pill("Active", color: "green") / Not active, #pill("Voting open", color: "cyan") /
-  closed;
-- A *"Manage event"* button, which opens the event's `/manager` area in a new tab.
-
 == Full list
 
-Below the detail card, a grid of cards lists every *non-archived* event with its code, name,
-subtitle (if present), Voting open/closed status, a *"Manage"* button, and an *"Archive event"*
-icon for each. If any events are archived, a quick link with their count appears above the
-grid, pointing to the *Archived* section (see Chapter 4).
+Below the number cards, a grid of cards lists every *non-archived* event with its code, name,
+subtitle (if present), Voting open/closed status, a *"Manage"* button (opens the event's
+`/manager` area in a new tab), and an *"Archive event"* icon for each. If any events are
+archived, a quick link with their count appears above the grid, pointing to the *Archived*
+section (see Chapter 4).
+
+#nota(title: "No event selector in Dashboard")[
+  Unlike previous versions, the Dashboard no longer contains a "Selected event" card or the
+  selection dropdown: the Dashboard is purely informational. Choosing the event to operate on
+  now happens in the *Edit Events* section (see Chapter 6), and the event selected there is the
+  one the toolbar shortcuts act on.
+]
 
 #nota(title: "Toolbar quick actions")[
   The toolbar at the top always offers: *Refresh events* (reloads the list), *Open public
-  voting page* and *Open Final Ranking* for the selected event, plus a *logout* button.
+  voting page* and *Open Final Ranking* for the event selected in *Edit Events*, plus a
+  *logout* button. The toolbar no longer contains the event dropdown.
 ]
 
 = Archiving, restoring and cloning an event
-#chapter-subtitle["Events" section (archiving) and "Archived" section (restoring and cloning).]
+#chapter-subtitle[
+  "Dashboard"/"Edit Events" sections (archiving) and "Archived" section (restoring and
+  cloning).
+]
 
-An archived event is excluded from the *"Selected event"* dropdown in the toolbar, the "All
-events" grid in Dashboard, and the "Active events"/"Voting open"/"Voting closed" counters — but
-it remains fully preserved (with its candidates, credentials, and settings) and reachable from
-the *Archived* section of the side menu.
+An archived event is excluded from the "All events" grid in Dashboard, from the event selector
+in *Edit Events*, and from the "Active events"/"Voting open"/"Voting closed" counters — but it
+remains fully preserved (with its candidates, credentials, and settings) and reachable from the
+*Archived* section of the side menu.
 
 == 4.1 Archiving an event
 
 You can archive an event from two places in the panel:
 
 - in *Dashboard*, from the event's card in the "All events" grid, via the *"Archive event"*
-  icon;
-- in *Events* → "Current event" box, via the *"Archive event"* button (shows "Archiving…" while
-  in progress).
+  icon (asks for confirmation in a dialog);
+- in *Edit Events* → "Current event" box, via the *"Archive event"* button (shows "Archiving…"
+  while in progress).
 
-No additional confirmation is required: the archived event immediately disappears from the
-active lists and becomes visible only in the Archived section.
+The archived event disappears from the active lists and becomes visible only in the Archived
+section.
 
 #attenzione(title: "Reversible, non-destructive operation")[
   Archiving an event does *not* delete candidates, judge codes, votes, or credentials: it's a
@@ -141,8 +148,8 @@ active lists and becomes visible only in the Archived section.
 + Go to the *Archived* section in the side menu.
 + Locate the event's card in the grid.
 + Press *"Unarchive"* (shows "Restoring…" while in progress).
-+ The event immediately becomes available again in the toolbar selector and in
-  Dashboard/Events' active lists, with the same voting state it had before being archived.
++ The event immediately becomes available again in the *Edit Events* selector and in the
+  Dashboard active lists, with the same voting state it had before being archived.
 
 == 4.3 Cloning an archived event
 
@@ -150,41 +157,57 @@ From the same *Archived* section, the *"Clone"* button (copy icon) creates a *ne
 on the archived one, useful for reusing an already-configured format (e.g. a previous edition
 of the same contest) without re-entering candidates and settings from scratch.
 
+Pressing *"Clone"* opens a *modal window* where you enter the new event's details:
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.header([Field], [Required], [Notes]),
+  [*Event name*], [Yes],
+  [Pre-filled with the original name followed by " (copy)"; freely editable.],
+  [*Event code*], [No],
+  [1 to 5 digits. If left blank, a brand-new code is generated automatically (never the source
+  event's code).],
+  [*Event manager password*], [Yes],
+  [Minimum 8 characters. Must be typed twice (password + confirmation): if the two fields don't
+  match, cloning is blocked.],
+)
+
+Confirming with *"Clone"* creates the new event and the section automatically switches to *Edit
+Events* with the clone already selected.
+
 #table(
   columns: (1fr, 1fr),
   table.header([What gets copied], [What does NOT get copied]),
   [
-    Event name (with a " (copy)" suffix), subtitle, public voting mode, scoring weights and
-    trimmed mean settings, the full candidate list (number, name, subtitle, color, template),
-    the event manager password
+    Subtitle, public voting mode (and the maximum number of preferences), scoring weights and
+    trimmed mean settings, the full candidate list (number, name, subtitle, color, template)
   ],
-  [Recorded votes, already-generated judge/public codes, progress history],
+  [Name and code (you choose them in the modal), event manager password (you choose it in the
+  modal), recorded votes, already-generated judge/public codes, progress history],
 )
 
-The new event gets an *automatically generated event code* (never the source event's code) and
-is created *not archived* but with *voting already closed*: before opening it to the public you
-need to generate new judge/public codes from the new event's `/manager` area.
+The new event is created *not archived* but with *voting already closed*: before opening it to
+the public you need to generate new judge/public codes from the new event's `/manager` area.
 
 #nota(title: "Why cloning is only available from archived events")[
   The "Clone" action is only available in the Archived section: to duplicate a still active
   event, archive it first (Section 4.1), then clone it and, if needed, unarchive the original.
 ]
 
-#attenzione(title: "Duplicated manager password")[
-  The cloned event inherits the *same* manager password as the source event. If both the
-  original and the clone remain active, consider rotating one of their passwords (Chapter 8) to
-  avoid them sharing the same credential.
+#nota(title: "The manager password is always new")[
+  Unlike previous versions, the cloned event does *not* inherit the original's manager
+  password: you are required to choose a new one in the clone modal. Original and clone
+  therefore always have distinct credentials.
 ]
 
 = Creating a new event
-#chapter-subtitle["Events" section → "Create new event" box.]
+#chapter-subtitle["Create Events" section in the side menu.]
 
-+ In the side menu select *Events*.
-+ Locate the *"Create new event"* box on the right side of the panel.
-+ Fill in the form fields (see the table below).
-+ Press the *"Create event"* button.
++ In the side menu select *Create Events*.
++ Fill in the "Create new event" form fields (see the table below).
++ Press the *"Create event"* button (fixed size; shows "Creating…" while in progress).
 + The new event is added at the top of the list and automatically selected as the current
-  event.
+  event in *Edit Events*.
 
 #table(
   columns: (auto, auto, 1fr),
@@ -197,29 +220,45 @@ need to generate new judge/public codes from the new event's `/manager` area.
   [1 to 5 digits. If left blank, it's generated automatically by the system. It's the code used
   in the public URL (`?eventCode=...`) and to access `/manager`.],
   [*Public voting mode*], [Yes (default: Numeric)],
-  [*Numeric (1–10)*: the public assigns a score. *Single (election)*: the public votes for one
-  candidate only. Not editable once the event is created.],
+  [*Numeric (1–10)*: the public assigns a score to each candidate. *Preferences (election)*:
+  the public assigns no scores but picks up to _N_ favourite candidates. Not editable once the
+  event is created.],
+  [*Max preferences per judge*], [Only in Preferences mode],
+  [Maximum number of candidates each public voter may select (1 to 100). With a value of 1 the
+  ballot becomes a single, election-style vote.],
   [*Event manager password*], [Yes],
   [Minimum 8 characters. This is the password the event manager will use to access `/manager`
   for this event.],
 )
 
-#attenzione(title: "Blocking validations")[
+#nota(title: "Qualified judges always vote by score")[
+  The public voting mode affects *only* POPOLARE (public) codes. QUALIFICATA judges always
+  assign a score from 1 to 10 to every candidate, regardless of this setting.
+]
+
+#attenzione(title: "Validations and errors as notifications")[
   The form rejects creation if: the name is empty, the event code doesn't match the 1–5 digit
-  format, or the manager password is shorter than 8 characters. The error message appears at
+  format, or the manager password is shorter than 8 characters. The error message appears as a
+  *transient notification (toast)* at the bottom center of the page, no longer as a banner at
   the top of the panel.
 ]
 
 #attenzione(title: "Irreversible after creation")[
-  The public voting mode (Numeric / Single) can no longer be changed once the event is created:
-  choose carefully before confirming.
+  The public voting mode (Numeric / Preferences) and the maximum number of preferences can no
+  longer be changed once the event is created: choose carefully before confirming.
 ]
 
 = Editing an existing event and scoring weights
-#chapter-subtitle["Events" section → "Current event" box.]
+#chapter-subtitle["Edit Events" section in the side menu.]
 
-Select the event to edit via the toolbar selector, then go to the *Events* section: the
-*"Current event"* box shows three distinct modules for the selected event.
+The *Edit Events* section gathers everything to do with a single existing event. At the top is
+the *"Selected event" dropdown* (code + name, non-archived events only): the choice made here
+determines the event the modules in this section act on, as well as the toolbar's *"Open public
+voting page"* and *"Open Final Ranking"* shortcuts. Next to the selector, two labels show the
+event's current state (*Voting open/closed* and *Public vote: Numeric/Preferences*).
+
+Below the selector, the *"Current event"* box shows the operational modules for the chosen
+event.
 
 == 5.1 Renaming the event
 
@@ -228,7 +267,12 @@ Select the event to edit via the toolbar selector, then go to the *Events* secti
 
 If the typed name matches the one already saved, no request is sent.
 
-== 5.2 Judge weighting (scoring weights)
+== 5.2 Archiving the event and rotating the manager password
+
+The same box also holds the *"Archive event"* button (see Section 4.1) and the *"New event
+manager password"* field with the *"Update event password"* button (see Chapter 8).
+
+== 5.3 Judge weighting (scoring weights)
 
 In the *"Judge weighting"* box you set the balance between the *Qualified* judges' average and
 the *Public* vote average in the final score calculation.
@@ -241,8 +285,8 @@ the *Public* vote average in the final score calculation.
   [Disabled field, automatically calculated as `100 - Qualified weight`. The two weights always
   add up to 100.],
   [Enable trimmed mean on public votes],
-  [Checkbox visible only for events with *Numeric* voting mode (not for "Single"). Reduces the
-  impact of anomalous/outlier votes on the public average.],
+  [Checkbox visible only for events with *Numeric* voting mode (not for "Preferences"). Reduces
+  the impact of anomalous/outlier votes on the public average.],
   [Trimmed mean percentage (%)], [Value 0–49.99, active only if trimmed mean is enabled.],
 )
 
@@ -255,18 +299,25 @@ Press *"Save voting settings"* to confirm. The factory default is 70% Qualified 
   set here.
 ]
 
+#nota(title: "Preference voting and trimmed mean")[
+  For events in *Preferences* mode a candidate's public average is its *share of preferences*
+  out of all preferences cast, rescaled to 0–10: the trimmed mean has no effect and is
+  therefore hidden from the interface.
+]
+
 #attenzione(title: "Validations")[
   The Qualified weight must be an integer between 0 and 100; the trimmed mean percentage must
-  be between 0 and 49.99. Out-of-range values are rejected with an error message.
+  be between 0 and 49.99. Out-of-range values are rejected with an error notification.
 ]
 
 = Rotating the root password
-#chapter-subtitle["Events" section → "Root security" box (at the bottom of the page).]
+#chapter-subtitle["Settings" section in the side menu.]
 
 This operation updates the global root password, used to access all protected administrative
-areas.
+areas. The form lives in the *Settings* section (previously it was at the bottom of the
+"Events" section).
 
-+ Go to the *Events* section and scroll down to the *"Root security"* box.
++ In the side menu select *Settings*.
 + Fill in the three fields: *Current root password*, *New root password*, *Confirm new root
   password*.
 + Press *"Update root password"*.
@@ -286,15 +337,16 @@ areas.
 ]
 
 = Rotating an event manager's password
-#chapter-subtitle["Events" section → "Current event" box → "New event manager password" field.]
+#chapter-subtitle["Edit Events" section → "Current event" box → "New event manager password" field.]
 
 Each event has its own manager password, independent of the root password, used to access
 `/manager` for that specific event (typically by whoever runs the event on-site, without root
 credentials).
 
-+ Select the event in question via the toolbar selector.
-+ Go to the *Events* section, *"Current event"* box.
-+ In the *"New event manager password"* field, type the new password (minimum 8 characters).
++ In the side menu select *Edit Events*.
++ Choose the event in question from the *"Selected event"* dropdown.
++ In the *"Current event"* box, *"New event manager password"* field, type the new password
+  (minimum 8 characters).
 + Press *"Update event password"*.
 
 #nota(title: "Typical use cases")[
@@ -319,8 +371,7 @@ codes, starting/closing voting, and real-time monitoring. It cannot be reached f
 area to edit registry data or weights (those remain here in `/admin`), but it's the entry
 point for the day-to-day operational management of the event.
 
-+ Select the desired event (via the toolbar selector, or from the event card in
-  Dashboard/Events).
++ Locate the event in the Dashboard's "All events" grid (or select it in *Edit Events*).
 + Press the *"Manage" / "Manage event"* button.
 + A new browser tab opens at `/manager?eventCode=<code>`.
 
@@ -333,8 +384,8 @@ point for the day-to-day operational management of the event.
 #attenzione(title: "Exception: Final Ranking")[
   This automatic bypass does *not* apply to the `/score` page (Final Ranking): there, even with
   an active root session, that event's specific manager password is still required. Use the
-  *"Open Final Ranking"* button in the toolbar to reach it quickly, and keep the event's
-  manager password on hand.
+  *"Open Final Ranking"* button in the toolbar to reach it quickly (it acts on the event
+  selected in *Edit Events*), and keep the event's manager password on hand.
 ]
 
 = Other cross-event operations
@@ -345,20 +396,21 @@ point for the day-to-day operational management of the event.
   table.header([Button], [Action]),
   [Refresh events], [Reloads the event list from the server.],
   [Open public voting page],
-  [Opens the public voting page (`/?eventCode=...`) for the selected event in a new tab.],
+  [Opens the public voting page (`/?eventCode=...`) for the event selected in *Edit Events* in
+  a new tab.],
   [Open Final Ranking],
-  [Opens `/score?eventCode=...` for the selected event. If the event's voting is still open,
-  the system shows a warning ("Final Ranking is only accessible once voting is closed") and
-  blocks the opening.],
+  [Opens `/score?eventCode=...` for the event selected in *Edit Events*. If the event's voting
+  is still open, the system shows a warning ("Final Ranking is only accessible once voting is
+  closed") and blocks the opening.],
   [Log out],
   [Ends both the root session and any active manager session in the same browser, returning to
   the login screen.],
 )
 
 #nota(title: "Compact view on mobile")[
-  On narrow viewports (smartphone/tablet in portrait), the toolbar shows a compact badge with
-  just the event code instead of the full selector; the side menu opens via the hamburger icon
-  and closes automatically after a section is selected.
+  On narrow viewports (smartphone/tablet in portrait) the side menu opens via the hamburger
+  icon and closes automatically after a section is selected. The toolbar shortcuts remain
+  available.
 ]
 
 = FAQ and troubleshooting
@@ -371,23 +423,29 @@ The root token is missing or has expired (12-hour duration). Log in again from `
 == Can't create the event: "Event code must contain 1 to 5 digits"
 
 The "Event code" field only accepts numeric digits, 1 to 5 characters. Leave it blank to have
-it generated automatically.
+it generated automatically. The error appears as a transient notification at the bottom.
 
 == The "Public weight" field appears locked/disabled
 
 This is expected behavior: the Public weight is never edited directly, it's always the
 complement to 100 of the Qualified weight.
 
+== I can't find the "trimmed mean" checkbox for an event
+
+It is hidden on purpose for events in *Preferences* voting mode: in that mode the public
+average is a share of preferences and the trimmed mean does not apply. The checkbox only
+appears for *Numeric* events.
+
 == I can't find where to manage candidates or judge codes from /admin
 
 That's expected: those operations belong exclusively to the `/manager` area of the individual
 event (see Chapter 9). The Admin area is intentionally limited to cross-event management.
 
-== An event disappeared from the "Selected event" dropdown and Dashboard
+== An event disappeared from the Dashboard and the "Edit Events" selector
 
-It has probably been archived: archived events are excluded from the toolbar selector and the
-active lists. You'll find it in the *Archived* section of the side menu, where you can
-unarchive or clone it (see Chapter 4).
+It has probably been archived: archived events are excluded from the active lists. You'll find
+it in the *Archived* section of the side menu, where you can unarchive or clone it (see Chapter
+4).
 
 == I changed an event manager's password but the manager can't log in
 

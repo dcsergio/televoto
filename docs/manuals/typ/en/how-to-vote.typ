@@ -36,14 +36,16 @@
 ]
 
 #step(4, title: "🎯 Choose and vote")[
-  Tap a candidate, then give a *score from 1 to 10* with a tap.
+  *Numeric vote:* tap a candidate, then give a *score from 1 to 10*. \
+  *Preference vote* (public only): tap the candidates you prefer, up to the allowed maximum.
   #v(0.4em)
   #pill("1", color: "red") #h(0.3em) #pill("3", color: "amber") #h(0.3em) #pill("5", color: "amber") #h(0.3em) #pill("7", color: "green") #h(0.3em) #pill("9", color: "cyan") #h(0.3em) #pill("10", color: "violet")
 ]
 
-#step(5, title: "📊 Vote for every candidate")[
-  One vote per candidate, *not editable after submitting*. A progress bar shows how many votes
-  are still missing.
+#step(5, title: "📊 Complete your ballot")[
+  Numeric vote: one vote per candidate. Preference vote: up to _N_ candidates, with a
+  "Preferences cast X/N" counter. Either way the vote is *not editable after submitting* and a
+  progress bar shows what's still missing.
 
   *The page updates itself: if voting closes, your vote is locked.*
 ]
@@ -59,6 +61,12 @@
 #attenzione(title: "Warning")[
   If voting is shown as closed, you can no longer vote — try again later or contact the event
   staff.
+]
+
+#nota(title: "Numeric or preference vote?")[
+  The organizer decides when creating the event. *Qualified judges* always vote with a score
+  from 1 to 10. The *public* ballot, instead, may be preference-based: you pick one or more
+  candidates (up to the maximum shown at the top of the page), with no scores.
 ]
 
 #align(right, text(9pt, fill: tv.ink-faint)[TELEVOTO · Guide for judges and the public])

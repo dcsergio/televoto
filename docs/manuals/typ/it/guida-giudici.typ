@@ -41,12 +41,16 @@
     `A1B2 C3D4 E5F6 G7H8`
   ],
   card(icon: "🎯", title: "4. Scegli e vota")[
-    Tocca un candidato, poi assegna un *punteggio da 1 a 10* con un tap.
+    *Voto numerico:* tocca un candidato e assegna un *punteggio da 1 a 10*. \
+    *Voto a preferenze* (solo pubblico): tocca i candidati che preferisci, fino al numero
+    massimo consentito.
     #v(0.5em)
     #chip-row(("1", "3", "5", "7", "9", "10"))
   ],
-  card(icon: "📊", title: "5. Vota ogni candidato")[
-    Un voto per candidato, non modificabile dopo l'invio. Una barra mostra i voti mancanti.
+  card(icon: "📊", title: "5. Completa la scheda")[
+    Nel voto numerico: un voto per candidato. Nel voto a preferenze: fino a _N_ candidati, con
+    un contatore "Preferenze espresse X/N". In entrambi i casi il voto non è modificabile dopo
+    l'invio e una barra mostra cosa manca.
     #v(0.5em)
     *La pagina si aggiorna da sola: se il televoto chiude, il voto si blocca.*
   ],
@@ -60,6 +64,13 @@
 #attenzione[
   Se il televoto risulta chiuso non è più possibile votare — riprova più tardi o contatta lo
   staff.
+]
+
+#nota(title: "Numerico o a preferenze?")[
+  Lo decide l'organizzatore quando crea l'evento. I *giudici della giuria qualificata* votano
+  *sempre* con un punteggio da 1 a 10. Per il *pubblico*, l'evento può invece usare una scheda
+  a preferenze: si scelgono uno o più candidati (fino al massimo indicato in alto nella
+  pagina), senza assegnare punteggi.
 ]
 
 #align(right, text(9.5pt, fill: tv.ink-faint)[TELEVOTO · Guida per giudici e pubblico])

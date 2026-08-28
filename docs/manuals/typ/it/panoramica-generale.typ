@@ -64,6 +64,10 @@ nessun account da creare per chi vota.
     Media pesata tra giuria e pubblico, con opzione di "trimmed mean" per ridurre l'impatto di
     voti anomali o outlier.
   ],
+  card(icon: "🗳", title: "Voto pubblico flessibile")[
+    Per il pubblico puoi scegliere il voto numerico (punteggio 1–10 per candidato) oppure una
+    scheda a preferenze in stile elezione (uno o più candidati preferiti).
+  ],
   card(icon: "🎉", title: "Classifica")[
     Una schermata di rivelazione della classifica finale pensata per il momento clou
     dell'evento, davanti al pubblico.

@@ -50,14 +50,14 @@ Judges don't log in with the admin auth system — the admin issues single-use o
 
 Because the opaque code is only ever stored hashed, a judge who loses it cannot recover the original — instead `POST /api/judge-tokens/:id/reissue` (event-manager auth) revokes the old token, mints a new one, and re-parents that judge's existing votes onto the new token id so their progress survives. `JudgeCodeManagerComponent` exposes this as a "Rigenera" button per judge.
 
-Voters are also gated by `Event.popularVoteMode` (`NUMERIC` default, or `SINGLE`) — see "Popular vote modes" below.
+Voters are also gated by `Event.popularVoteMode` (`NUMERIC` default, or `PREFERENCE`) — see "Popular vote modes" below.
 
-### Popular vote modes (numeric vs single-choice)
-`Event.popularVoteMode` (`PopularVoteMode` enum: `NUMERIC` | `SINGLE`), chosen at event creation and **immutable afterward**. `QUALIFICATA` judges always vote numerically (1-10 per candidate), regardless of this setting — it only changes how `POPOLARE` voters vote:
+### Popular vote modes (numeric vs preference ballot)
+`Event.popularVoteMode` (`PopularVoteMode` enum: `NUMERIC` | `PREFERENCE`) plus `Event.maxPreferences` (int, default 1), chosen at event creation and **immutable afterward**. `QUALIFICATA` judges always vote numerically (1-10 per candidate), regardless of this setting — it only changes how `POPOLARE` voters vote:
 - `NUMERIC` (default): unchanged 1-10 scoring per candidate.
-- `SINGLE`: an election-style ballot — the voter picks exactly one candidate, `vote.service.ts` forces `score = 1` and deletes that judge token's other votes so only one stays active.
+- `PREFERENCE`: an approval/election-style ballot — the voter picks up to `maxPreferences` candidates, `vote.service.ts` forces `score = 1` and rejects a new preference once the token already has `maxPreferences` votes on other candidates (`maxPreferences = 1` reproduces the old single-choice behaviour). The frontend passes an `isPreferenceVoteMode` flag through `castVote`; `voting-shell.ts` shows a "Preferenze espresse X/N" counter.
 
-`ranking.service.ts` branches on this in `avgPopolare`: for `SINGLE` events it's the share of expressed votes a candidate received, scaled to a 0-10 range, instead of the usual trimmed mean — so `enableTrimmedMean`/`trimmedMeanPercentage` are meaningless (and hidden in the admin UI) for `SINGLE` events.
+`ranking.service.ts` branches on this in `avgPopolare`: for `PREFERENCE` events it's `computePopularVoteShare` — the candidate's share of all preferences cast, scaled to a 0-10 range — instead of `computeTrimmedMean`, so `enableTrimmedMean`/`trimmedMeanPercentage` are meaningless (and hidden in the admin UI) for `PREFERENCE` events.
 
 ### Ranking / scoring algorithm
 Implemented in `GET /api/rankings/:eventId` (`server/routes/rankings.routes.ts`, `server/services/ranking.service.ts`) — not derivable from the schema alone:

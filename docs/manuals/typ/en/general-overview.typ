@@ -64,6 +64,10 @@ create for voters.
     Weighted average between jury and public, with an optional "trimmed mean" to reduce the
     impact of anomalous or outlier votes.
   ],
+  card(icon: "🗳", title: "Flexible public vote")[
+    For the public you can choose numeric voting (a 1–10 score per candidate) or an
+    election-style preference ballot (one or more favourite candidates).
+  ],
   card(icon: "🎉", title: "Final Ranking")[
     A final-ranking reveal screen designed for the event's key moment, in front of the audience.
   ],

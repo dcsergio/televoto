@@ -285,7 +285,9 @@ Il punteggio finale di ciascun candidato combina due componenti:
   set text(0.92em)
   raw("Media Qualificata = somma punti giudici qualificati ÷ numero di codici QUALIFICATA attivi (non solo chi ha votato)")
   parbreak()
-  raw("Media Popolare = media dei voti popolari (eventualmente \"trimmed mean\" per ridurre l'effetto di voti anomali)")
+  raw("Media Popolare (voto numerico) = media dei voti popolari (eventualmente \"trimmed mean\" per ridurre l'effetto di voti anomali)")
+  parbreak()
+  raw("Media Popolare (voto a preferenze) = quota di preferenze del candidato sul totale delle preferenze espresse, su scala 0-10")
   parbreak()
   raw("Punteggio finale = (Media Qualificata × peso Qualificata) + (Media Popolare × peso Popolare)")
 })
@@ -293,9 +295,13 @@ Il punteggio finale di ciascun candidato combina due componenti:
 - *Le astensioni pesano*: la media dei giudici qualificati si divide per _tutti_ i codici
   QUALIFICATA validi assegnati all'evento, non solo per quelli effettivamente usati — quindi un
   giudice qualificato che non vota abbassa comunque la media del candidato.
-- *Trimmed mean (facoltativa)*: se attivata per l'evento, la media del voto popolare esclude
-  una percentuale di voti estremi (più alti/più bassi) per ridurre l'impatto di valutazioni
-  anomale.
+- *Voto popolare a preferenze*: se l'evento usa la modalità "Preferenze" (il pubblico sceglie
+  uno o più candidati anziché dare un punteggio), la componente popolare di un candidato è la
+  sua quota di preferenze sul totale, riportata su scala 0–10. In questa modalità la trimmed
+  mean non viene applicata.
+- *Trimmed mean (facoltativa, solo voto numerico)*: se attivata per l'evento, la media del voto
+  popolare esclude una percentuale di voti estremi (più alti/più bassi) per ridurre l'impatto
+  di valutazioni anomale.
 - *Pesi per evento*: le due medie vengono combinate secondo pesi specifici dell'evento (di
   norma 70% giuria qualificata / 30% pubblico, ma personalizzabili dall'amministratore root),
   che sommano al 100%.

@@ -9,9 +9,9 @@
   subtitle: "Guida operativa alla gestione cross-evento della piattaforma Televoto",
   meta: [
     *Destinatari:* amministratori con accesso alla password root globale. \
-    *Ambito:* pannello `/admin` — dashboard generale, anagrafica eventi, archiviazione e
-    clonazione eventi, pesi di scoring, sicurezza delle credenziali. \
-    *Versione documento:* 1.1 · Agosto 2026
+    *Ambito:* pannello `/admin` — dashboard generale, creazione e modifica eventi, archiviazione
+    e clonazione eventi, pesi di scoring, impostazioni di sicurezza. \
+    *Versione documento:* 1.2 · Agosto 2026
   ],
 )
 
@@ -42,11 +42,19 @@ Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra l
   anche il root deve inserire la password manager dell'evento specifico.
 ]
 
-L'area `/admin` è pensata esclusivamente per operazioni *cross-evento*: creazione e anagrafica
-degli eventi, archiviazione e clonazione degli eventi, pesi di scoring, sicurezza delle
+L'area `/admin` è pensata esclusivamente per operazioni *cross-evento*: creazione e modifica
+dell'anagrafica degli eventi, archiviazione e clonazione, pesi di scoring, sicurezza delle
 password. Non gestisce candidati, codici giuria o l'avvio/chiusura della votazione di un
 singolo evento: per queste operazioni occorre raggiungere l'area dedicata `/manager`
 dell'evento (vedi Capitolo 9).
+
+#nota(title: "Menu laterale a cinque sezioni")[
+  Dalla versione di agosto 2026 l'area Admin è organizzata in cinque sezioni:
+  *Dashboard*, *Crea Eventi*, *Modifica Eventi*, *Archiviati* e *Impostazioni* (parametro URL
+  `?adminSection=dashboard|create-events|edit-events|archived|settings`). Le operazioni di
+  creazione e di modifica di un evento, un tempo raccolte in un'unica sezione "Eventi", sono
+  ora separate.
+]
 
 = Accesso all'area Admin (login root)
 #chapter-subtitle[Come autenticarsi con la password root.]
@@ -72,10 +80,9 @@ dell'evento (vedi Capitolo 9).
 = Panoramica della Dashboard
 #chapter-subtitle[Sezione "Dashboard" del menu laterale — vista d'insieme su tutti gli eventi.]
 
-Dopo il login, l'area Admin si presenta con un menu laterale a tre voci: *Dashboard*, *Eventi*
-e *Archiviati* (parametro URL `?adminSection=dashboard|events|archived`), quest'ultima dedicata
-alla gestione degli eventi archiviati (vedi Capitolo 4). La Dashboard è la sezione predefinita
-e mostra:
+Dopo il login, l'area Admin si presenta con il menu laterale a cinque voci descritto sopra. La
+*Dashboard* è la sezione predefinita e offre una vista d'insieme di sola lettura su tutti gli
+eventi, con un accesso rapido alla gestione operativa di ciascuno.
 
 == Riepilogo generale (card numeriche)
 
@@ -88,50 +95,50 @@ e mostra:
   [Televoto chiuso], [Eventi con votazione chiusa],
 )
 
-== Evento selezionato
-
-In alto nella toolbar è presente un selettore a tendina *"Evento selezionato"* che elenca
-tutti gli eventi (codice + nome). L'evento scelto qui rimane selezionato anche passando da una
-sezione all'altra e determina la card di dettaglio mostrata in Dashboard, con:
-
-- Stato: *Attivo* / Non attivo, *Televoto aperto* / chiuso;
-- Pulsante *"Gestisci evento"*, che apre l'area `/manager` dell'evento in una nuova scheda.
-
 == Elenco completo eventi
 
-Sotto la card di dettaglio, una griglia di schede riepiloga tutti gli eventi *non archiviati*
-con codice, nome, sottotitolo (se presente), stato televoto Aperto/Chiuso, un pulsante
-*"Gestisci"* e un'icona *"Archivia evento"* per ciascuno. Se esistono eventi archiviati, sopra
-la griglia compare un collegamento rapido con il relativo conteggio verso la sezione
-*Archiviati* (vedi Capitolo 4).
+Sotto le card numeriche, una griglia di schede riepiloga tutti gli eventi *non archiviati* con
+codice, nome, sottotitolo (se presente), stato televoto Aperto/Chiuso, un pulsante *"Gestisci"*
+(apre l'area `/manager` dell'evento in una nuova scheda) e un'icona *"Archivia evento"* per
+ciascuno. Se esistono eventi archiviati, sopra la griglia compare un collegamento rapido con il
+relativo conteggio verso la sezione *Archiviati* (vedi Capitolo 4).
+
+#nota(title: "Nessun selettore evento in Dashboard")[
+  A differenza delle versioni precedenti, la Dashboard non contiene più una scheda "Evento
+  selezionato" né il menu a tendina di selezione: la Dashboard è puramente informativa. La
+  scelta dell'evento su cui operare avviene ora nella sezione *Modifica Eventi* (vedi Capitolo
+  6), e l'evento lì selezionato è quello a cui si applicano le scorciatoie della toolbar.
+]
 
 #nota(title: "Azioni rapide in toolbar")[
   Dalla toolbar in alto sono sempre disponibili: *Aggiorna eventi* (ricarica l'elenco), *Apri
-  pagina voto pubblico* e *Apri Classifica* per l'evento selezionato, oltre al pulsante di
-  *logout*.
+  pagina voto pubblico* e *Apri Classifica* per l'evento selezionato in *Modifica Eventi*,
+  oltre al pulsante di *logout*. La toolbar non contiene più il selettore a tendina degli
+  eventi.
 ]
 
 = Archiviare, ripristinare e clonare un evento
 #chapter-subtitle[
-  Sezione "Eventi" (archiviazione) e sezione "Archiviati" (ripristino e clonazione).
+  Sezioni "Dashboard"/"Modifica Eventi" (archiviazione) e sezione "Archiviati" (ripristino e
+  clonazione).
 ]
 
-Un evento archiviato viene escluso dal selettore *"Evento selezionato"* in toolbar, dalla
-griglia "Tutti gli eventi" in Dashboard e dai conteggi "Eventi attivi"/"Televoto
-aperto"/"Televoto chiuso": resta comunque interamente conservato (con i suoi candidati,
-credenziali e impostazioni) e raggiungibile dalla sezione *Archiviati* del menu laterale.
+Un evento archiviato viene escluso dalla griglia "Tutti gli eventi" in Dashboard, dal selettore
+evento in *Modifica Eventi* e dai conteggi "Eventi attivi"/"Televoto aperto"/"Televoto chiuso":
+resta comunque interamente conservato (con i suoi candidati, credenziali e impostazioni) e
+raggiungibile dalla sezione *Archiviati* del menu laterale.
 
 == 4.1 Archiviare un evento
 
 Puoi archiviare un evento da due punti del pannello:
 
 - in *Dashboard*, dalla scheda dell'evento nella griglia "Tutti gli eventi", tramite l'icona
-  *"Archivia evento"*;
-- in *Eventi* → riquadro "Evento corrente", tramite il pulsante *"Archivia evento"* (mostra
-  "Archiviazione..." durante l'operazione).
+  *"Archivia evento"* (chiede conferma in un riquadro di dialogo);
+- in *Modifica Eventi* → riquadro "Evento corrente", tramite il pulsante *"Archivia evento"*
+  (mostra "Archiviazione..." durante l'operazione).
 
-Non è richiesta una conferma aggiuntiva: l'evento archiviato scompare immediatamente dalle
-liste attive e diventa visibile solo nella sezione Archiviati.
+L'evento archiviato scompare dalle liste attive e diventa visibile solo nella sezione
+Archiviati.
 
 #attenzione(title: "Operazione reversibile, ma non distruttiva")[
   Archiviare un evento *non* cancella candidati, codici giuria, voti o credenziali: è un flag
@@ -143,8 +150,8 @@ liste attive e diventa visibile solo nella sezione Archiviati.
 + Vai nella sezione *Archiviati* del menu laterale.
 + Individua la scheda dell'evento nella griglia.
 + Premi *"Disarchivia"* (mostra "Ripristino..." durante l'operazione).
-+ L'evento torna immediatamente disponibile nel selettore in toolbar e nelle liste attive di
-  Dashboard/Eventi, con lo stato di televoto invariato rispetto a prima dell'archiviazione.
++ L'evento torna immediatamente disponibile nel selettore di *Modifica Eventi* e nelle liste
+  attive di Dashboard, con lo stato di televoto invariato rispetto a prima dell'archiviazione.
 
 == 4.3 Clonare un evento archiviato
 
@@ -153,20 +160,40 @@ evento* a partire da quello archiviato, utile per riutilizzare un format già co
 un'edizione precedente dello stesso concorso) senza reinserire candidati e impostazioni da
 zero.
 
+Alla pressione di *"Clona"* si apre una *finestra modale* in cui indicare i dati del nuovo
+evento:
+
+#table(
+  columns: (auto, auto, 1fr),
+  table.header([Campo], [Obbligatorio], [Note]),
+  [*Nome evento*], [Sì],
+  [Precompilato con il nome dell'originale seguito da " (copia)"; modificabile liberamente.],
+  [*Codice evento*], [No],
+  [Da 1 a 5 cifre. Se lasciato vuoto viene generato automaticamente un codice nuovo (mai quello
+  dell'evento di origine).],
+  [*Password manager evento*], [Sì],
+  [Minimo 8 caratteri. Da digitare due volte (password + conferma): se i due campi non
+  coincidono, la clonazione viene bloccata.],
+)
+
+Confermando con *"Clona"* il nuovo evento viene creato e la sezione passa automaticamente a
+*Modifica Eventi* con il clone già selezionato.
+
 #table(
   columns: (1fr, 1fr),
   table.header([Cosa viene copiato], [Cosa NON viene copiato]),
   [
-    Nome evento (con suffisso " (copia)"), sottotitolo, modalità di voto popolare, pesi di
-    scoring e impostazioni trimmed mean, elenco candidati completo (numero, nome, sottotitolo,
-    colore, template), password manager evento
+    Sottotitolo, modalità di voto popolare (e numero massimo di preferenze), pesi di scoring e
+    impostazioni trimmed mean, elenco candidati completo (numero, nome, sottotitolo, colore,
+    template)
   ],
-  [Voti registrati, codici giudice/pubblico già generati, storico progressi],
+  [Nome e codice (li scegli tu nella modale), password manager evento (la scegli tu nella
+  modale), voti registrati, codici giudice/pubblico già generati, storico progressi],
 )
 
-Il nuovo evento riceve un *codice evento generato automaticamente* (mai quello dell'evento di
-origine), nasce *non archiviato* ma con il *televoto già chiuso*: prima di aprirlo al pubblico
-occorre generare i nuovi codici giudice/pubblico dall'area `/manager` del nuovo evento.
+Il nuovo evento nasce *non archiviato* ma con il *televoto già chiuso*: prima di aprirlo al
+pubblico occorre generare i nuovi codici giudice/pubblico dall'area `/manager` del nuovo
+evento.
 
 #nota(title: "Perché clonare solo dagli eventi archiviati")[
   L'azione "Clona" è disponibile solo nella sezione Archiviati: per duplicare un evento ancora
@@ -174,21 +201,21 @@ occorre generare i nuovi codici giudice/pubblico dall'area `/manager` del nuovo 
   l'originale.
 ]
 
-#attenzione(title: "Password manager duplicata")[
-  L'evento clonato eredita la *stessa* password manager dell'evento di origine. Se l'originale
-  e il clone restano entrambi attivi, valuta di ruotare la password di uno dei due (Capitolo 8)
-  per evitare che condividano la stessa credenziale.
+#nota(title: "Password manager sempre nuova")[
+  A differenza delle versioni precedenti, l'evento clonato *non* eredita la password manager
+  dell'originale: sei obbligato a sceglierne una nuova nella modale di clonazione. Original e
+  clone hanno quindi sempre credenziali distinte.
 ]
 
 = Creare un nuovo evento
-#chapter-subtitle[Sezione "Eventi" → riquadro "Crea nuovo evento".]
+#chapter-subtitle[Sezione "Crea Eventi" del menu laterale.]
 
-+ Nel menu laterale seleziona *Eventi*.
-+ Individua il riquadro *"Crea nuovo evento"* sulla destra del pannello.
-+ Compila i campi del modulo (vedi tabella sotto).
-+ Premi il pulsante *"Crea evento"*.
++ Nel menu laterale seleziona *Crea Eventi*.
++ Compila i campi del modulo "Crea nuovo evento" (vedi tabella sotto).
++ Premi il pulsante *"Crea evento"* (dimensione fissa; durante l'operazione mostra
+  "Creazione...").
 + Il nuovo evento viene aggiunto in cima all'elenco e selezionato automaticamente come evento
-  corrente.
+  corrente in *Modifica Eventi*.
 
 #table(
   columns: (auto, auto, 1fr),
@@ -201,29 +228,47 @@ occorre generare i nuovi codici giudice/pubblico dall'area `/manager` del nuovo 
   [Da 1 a 5 cifre numeriche. Se lasciato vuoto viene generato automaticamente dal sistema. È il
   codice usato nell'URL pubblico (`?eventCode=...`) e per l'accesso a `/manager`.],
   [*Modalità voto popolare*], [Sì (predefinita: Numerico)],
-  [*Numerico (1-10)*: il pubblico assegna un punteggio. *Singolo (elezione)*: il pubblico vota
-  un solo candidato. Non modificabile dopo la creazione dell'evento.],
+  [*Numerico (1-10)*: il pubblico assegna un punteggio a ciascun candidato. *Preferenze
+  (elezione)*: il pubblico non assegna punteggi ma sceglie fino a _N_ candidati preferiti. Non
+  modificabile dopo la creazione dell'evento.],
+  [*Max preferenze per giudice*], [Solo in modalità Preferenze],
+  [Numero massimo di candidati che ogni votante popolare può selezionare (da 1 a 100). Con
+  valore 1 la scheda diventa un voto singolo in stile elezione.],
   [*Password manager evento*], [Sì],
   [Minimo 8 caratteri. È la password che l'event manager userà per accedere a `/manager` per
   questo evento.],
 )
 
-#attenzione(title: "Validazioni bloccanti")[
+#nota(title: "La giuria qualificata vota sempre a punteggio")[
+  La modalità di voto popolare riguarda *solo* i codici POPOLARE (pubblico). I giudici
+  QUALIFICATA assegnano sempre un punteggio da 1 a 10 a ogni candidato, a prescindere da questa
+  impostazione.
+]
+
+#attenzione(title: "Validazioni ed errori in notifica")[
   Il modulo respinge la creazione se: il nome è vuoto, il codice evento non rispetta il formato
   1-5 cifre, oppure la password manager è più corta di 8 caratteri. Il messaggio di errore
-  compare in cima al pannello.
+  compare come *notifica temporanea (toast)* in basso al centro della pagina, non più come
+  banner in cima al pannello.
 ]
 
 #attenzione(title: "Irreversibile dopo la creazione")[
-  La modalità di voto popolare (Numerico / Singolo) non è più modificabile una volta creato
-  l'evento: scegliela con attenzione prima di confermare.
+  La modalità di voto popolare (Numerico / Preferenze) e il numero massimo di preferenze non
+  sono più modificabili una volta creato l'evento: scegli con attenzione prima di confermare.
 ]
 
 = Modificare un evento e i pesi di scoring
-#chapter-subtitle[Sezione "Eventi" → riquadro "Evento corrente".]
+#chapter-subtitle[Sezione "Modifica Eventi" del menu laterale.]
 
-Seleziona l'evento da modificare tramite il selettore in toolbar, poi vai nella sezione
-*Eventi*: il riquadro *"Evento corrente"* mostra tre moduli distinti per l'evento selezionato.
+La sezione *Modifica Eventi* raccoglie tutto ciò che riguarda un singolo evento già esistente.
+In cima trovi il *selettore a tendina "Evento selezionato"* (codice + nome, solo eventi non
+archiviati): la scelta fatta qui determina l'evento su cui agiscono sia i moduli di questa
+sezione sia le scorciatoie *"Apri pagina voto pubblico"* e *"Apri Classifica"* della toolbar.
+Accanto al selettore, due etichette mostrano lo stato corrente dell'evento (*Televoto
+aperto/chiuso* e *Voto popolare: Numerico/Preferenze*).
+
+Sotto il selettore, il riquadro *"Evento corrente"* mostra i moduli operativi per l'evento
+scelto.
 
 == 5.1 Rinominare l'evento
 
@@ -232,7 +277,13 @@ Seleziona l'evento da modificare tramite il selettore in toolbar, poi vai nella 
 
 Se il nome digitato coincide con quello già salvato, non viene inviata alcuna richiesta.
 
-== 5.2 Pesatura giurie (pesi di scoring)
+== 5.2 Archiviare l'evento e ruotare la password manager
+
+Nello stesso riquadro sono disponibili il pulsante *"Archivia evento"* (vedi Capitolo 4.1) e il
+campo *"Nuova password manager evento"* con il pulsante *"Aggiorna password evento"* (vedi
+Capitolo 8).
+
+== 5.3 Pesatura giurie (pesi di scoring)
 
 Nel riquadro *"Pesatura giurie"* si imposta il bilanciamento tra la media della giuria
 *Qualificata* e quella del voto *Popolare* nel calcolo del punteggio finale.
@@ -245,7 +296,7 @@ Nel riquadro *"Pesatura giurie"* si imposta il bilanciamento tra la media della 
   [Campo _disabilitato_, calcolato automaticamente come `100 - Peso Qualificata`. I due pesi
   sommano sempre 100.],
   [Abilita trimmed mean su voti popolari],
-  [Checkbox visibile solo per eventi con modalità di voto *Numerico* (non per "Singolo").
+  [Checkbox visibile solo per eventi con modalità di voto *Numerico* (non per "Preferenze").
   Riduce l'impatto di voti anomali/outlier sulla media popolare.],
   [Percentuale trimmed mean (%)], [Valore 0–49,99, attivo solo se la trimmed mean è abilitata.],
 )
@@ -260,19 +311,26 @@ Qualificata / 30% Popolare.
   pesi impostati qui.
 ]
 
+#nota(title: "Voto popolare a preferenze e trimmed mean")[
+  Per gli eventi in modalità *Preferenze* la media del voto popolare di un candidato è la sua
+  *quota di preferenze* sul totale delle preferenze espresse, riportata su scala 0–10: la
+  trimmed mean non ha alcun effetto ed è per questo nascosta dall'interfaccia.
+]
+
 #attenzione(title: "Validazioni")[
   Il peso Qualificata deve essere un numero intero compreso tra 0 e 100; la percentuale trimmed
-  mean deve essere compresa tra 0 e 49,99. Valori fuori range vengono respinti con un messaggio
+  mean deve essere compresa tra 0 e 49,99. Valori fuori range vengono respinti con una notifica
   d'errore.
 ]
 
 = Ruotare la password root
-#chapter-subtitle[Sezione "Eventi" → riquadro "Sicurezza root" (in fondo alla pagina).]
+#chapter-subtitle[Sezione "Impostazioni" del menu laterale.]
 
 Questa operazione aggiorna la password root globale, usata per l'accesso a tutte le aree
-amministrative protette.
+amministrative protette. Il modulo si trova nella sezione *Impostazioni* (in precedenza era in
+fondo alla sezione "Eventi").
 
-+ Vai nella sezione *Eventi* e scorri fino al riquadro *"Sicurezza root"*.
++ Nel menu laterale seleziona *Impostazioni*.
 + Compila i tre campi: *Password root attuale*, *Nuova password root*, *Conferma nuova password
   root*.
 + Premi *"Aggiorna password root"*.
@@ -293,16 +351,18 @@ amministrative protette.
 
 = Ruotare la password del manager di un evento
 #chapter-subtitle[
-  Sezione "Eventi" → riquadro "Evento corrente" → campo "Nuova password manager evento".
+  Sezione "Modifica Eventi" → riquadro "Evento corrente" → campo "Nuova password manager
+  evento".
 ]
 
 Ogni evento ha una propria password manager, indipendente dalla password root, usata per
 accedere a `/manager` per quell'evento specifico (tipicamente da chi gestisce l'evento sul
 campo, senza credenziali root).
 
-+ Seleziona l'evento interessato dal selettore in toolbar.
-+ Vai nella sezione *Eventi*, riquadro *"Evento corrente"*.
-+ Nel campo *"Nuova password manager evento"* digita la nuova password (minimo 8 caratteri).
++ Nel menu laterale seleziona *Modifica Eventi*.
++ Scegli l'evento interessato dal selettore *"Evento selezionato"*.
++ Nel riquadro *"Evento corrente"*, campo *"Nuova password manager evento"*, digita la nuova
+  password (minimo 8 caratteri).
 + Premi *"Aggiorna password evento"*.
 
 #nota(title: "Casi d'uso tipici")[
@@ -327,8 +387,8 @@ giuria, avvio/chiusura della votazione e monitoraggio in tempo reale. Non è rag
 dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano qui in
 `/admin`), ma è il punto di ingresso per la gestione operativa del giorno dell'evento.
 
-+ Seleziona l'evento desiderato (dal selettore in toolbar oppure dalla scheda evento in
-  Dashboard/Eventi).
++ Individua l'evento nella griglia "Tutti gli eventi" della *Dashboard* (oppure selezionalo in
+  *Modifica Eventi*).
 + Premi il pulsante *"Gestisci"* / *"Gestisci evento"*.
 + Si apre una nuova scheda del browser all'indirizzo `/manager?eventCode=<codice>`.
 
@@ -341,8 +401,8 @@ dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano q
 #attenzione(title: "Eccezione: Classifica")[
   Questo bypass automatico *non* vale per la pagina `/score` (Classifica): lì, anche con
   sessione root attiva, è comunque richiesta la password manager specifica dell'evento. Usa il
-  pulsante *"Apri Classifica"* in toolbar per raggiungerla rapidamente e tieni a portata di
-  mano la password manager dell'evento.
+  pulsante *"Apri Classifica"* in toolbar per raggiungerla rapidamente (agisce sull'evento
+  selezionato in *Modifica Eventi*) e tieni a portata di mano la password manager dell'evento.
 ]
 
 = Altre operazioni cross-evento
@@ -354,20 +414,20 @@ dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano q
   [Aggiorna eventi], [Ricarica l'elenco eventi dal server.],
   [Apri pagina voto pubblico],
   [Apre in una nuova scheda la pagina pubblica di voto (`/?eventCode=...`) per l'evento
-  selezionato.],
+  selezionato in *Modifica Eventi*.],
   [Apri Classifica],
-  [Apre `/score?eventCode=...` per l'evento selezionato. Se il televoto dell'evento è ancora
-  aperto, il sistema mostra un avviso ("La Classifica è accessibile solo a televoto chiuso") e
-  blocca l'apertura finché la votazione non viene chiusa da `/manager`.],
+  [Apre `/score?eventCode=...` per l'evento selezionato in *Modifica Eventi*. Se il televoto
+  dell'evento è ancora aperto, il sistema mostra un avviso ("La Classifica è accessibile solo a
+  televoto chiuso") e blocca l'apertura finché la votazione non viene chiusa da `/manager`.],
   [Esci (logout)],
   [Termina sia la sessione root sia un'eventuale sessione manager attiva nello stesso browser,
   riportando alla schermata di login.],
 )
 
 #nota(title: "Vista compatta su mobile")[
-  Su viewport stretti (smartphone/tablet in verticale), la toolbar mostra un badge compatto con
-  il solo codice evento al posto del selettore completo; il menu laterale si apre tramite
-  l'icona hamburger e si richiude automaticamente dopo la selezione di una sezione.
+  Su viewport stretti (smartphone/tablet in verticale) il menu laterale si apre tramite
+  l'icona hamburger e si richiude automaticamente dopo la selezione di una sezione. Le
+  scorciatoie della toolbar restano disponibili.
 ]
 
 = Domande frequenti e risoluzione problemi
@@ -381,23 +441,29 @@ Il token root non è presente o è scaduto (durata 12 ore). Esegui nuovamente il
 == Non riesco a creare l'evento: "Il codice evento deve contenere da 1 a 5 cifre"
 
 Il campo "Codice evento" accetta solo cifre numeriche, da 1 a 5 caratteri. Lascialo vuoto per
-farlo generare automaticamente.
+farlo generare automaticamente. L'errore compare come notifica temporanea in basso.
 
 == Il campo "Peso Popolare" appare bloccato/disabilitato
 
 È un comportamento previsto: il peso Popolare non si edita mai direttamente, è sempre il
 complemento a 100 del Peso Qualificata.
 
+== Non trovo la casella "trimmed mean" per un evento
+
+È nascosta di proposito per gli eventi in modalità di voto *Preferenze*: in quella modalità la
+media popolare è una quota di preferenze e la trimmed mean non si applica. La casella compare
+solo per gli eventi *Numerici*.
+
 == Non trovo dove gestire i candidati o i codici giuria da /admin
 
 Non è previsto: quelle operazioni appartengono esclusivamente all'area `/manager` del singolo
 evento (vedi Capitolo 9). L'area Admin resta volutamente limitata alla gestione cross-evento.
 
-== Un evento è sparito dal selettore "Evento selezionato" e dalla Dashboard
+== Un evento è sparito dalla Dashboard e dal selettore di "Modifica Eventi"
 
-Probabilmente è stato archiviato: gli eventi archiviati sono esclusi dal selettore in toolbar e
-dalle liste attive. Trovi l'evento nella sezione *Archiviati* del menu laterale, da cui puoi
-disarchiviarlo o clonarlo (vedi Capitolo 4).
+Probabilmente è stato archiviato: gli eventi archiviati sono esclusi dalle liste attive. Trovi
+l'evento nella sezione *Archiviati* del menu laterale, da cui puoi disarchiviarlo o clonarlo
+(vedi Capitolo 4).
 
 == Ho cambiato la password manager di un evento ma il manager non riesce ad accedere
 
