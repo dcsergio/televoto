@@ -60,7 +60,7 @@ export function updateCandidateNumber(id: string, number: number, tx?: Prisma.Tr
 export function findCandidateVoteCheck(candidateId: string) {
   return prisma.candidate.findUnique({
     where: { id: candidateId },
-    select: { eventId: true, event: { select: { votingClosed: true, popularVoteMode: true } } },
+    select: { eventId: true, event: { select: { votingClosed: true, popularVoteMode: true, maxPreferences: true } } },
   });
 }
 

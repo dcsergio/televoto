@@ -34,7 +34,7 @@ async function main() {
 
     await client.query(`CREATE TYPE "${databaseSchema}".voter_type AS ENUM ('QUALIFICATA', 'POPOLARE');`);
     await client.query(`CREATE TYPE "${databaseSchema}".voter_status AS ENUM ('ACTIVE', 'SUBMITTED');`);
-    await client.query(`CREATE TYPE "${databaseSchema}".popular_vote_mode AS ENUM ('NUMERIC', 'SINGLE');`);
+    await client.query(`CREATE TYPE "${databaseSchema}".popular_vote_mode AS ENUM ('NUMERIC', 'PREFERENCE');`);
 
     await client.query(`
       CREATE TABLE "${databaseSchema}".event (
@@ -49,6 +49,7 @@ async function main() {
         "enable_trimmed_mean" BOOLEAN NOT NULL DEFAULT FALSE,
         "trimmed_mean_percentage" DOUBLE PRECISION NOT NULL DEFAULT 10.0,
         "popular_vote_mode" "${databaseSchema}".popular_vote_mode NOT NULL DEFAULT 'NUMERIC',
+        "max_preferences" INTEGER NOT NULL DEFAULT 1,
         "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         CONSTRAINT "event_weight_sum_100_check" CHECK ("weight_qualificata" + "weight_popolare" = 100),

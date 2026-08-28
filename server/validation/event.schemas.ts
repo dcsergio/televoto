@@ -12,6 +12,7 @@ export const createEventSchema = z
     subtitle: z.unknown().optional(),
     managerPassword: z.unknown().optional(),
     popularVoteMode: z.unknown().optional(),
+    maxPreferences: z.unknown().optional(),
   })
   .transform((body, ctx) => {
     const name = normalizeEventName(body.name);
@@ -36,9 +37,14 @@ export const createEventSchema = z
     const subtitle =
       typeof body.subtitle === "string" && body.subtitle.trim().length > 0 ? body.subtitle.trim() : null;
 
-    const popularVoteMode = body.popularVoteMode === "SINGLE" ? ("SINGLE" as const) : ("NUMERIC" as const);
+    const popularVoteMode = body.popularVoteMode === "PREFERENCE" ? ("PREFERENCE" as const) : ("NUMERIC" as const);
 
-    return { name, managerPassword, requestedCode, subtitle, popularVoteMode };
+    let maxPreferences = 1;
+    if (typeof body.maxPreferences === "number" && body.maxPreferences >= 1 && body.maxPreferences <= 100) {
+      maxPreferences = Math.floor(body.maxPreferences);
+    }
+
+    return { name, managerPassword, requestedCode, subtitle, popularVoteMode, maxPreferences };
   });
 
 export const setManagerPasswordSchema = z.object({

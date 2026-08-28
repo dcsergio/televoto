@@ -95,7 +95,7 @@
               {{ selectedEventStatusLabel() }}
             </mat-chip>
             <mat-chip class="!bg-bg-card-hover !text-text-secondary" disabled>
-              Voto popolare: {{ isSingleVoteEvent() ? 'Singolo' : 'Numerico' }}
+              Voto popolare: {{ isPreferenceVoteEvent() ? 'Preferenze' : 'Numerico' }}
             </mat-chip>
           </mat-chip-set>
         }
@@ -368,7 +368,7 @@
                           <p class="text-xs text-text-secondary">
                             Somma sempre 100: il peso Popolare è calcolato automaticamente per differenza.
                           </p>
-                          @if (!isSingleVoteEvent()) {
+                          @if (!isPreferenceVoteEvent()) {
                             <label class="flex items-center gap-2 text-sm text-text-secondary">
                               <input
                                 type="checkbox"
@@ -461,16 +461,34 @@
                             <input
                               type="radio"
                               name="newEventPopularVoteMode"
-                              value="SINGLE"
-                              [checked]="newEvent().popularVoteMode === 'SINGLE'"
-                              (change)="newEvent.set({ ...newEvent(), popularVoteMode: 'SINGLE' })"
+                              value="PREFERENCE"
+                              [checked]="newEvent().popularVoteMode === 'PREFERENCE'"
+                              (change)="newEvent.set({ ...newEvent(), popularVoteMode: 'PREFERENCE', maxPreferences: 1 })"
                             />
-                            Singolo (elezione)
+                            Preferenze (elezione)
                           </label>
                         </div>
                         <p class="text-xs text-text-muted">
                           Solo per la giuria popolare. Non modificabile dopo la creazione dell'evento.
                         </p>
+                        @if (newEvent().popularVoteMode === 'PREFERENCE') {
+                          <label class="block space-y-1">
+                            <span class="text-sm text-text-secondary">Max preferenze per giudice</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="100"
+                              [ngModel]="newEvent().maxPreferences"
+                              (ngModelChange)="newEvent.set({ ...newEvent(), maxPreferences: $event })"
+                              name="maxPreferences"
+                              placeholder="Es. 3"
+                              class="field-input"
+                            />
+                            <p class="text-xs text-text-muted">
+                              Numero massimo di preferenze che ogni giudice popolare può esprimere.
+                            </p>
+                          </label>
+                        }
                       </div>
                       <label class="block space-y-1">
                         <span class="text-sm text-text-secondary">Password manager evento (min. 8 caratteri)</span>

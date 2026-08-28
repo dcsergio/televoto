@@ -29,7 +29,7 @@
     @if (judgeMode() && (judgeAccess().status === 'valid' || judgeAccess().status === 'used')) {
       <div class="sticky top-14 z-40 w-full backdrop-blur-md bg-bg-primary/90 border-b border-border-glass py-3 px-4 animate-fade-in-up">
         <div class="max-w-2xl mx-auto flex items-center gap-4">
-          @if (!isSingleVoteMode()) {
+          @if (!isPreferenceVoteMode()) {
             <div class="relative flex-shrink-0" aria-hidden="true">
               <svg width="44" height="44" viewBox="0 0 44 44" class="-rotate-90">
                 <circle cx="22" cy="22" r="19" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4" />
@@ -56,7 +56,7 @@
             </div>
           } @else {
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">Voto singolo</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">Preferenze espresse</p>
               @if (judgeVotesCount() > 0) {
                 <p class="mt-0.5 text-sm text-text-primary">Hai scelto: <span class="font-semibold text-accent-cyan">{{ singleVotedCandidateName() }}</span></p>
               } @else {
@@ -158,7 +158,7 @@
           [selectedId]="selectedCandidateId()"
           [votedMap]="myVotes()"
           [voteEnabled]="canVote()"
-          [voteMode]="isSingleVoteMode() ? 'SINGLE' : 'NUMERIC'"
+          [voteMode]="isPreferenceVoteMode() ? 'PREFERENCE' : 'NUMERIC'"
           [submitting]="submitting()"
           (pick)="selectCandidate($event)"
           (vote)="onVote($event)"

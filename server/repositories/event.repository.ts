@@ -13,6 +13,7 @@ const eventSummarySelect = {
   enableTrimmedMean: true,
   trimmedMeanPercentage: true,
   popularVoteMode: true,
+  maxPreferences: true,
   createdAt: true,
 } as const;
 
@@ -29,7 +30,8 @@ export type CreateEventRepoInput = {
   name: string;
   subtitle: string | null;
   managerPasswordRecord: PasswordRecord;
-  popularVoteMode: "NUMERIC" | "SINGLE";
+  popularVoteMode: "NUMERIC" | "PREFERENCE";
+  maxPreferences: number;
 };
 
 export function createEvent(input: CreateEventRepoInput) {
@@ -41,6 +43,7 @@ export function createEvent(input: CreateEventRepoInput) {
       active: true,
       votingClosed: true,
       popularVoteMode: input.popularVoteMode,
+      maxPreferences: input.maxPreferences,
       managerCredential: { create: input.managerPasswordRecord },
     },
     select: eventSummarySelect,
@@ -69,6 +72,7 @@ export function findEventPublicDetail(eventId: string) {
       enableTrimmedMean: true,
       trimmedMeanPercentage: true,
       popularVoteMode: true,
+      maxPreferences: true,
     },
   });
 }

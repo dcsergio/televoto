@@ -8,7 +8,7 @@ CREATE SCHEMA televoto;
 
 CREATE TYPE televoto.voter_type AS ENUM ('QUALIFICATA', 'POPOLARE');
 CREATE TYPE televoto.voter_status AS ENUM ('ACTIVE', 'SUBMITTED');
-CREATE TYPE televoto.popular_vote_mode AS ENUM ('NUMERIC', 'SINGLE');
+CREATE TYPE televoto.popular_vote_mode AS ENUM ('NUMERIC', 'PREFERENCE');
 
 CREATE TABLE televoto.event (
   "id"                      TEXT PRIMARY KEY,
@@ -22,6 +22,7 @@ CREATE TABLE televoto.event (
   "enable_trimmed_mean"     BOOLEAN NOT NULL DEFAULT FALSE,
   "trimmed_mean_percentage" DOUBLE PRECISION NOT NULL DEFAULT 10.0,
   "popular_vote_mode"       televoto.popular_vote_mode NOT NULL DEFAULT 'NUMERIC',
+  "max_preferences"         INTEGER NOT NULL DEFAULT 1,
   "created_at"              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   "updated_at"              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT "event_weight_sum_100_check" CHECK ("weight_qualificata" + "weight_popolare" = 100),

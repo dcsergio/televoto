@@ -79,7 +79,7 @@ export class VotingShellComponent {
   protected readonly isQualifiedVoter = computed(() => this.voterType() === 'QUALIFICATA');
   protected readonly isPopularVoter = computed(() => this.voterType() === 'POPOLARE');
   protected readonly popularVoteMode = computed(() => this.event()?.popularVoteMode ?? 'NUMERIC');
-  protected readonly isSingleVoteMode = computed(() => this.isPopularVoter() && this.popularVoteMode() === 'SINGLE');
+  protected readonly isPreferenceVoteMode = computed(() => this.isPopularVoter() && this.popularVoteMode() === 'PREFERENCE');
   protected readonly singleVotedCandidateName = computed(() => {
     const ev = this.event();
     const votedId = Object.keys(this.myVotes())[0];
@@ -171,7 +171,7 @@ export class VotingShellComponent {
   protected onVote(payload: { candidateId: string; score: number }): void {
     const token = this.judgeToken();
     if (!token || !this.canVote()) return;
-    this.votingState.castVote(payload.candidateId, payload.score, token, this.isSingleVoteMode());
+    this.votingState.castVote(payload.candidateId, payload.score, token, this.isPreferenceVoteMode());
   }
 
   protected openFinalizeDialog(): void {

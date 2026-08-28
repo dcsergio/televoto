@@ -49,19 +49,22 @@ export type CreateEventInput = {
   subtitle: string | null;
   managerPassword: string;
   requestedCode: string | null;
-  popularVoteMode: "NUMERIC" | "SINGLE";
+  popularVoteMode: "NUMERIC" | "PREFERENCE";
+  maxPreferences?: number;
 };
 
 export async function createEvent(input: CreateEventInput) {
   try {
     const code = input.requestedCode ?? (await createUniqueEventCode());
     const managerPasswordRecord = createPasswordRecord(input.managerPassword);
+    const maxPreferences = input.maxPreferences ?? (input.popularVoteMode === "PREFERENCE" ? 1 : 1);
     return await eventRepository.createEvent({
       code,
       name: input.name,
       subtitle: input.subtitle,
       managerPasswordRecord,
       popularVoteMode: input.popularVoteMode,
+      maxPreferences,
     });
   } catch (e: unknown) {
     if (isPrismaKnownError(e, "P2022")) {

@@ -23,7 +23,7 @@ enum VoterStatus {
 
 enum PopularVoteMode {
   NUMERIC
-  SINGLE
+  PREFERENCE
 
   @@map("popular_vote_mode")
 }
@@ -40,6 +40,7 @@ model Event {
   enableTrimmedMean     Boolean                 @default(false) @map("enable_trimmed_mean")
   trimmedMeanPercentage Float                   @default(10.0) @map("trimmed_mean_percentage")
   popularVoteMode       PopularVoteMode         @default(NUMERIC) @map("popular_vote_mode")
+  maxPreferences        Int                     @default(1) @map("max_preferences")
   createdAt             DateTime                @default(now()) @map("created_at")
   updatedAt             DateTime                @updatedAt @map("updated_at")
   candidates            Candidate[]

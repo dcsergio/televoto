@@ -29,7 +29,7 @@ export class CandidateListComponent {
   readonly selectedId = input<string | null>(null);
   readonly votedMap = input<Record<string, number | undefined>>({});
   readonly voteEnabled = input(false);
-  readonly voteMode = input<'NUMERIC' | 'SINGLE'>('NUMERIC');
+  readonly voteMode = input<'NUMERIC' | 'PREFERENCE'>('NUMERIC');
   readonly submitting = input(false);
 
   readonly pick = output<string>();

@@ -45,9 +45,9 @@ export async function castVote(input: CastVoteInput) {
     throw new AppError(403, "Codice giudice bloccato");
   }
 
-  const isSinglePopularVote = judgeRecord.type === "POPOLARE" && candidate.event.popularVoteMode === "SINGLE";
-  if (isSinglePopularVote && typeof score === "number" && score !== 1) {
-    throw new AppError(400, "In modalità voto singolo il punteggio è sempre 1");
+  const isPreferenceVote = judgeRecord.type === "POPOLARE" && candidate.event.popularVoteMode === "PREFERENCE";
+  if (isPreferenceVote && typeof score === "number" && score !== 1) {
+    throw new AppError(400, "In modalità preferenza il punteggio è sempre 1");
   }
 
   const vote = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -56,8 +56,14 @@ export async function castVote(input: CastVoteInput) {
       return null;
     }
 
-    if (isSinglePopularVote) {
-      await tx.vote.deleteMany({ where: { judgeTokenId: judgeRecord.id, candidateId: { not: candidateId } } });
+    if (isPreferenceVote) {
+      const currentVoteCount = await tx.vote.count({
+        where: { judgeTokenId: judgeRecord.id, candidateId: { not: candidateId } },
+      });
+
+      if (currentVoteCount >= candidate.event.maxPreferences) {
+        throw new AppError(400, `Puoi esprimere al massimo ${candidate.event.maxPreferences} preferenza/e`);
+      }
     }
 
     return tx.vote.upsert({

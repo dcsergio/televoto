@@ -75,7 +75,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
               class="flex items-center gap-1 text-[11px] font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-full border border-accent-cyan/25 tabular-nums"
             >
               <span class="text-xs">&#10003;</span>
-              @if (voteMode() === 'SINGLE') {
+              @if (voteMode() === 'PREFERENCE') {
                 <span>Votato</span>
               } @else {
                 <span>{{ votedScore() }}/10</span>
@@ -106,7 +106,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
                 <span class="text-xs font-semibold text-accent-cyan animate-pulse">Salvataggio...</span>
               }
             </div>
-            @if (voteMode() === 'SINGLE') {
+            @if (voteMode() === 'PREFERENCE') {
               <button
                 type="button"
                 [disabled]="submitting()"
@@ -131,7 +131,7 @@ export class CandidateCardComponent {
   readonly submitting = input(false);
   readonly delay = input(0);
   readonly voteEnabled = input(false);
-  readonly voteMode = input<'NUMERIC' | 'SINGLE'>('NUMERIC');
+  readonly voteMode = input<'NUMERIC' | 'PREFERENCE'>('NUMERIC');
 
   readonly pick = output<string>();
   readonly vote = output<{ candidateId: string; score: number }>();

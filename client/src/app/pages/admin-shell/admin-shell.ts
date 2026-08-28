@@ -80,7 +80,7 @@ export class AdminShellComponent {
   protected readonly updatingRootPassword = signal(false);
   protected readonly selectedEventId = signal<string | null>(null);
   protected readonly selectedEventNameDraft = signal('');
-  protected readonly newEvent = signal({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC' as 'NUMERIC' | 'SINGLE' });
+  protected readonly newEvent = signal({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC' as 'NUMERIC' | 'PREFERENCE', maxPreferences: 1 });
   protected readonly updatingVotingSettings = signal(false);
   protected readonly eventSettingsDraft = signal({
     weightQualificata: 70,
@@ -109,7 +109,7 @@ export class AdminShellComponent {
     this.selectedEventVotingClosed() ? 'Televoto chiuso' : 'Televoto aperto',
   );
   protected readonly selectedEventPopularVoteMode = computed(() => this.selectedEvent()?.popularVoteMode ?? 'NUMERIC');
-  protected readonly isSingleVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'SINGLE');
+  protected readonly isPreferenceVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'PREFERENCE');
 
   /** Non-archived events: used for selection, the dashboard event grid, and the toolbar selector. */
   protected readonly activeEvents = computed(() => this.events().filter((e) => e.active));
@@ -331,13 +331,14 @@ export class AdminShellComponent {
             subtitle: trimmedSubtitle || undefined,
             managerPassword: draft.managerPassword,
             popularVoteMode: draft.popularVoteMode,
+            maxPreferences: draft.maxPreferences,
           },
           token,
         ),
       );
       this.events.update((prev) => [created, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(created.id);
-      this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC' });
+      this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC', maxPreferences: 1 });
       this.error.set(null);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
