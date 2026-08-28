@@ -6,7 +6,13 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
-    <div class="flex min-h-dvh items-center justify-center px-4">
+    <div class="relative isolate flex min-h-dvh items-center justify-center px-4">
+      <img
+        src="/placeholders/auth-gate-backdrop_1920x1200.svg"
+        alt=""
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
+      />
       <div class="glass w-full max-w-md p-7">
         <p class="text-xs font-semibold uppercase tracking-[0.28em] text-accent-cyan">Area protetta</p>
         <h2 class="gradient-title mt-3 text-2xl font-bold uppercase leading-[1] sm:text-3xl">{{ pageLabel() }}</h2>

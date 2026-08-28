@@ -131,6 +131,14 @@
 
       @if (judgeMode() && isJudgeVoteLocked()) {
         <div class="mb-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-5 text-emerald-100">
+          <img
+            src="/placeholders/vote-confirmed-illustration_320x320.svg"
+            alt=""
+            aria-hidden="true"
+            width="112"
+            height="112"
+            class="mx-auto mb-3 h-28 w-28"
+          />
           <p class="text-xs uppercase tracking-[0.2em] font-semibold text-emerald-300">Voto registrato</p>
           <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">
             @if (isQualifiedVoter()) {
