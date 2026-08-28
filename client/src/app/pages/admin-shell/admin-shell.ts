@@ -23,6 +23,7 @@ import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
 import { EVENT_NAME_SEPARATOR, splitEventNameForDisplay } from '../../shared/event-name-display.util';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
+import { ShellToolbarActionsComponent } from '../../components/shell-toolbar-actions/shell-toolbar-actions';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { CloneEventDialogComponent } from '../../components/clone-event-dialog/clone-event-dialog';
 import { ToastService } from '../../shared/toast.service';
@@ -36,6 +37,7 @@ import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQuer
   imports: [
     FormsModule,
     ProtectedPageGateComponent,
+    ShellToolbarActionsComponent,
     MatSidenavModule,
     MatToolbarModule,
     MatListModule,

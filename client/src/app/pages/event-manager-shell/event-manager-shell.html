@@ -96,33 +96,13 @@
 
         <span class="flex-1"></span>
 
-        <button
-          type="button"
-          mat-button
-          matTooltip="Apri pagina voto pubblico — vista pubblica, nuova scheda"
-          aria-label="Apri pagina voto pubblico in una nuova scheda"
-          data-testid="event-manager-open-voting"
+        <app-shell-toolbar-actions
+          testidPrefix="event-manager"
           [disabled]="!event()"
-          (click)="handleOpenPublicVoting()"
-        >
-          <mat-icon>how_to_vote</mat-icon>
-          <span class="hidden sm:inline">Voto pubblico</span>
-        </button>
-        <button
-          type="button"
-          mat-button
-          matTooltip="Apri Classifica — vista pubblica, nuova scheda"
-          aria-label="Apri Classifica in una nuova scheda"
-          data-testid="event-manager-open-score"
-          [disabled]="!event()"
-          (click)="handleOpenScore()"
-        >
-          <mat-icon>emoji_events</mat-icon>
-          <span class="hidden sm:inline">Classifica</span>
-        </button>
-        <button type="button" mat-icon-button matTooltip="Esci" data-testid="event-manager-toolbar-logout" (click)="handleLogout()">
-          <mat-icon>logout</mat-icon>
-        </button>
+          (openVoting)="handleOpenPublicVoting()"
+          (openScore)="handleOpenScore()"
+          (logout)="handleLogout()"
+        />
       </mat-toolbar>
 
       <div class="flex-1 overflow-y-auto px-4 py-6 md:px-8">

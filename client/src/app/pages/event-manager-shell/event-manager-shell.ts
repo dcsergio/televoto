@@ -19,6 +19,7 @@ import { EventCandidatesManagerComponent } from '../../components/event-candidat
 import { EventLifecycleControlsComponent, VotingStateChange } from '../../components/event-lifecycle-controls/event-lifecycle-controls';
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
 import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
+import { ShellToolbarActionsComponent } from '../../components/shell-toolbar-actions/shell-toolbar-actions';
 import { openScoreGuarded } from '../../shared/open-score.util';
 import { buildPageTitle } from '../../shared/page-title.util';
 import {
@@ -38,6 +39,7 @@ import {
     EventLifecycleControlsComponent,
     JudgeCodeManagerComponent,
     VotingProgressDashboardComponent,
+    ShellToolbarActionsComponent,
     MatSidenavModule,
     MatToolbarModule,
     MatListModule,
