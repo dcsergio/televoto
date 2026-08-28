@@ -106,19 +106,51 @@ export class VotingStateService {
     this.selectedCandidateId.set(candidateId);
   }
 
-  castVote(candidateId: string, score: number, judgeToken: string, singleVoteMode: boolean = false): void {
+  castVote(candidateId: string, score: number, judgeToken: string, preferenceMode: boolean = false): void {
     const ev = this.event();
     if (!candidateId || !judgeToken || !ev) return;
 
-    const nextVotes = singleVoteMode ? { [candidateId]: score } : { ...this.myVotes(), [candidateId]: score };
-    this.myVotes.set(nextVotes);
-    if (singleVoteMode) {
+    if (preferenceMode) {
+      const maxPreferences = Math.max(1, ev.maxPreferences ?? 1);
+      const nextVotes = { ...this.myVotes() };
+
+      // Single-preference elections replace the previous pick automatically;
+      // multi-preference ballots accumulate up to the configured limit.
+      if (maxPreferences === 1) {
+        for (const otherId of Object.keys(nextVotes)) {
+          if (otherId !== candidateId) {
+            delete nextVotes[otherId];
+            this.queueVote(otherId, null, judgeToken);
+          }
+        }
+      } else if (nextVotes[candidateId] === undefined && Object.keys(nextVotes).length >= maxPreferences) {
+        this.toast.error(`Puoi esprimere al massimo ${maxPreferences} preferenze`);
+        return;
+      }
+
+      nextVotes[candidateId] = score;
+      this.myVotes.set(nextVotes);
       this.selectedCandidateId.set(null);
     } else {
+      const nextVotes = { ...this.myVotes(), [candidateId]: score };
+      this.myVotes.set(nextVotes);
       const nextCandidate = ev.candidates.find((candidate) => nextVotes[candidate.id] === undefined);
       this.selectedCandidateId.set(nextCandidate?.id ?? null);
     }
 
+    this.queueVote(candidateId, score, judgeToken);
+  }
+
+  removeVote(candidateId: string, judgeToken: string): void {
+    if (!candidateId || !judgeToken || !this.event()) return;
+    const nextVotes = { ...this.myVotes() };
+    delete nextVotes[candidateId];
+    this.myVotes.set(nextVotes);
+    this.selectedCandidateId.set(null);
+    this.queueVote(candidateId, null, judgeToken);
+  }
+
+  private queueVote(candidateId: string, score: number | null, judgeToken: string): void {
     const existingTimer = this.voteDebounceTimers.get(candidateId);
     if (existingTimer) {
       clearTimeout(existingTimer);

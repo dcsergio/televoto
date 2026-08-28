@@ -15,10 +15,13 @@ import { CandidateCardComponent } from '../candidate-card/candidate-card';
           [votedScore]="votedMap()[candidate.id] ?? null"
           [voteEnabled]="voteEnabled()"
           [voteMode]="voteMode()"
+          [maxPreferences]="maxPreferences()"
+          [votedCount]="votedCount()"
           [submitting]="submitting()"
           [delay]="i * 60"
           (pick)="pick.emit($event)"
           (vote)="vote.emit($event)"
+          (unvote)="unvote.emit($event)"
         />
       }
     </div>
@@ -30,8 +33,11 @@ export class CandidateListComponent {
   readonly votedMap = input<Record<string, number | undefined>>({});
   readonly voteEnabled = input(false);
   readonly voteMode = input<'NUMERIC' | 'PREFERENCE'>('NUMERIC');
+  readonly maxPreferences = input(1);
+  readonly votedCount = input(0);
   readonly submitting = input(false);
 
   readonly pick = output<string>();
   readonly vote = output<{ candidateId: string; score: number }>();
+  readonly unvote = output<string>();
 }

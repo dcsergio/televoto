@@ -56,11 +56,16 @@
             </div>
           } @else {
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">Preferenze espresse</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">
+                Preferenze espresse
+                <span class="ml-1 tabular-nums text-text-primary">{{ judgeVotesCount() }}/{{ maxPreferences() }}</span>
+              </p>
               @if (judgeVotesCount() > 0) {
                 <p class="mt-0.5 text-sm text-text-primary">Hai scelto: <span class="font-semibold text-accent-cyan">{{ singleVotedCandidateName() }}</span></p>
               } @else {
-                <p class="mt-0.5 text-sm text-text-secondary">Scegli un candidato</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  {{ maxPreferences() > 1 ? 'Scegli fino a ' + maxPreferences() + ' candidati' : 'Scegli un candidato' }}
+                </p>
               }
             </div>
           }
@@ -159,9 +164,12 @@
           [votedMap]="myVotes()"
           [voteEnabled]="canVote()"
           [voteMode]="isPreferenceVoteMode() ? 'PREFERENCE' : 'NUMERIC'"
+          [maxPreferences]="maxPreferences()"
+          [votedCount]="judgeVotesCount()"
           [submitting]="submitting()"
           (pick)="selectCandidate($event)"
           (vote)="onVote($event)"
+          (unvote)="onUnvote($event)"
         />
       </section>
 
