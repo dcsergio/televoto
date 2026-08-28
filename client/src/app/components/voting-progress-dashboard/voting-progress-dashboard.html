@@ -50,10 +50,10 @@
           {{ p.qualified.submittedJudges }} {{ pluralize(p.qualified.submittedJudges, 'giurato', 'giurati') }} su
           {{ p.qualified.totalJudges }} {{ pluralize(p.qualified.submittedJudges, 'ha', 'hanno') }} bloccato il codice.
           @if (activeIncompleteJudges().length > 0) {
-            <span>
-              {{ activeIncompleteJudges().length }}
-              {{ pluralize(activeIncompleteJudges().length, 'giurato attivo non ha', 'giurati attivi non hanno') }}
-              ancora completato tutti i voti.</span
+            <span
+              >{{ activeIncompleteJudges().length }}
+              {{ pluralize(activeIncompleteJudges().length, 'giurato attivo non ha', 'giurati attivi non hanno') }} ancora
+              completato tutti i voti.</span
             >
           }
         </p>
