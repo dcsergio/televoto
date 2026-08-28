@@ -101,7 +101,11 @@
           </label>
         </div>
 
-        <button type="submit" [disabled]="generating()" class="btn btn-primary mt-5">
+        <button
+          type="submit"
+          [disabled]="generating()"
+          class="mt-5 rounded-2xl bg-accent-cyan px-4 py-2 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
           {{ generating() ? 'Generazione...' : 'Genera codici' }}
         </button>
 

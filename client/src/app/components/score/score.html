@@ -73,8 +73,9 @@
                 <div class="mt-8 grid gap-6 md:grid-cols-2">
                   @for (entry of finalists(); track entry.id) {
                     <div
-                      class="animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-bg-card px-6 py-10 md:px-8 md:py-12"
+                      class="relative overflow-hidden animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-gradient-to-b from-accent-cyan/10 to-transparent px-6 py-10 md:px-8 md:py-12"
                     >
+                      <span class="animate-spotlight-sweep" aria-hidden="true"></span>
                       <div class="animate-stage-slam text-6xl md:text-7xl">{{ getMedalEmoji(0) }}</div>
                       <div class="mt-3 flex items-center justify-center gap-3">
                         <span class="h-8 w-1.5 shrink-0 rounded-full md:h-10" [style.background-color]="entry.color"></span>
@@ -98,8 +99,9 @@
               } @else {
                 <!-- Single champion -->
                 <div
-                  class="animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-bg-card px-8 py-12 md:px-14 md:py-16"
+                  class="relative overflow-hidden animate-stage-rise animate-winner-glow rounded-3xl border border-accent-yellow/50 bg-gradient-to-b from-accent-cyan/10 to-transparent px-8 py-12 md:px-14 md:py-16"
                 >
+                  <span class="animate-spotlight-sweep" aria-hidden="true"></span>
                   <p class="font-display text-base font-medium uppercase tracking-[0.35em] text-accent-yellow md:text-lg">
                     Campione
                   </p>

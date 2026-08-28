@@ -87,7 +87,11 @@
                 ></button>
               }
             </div>
-            <button type="submit" [disabled]="!votingClosed()" class="btn btn-primary w-full">
+            <button
+              type="submit"
+              [disabled]="!votingClosed()"
+              class="w-full rounded-lg bg-accent-cyan px-4 py-2 font-semibold text-white hover:bg-accent-cyan/90 transition disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Aggiungi candidato
             </button>
             @if (modificationsLocked()) {
@@ -169,7 +173,11 @@
                     </label>
                   </div>
                   <div class="mt-3 flex gap-2">
-                    <button type="button" (click)="saveEditingCandidate(candidate.id)" class="btn btn-primary btn-sm">
+                    <button
+                      type="button"
+                      (click)="saveEditingCandidate(candidate.id)"
+                      class="rounded-2xl bg-accent-cyan px-3 py-2 text-sm font-semibold text-white hover:bg-accent-cyan/90 transition"
+                    >
                       Salva
                     </button>
                     <button type="button" (click)="cancelEditingCandidate()" class="btn btn-ghost btn-sm">
