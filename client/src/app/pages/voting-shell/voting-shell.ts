@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChildren } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HeaderComponent } from '../../components/header/header';
 import { HeroBannerComponent } from '../../components/hero-banner/hero-banner';
@@ -13,6 +14,7 @@ import {
   normalizeJudgeTokenInput,
   splitJudgeTokenSegments,
 } from '../../shared/judge-token.util';
+import { buildPageTitle } from '../../shared/page-title.util';
 
 const VOTING_STATE_POLL_MS = 7000;
 
@@ -31,6 +33,7 @@ export class VotingShellComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly votingState = inject(VotingStateService);
+  private readonly title = inject(Title);
 
   private readonly queryParamMap = toSignal(this.route.queryParamMap, { requireSync: true });
 
@@ -164,6 +167,10 @@ export class VotingShellComponent {
   private lastValidatedKey: string | null = null;
 
   constructor() {
+    effect(() => {
+      this.title.setTitle(buildPageTitle('Voto', this.event()?.name));
+    });
+
     effect(() => {
       const code = this.eventCode();
       const judge = this.judgeMode();

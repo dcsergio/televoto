@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -26,6 +27,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 import { CloneEventDialogComponent } from '../../components/clone-event-dialog/clone-event-dialog';
 import { ToastService } from '../../shared/toast.service';
 import { openScoreGuarded } from '../../shared/open-score.util';
+import { buildPageTitle } from '../../shared/page-title.util';
 import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
 @Component({
@@ -59,6 +61,7 @@ export class AdminShellComponent {
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
   protected readonly toast = inject(ToastService);
+  private readonly title = inject(Title);
 
   protected readonly passwordError = signal('');
 
@@ -195,6 +198,10 @@ export class AdminShellComponent {
     // and always open in "side" mode on larger viewports.
     effect(() => {
       this.sidenavOpened.set(!this.isHandset());
+    });
+
+    effect(() => {
+      this.title.setTitle(buildPageTitle('Admin', this.selectedEvent()?.name));
     });
 
     effect(() => {
