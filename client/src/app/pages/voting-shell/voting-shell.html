@@ -5,19 +5,15 @@
 } @else if (!eventCode()) {
   <app-event-code-gate (submitCode)="handleEventCodeSubmit($event)" />
 } @else if (!event()) {
-  @if (eventLoadError()) {
-    <div class="flex items-center justify-center min-h-dvh px-4">
-      <p class="text-text-secondary text-lg text-center">Errore API: {{ eventLoadError() }}</p>
-    </div>
-  } @else {
-    <div class="flex items-center justify-center min-h-dvh px-4">
-      <p class="text-text-secondary text-lg">Evento non trovato per il codice inserito.</p>
-    </div>
-  }
+  <app-event-code-gate
+    [initialCode]="eventCode() ?? ''"
+    error="Codice non valido. Controlla le cifre e riprova."
+    (submitCode)="handleEventCodeSubmit($event)"
+  />
 } @else if (isJudgeAccessRejected() && judgeAccess().message) {
   <div class="flex min-h-dvh items-center justify-center bg-bg-primary px-4">
     <div class="w-full max-w-xl rounded-2xl border border-border-glass bg-bg-card p-6">
-      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Accesso giudice</p>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Accesso al voto</p>
       <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">Codice non disponibile</h2>
       <p class="mt-3 text-sm text-text-secondary">{{ judgeAccess().message }}</p>
     </div>
@@ -48,9 +44,9 @@
               <p class="text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary">Progresso voto</p>
               <p class="mt-0.5 text-sm text-text-primary">
                 @if (isQualifiedVoter()) {
-                  {{ missingVotes() > 0 ? 'Mancano ' + missingVotes() + ' voti alla conferma.' : 'Tutte le preferenze espresse.' }}
+                  {{ missingVotes() > 0 ? missingVotesLabel() : 'Tutte le valutazioni espresse.' }}
                 } @else {
-                  {{ judgeVotesCount() }} voti popolari espressi
+                  {{ popularVotesCastLabel() }}
                 }
               </p>
             </div>
@@ -148,7 +144,7 @@
 
       <app-hero-banner [name]="event()!.name" [subtitle]="event()!.subtitle" [compact]="judgeMode()" />
 
-      @if (turnoutLabel()) {
+      @if (isQualifiedVoter() && turnoutLabel()) {
         <p class="mt-2 text-center text-xs uppercase tracking-[0.15em] text-text-secondary">{{ turnoutLabel() }}</p>
       }
 
@@ -183,12 +179,9 @@
     @if (judgeFinalizeOpen() && judgeToken()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-6">
         <div class="w-full max-w-lg rounded-2xl border border-border-glass bg-bg-card p-6 shadow-2xl">
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Conferma giudice</p>
-          <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">Bloccare il codice?</h2>
-          <p class="mt-3 text-sm text-text-secondary">
-            Dopo la conferma, le preferenze diventano definitive e non potranno pi&ugrave; essere modificate da nessun
-            dispositivo.
-          </p>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">{{ finalizeDialogKicker() }}</p>
+          <h2 class="mt-2 text-2xl font-bold text-text-primary neon-text">{{ finalizeDialogTitle() }}</h2>
+          <p class="mt-3 text-sm text-text-secondary">{{ finalizeDialogBody() }}</p>
           <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button type="button" (click)="closeFinalizeDialog()" class="btn btn-ghost">
               Annulla

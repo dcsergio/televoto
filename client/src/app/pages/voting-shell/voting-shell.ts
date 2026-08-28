@@ -16,6 +16,11 @@ import {
 
 const VOTING_STATE_POLL_MS = 7000;
 
+/** Tiny Italian pluralization helper (count === 1 → singular, else plural). */
+function pluralize(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural;
+}
+
 @Component({
   selector: 'app-voting-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,7 +75,9 @@ export class VotingShellComponent {
   protected readonly turnoutLabel = computed(() => {
     const turnout = this.event()?.turnout;
     if (!turnout) return null;
-    return `${turnout.qualifiedVoted + turnout.popularVoted}/${turnout.qualifiedTotal + turnout.popularTotal} giudici hanno votato`;
+    const voted = turnout.qualifiedVoted + turnout.popularVoted;
+    const total = turnout.qualifiedTotal + turnout.popularTotal;
+    return `${voted}/${total} ${pluralize(voted, 'giurato ha votato', 'giurati hanno votato')}`;
   });
   protected readonly canVote = computed(
     () => !this.votingClosed() && this.judgeMode() && this.judgeAccess().status === 'valid',
@@ -116,6 +123,25 @@ export class VotingShellComponent {
     const ev = this.event();
     return ev ? Math.max(ev.candidates.length - this.judgeVotesCount(), 0) : 0;
   });
+  protected readonly missingVotesLabel = computed(() => {
+    const n = this.missingVotes();
+    return n === 1 ? 'Manca 1 voto alla conferma.' : `Mancano ${n} voti alla conferma.`;
+  });
+  protected readonly popularVotesCastLabel = computed(() => {
+    const n = this.judgeVotesCount();
+    return n === 1 ? '1 voto espresso' : `${n} voti espressi`;
+  });
+  protected readonly finalizeDialogKicker = computed(() =>
+    this.isQualifiedVoter() ? 'Conferma valutazioni' : 'Conferma voto',
+  );
+  protected readonly finalizeDialogTitle = computed(() =>
+    this.isQualifiedVoter() ? 'Conferma le tue valutazioni' : 'Conferma il tuo voto',
+  );
+  protected readonly finalizeDialogBody = computed(() =>
+    this.isQualifiedVoter()
+      ? 'Dopo la conferma non potrai più modificare le tue valutazioni da nessun dispositivo.'
+      : 'Dopo la conferma non potrai più modificare il tuo voto.',
+  );
 
   private pollIntervalId: ReturnType<typeof setInterval> | null = null;
   private lastValidatedKey: string | null = null;
@@ -158,6 +184,16 @@ export class VotingShellComponent {
   }
 
   protected handleEventCodeSubmit(code: string): void {
+    // Drop the stale error so a corrected code isn't stuck on the dead-end URL.
+    this.votingState.eventLoadError.set(null);
+
+    if (code === this.eventCode()) {
+      // Same code re-submitted (retry after a failed load): the query param
+      // wouldn't change, so trigger the reload explicitly.
+      void this.votingState.loadEventByCode(code, this.judgeMode());
+      return;
+    }
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { eventCode: code },

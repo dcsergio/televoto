@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ToastService } from '../../shared/toast.service';
 
 const EVENT_CODE_REGEX = /^\d{1,5}$/;
 
@@ -22,30 +21,49 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
           <input
             type="text"
             inputmode="numeric"
-            [(ngModel)]="codeInput"
+            [ngModel]="codeInput()"
+            (ngModelChange)="codeInput.set($event)"
             name="eventCode"
             placeholder="Es. 00001"
             class="field-input flex-1 font-display tabular-nums tracking-[0.1em]"
           />
           <button type="submit" class="btn btn-primary">Entra</button>
         </form>
+        @if (displayError()) {
+          <p class="mt-3 text-sm text-amber-300">{{ displayError() }}</p>
+        }
       </div>
     </div>
   `,
 })
 export class EventCodeGateComponent {
-  private readonly toast = inject(ToastService);
+  /** Parent-supplied error (e.g. an event code that failed to load). */
+  readonly error = input<string | null>(null);
+  /** Pre-fills the input so a user can correct a single wrong digit. */
+  readonly initialCode = input<string>('');
 
   readonly submitCode = output<string>();
 
-  protected codeInput = '';
+  protected readonly codeInput = signal('');
+  private readonly localError = signal<string | null>(null);
+  protected readonly displayError = computed(() => this.localError() ?? this.error());
+
+  constructor() {
+    effect(() => {
+      const initial = this.initialCode();
+      if (initial && !this.codeInput()) {
+        this.codeInput.set(initial);
+      }
+    });
+  }
 
   protected handleSubmit(): void {
-    const trimmed = this.codeInput.trim();
+    const trimmed = this.codeInput().trim();
     if (!EVENT_CODE_REGEX.test(trimmed)) {
-      this.toast.error('Inserisci un codice evento valido (1-5 cifre).');
+      this.localError.set('Inserisci un codice evento valido (1-5 cifre).');
       return;
     }
+    this.localError.set(null);
     this.submitCode.emit(trimmed);
   }
 }
