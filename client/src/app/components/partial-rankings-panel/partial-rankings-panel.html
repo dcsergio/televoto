@@ -19,9 +19,9 @@
           </p>
         }
       </div>
-      <button type="button" (click)="loadRankings()" [disabled]="loading()" class="btn btn-ghost btn-sm">
-        {{ loading() ? 'Aggiornamento...' : 'Aggiorna' }}
-      </button>
+      <span class="text-xs text-text-secondary">
+        {{ loading() ? 'Aggiornamento...' : 'Si aggiorna con il progresso voti' }}
+      </span>
     </div>
 
     @if (error()) {
