@@ -32,6 +32,12 @@ export interface CreateEventInput {
   maxPreferences?: number;
 }
 
+export interface CloneEventInput {
+  managerPassword: string;
+  name: string;
+  code: string | null;
+}
+
 export type UpdateEventInput = Partial<{
   name: string;
   subtitle: string | null;
@@ -138,9 +144,17 @@ export class EventsApi {
       );
   }
 
-  cloneEvent(eventId: string, authToken: string): Observable<AdminEventSummary> {
+  cloneEvent(eventId: string, input: CloneEventInput, authToken: string): Observable<AdminEventSummary> {
     return this.http
-      .post<AdminEventSummary>(`${BASE}/events/${eventId}/clone`, {}, withAuth(authToken))
-      .pipe(catchError((err) => throwError(() => toApiError(err, "Errore nella clonazione evento"))));
+      .post<AdminEventSummary>(
+        `${BASE}/events/${eventId}/clone`,
+        {
+          managerPassword: input.managerPassword,
+          name: input.name,
+          code: input.code || undefined,
+        },
+        withAuth(authToken),
+      )
+      .pipe(catchError((err) => throwError(() => toApiError(err, 'Errore nella clonazione evento'))));
   }
 }

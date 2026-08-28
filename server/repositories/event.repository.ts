@@ -115,14 +115,18 @@ export function findEventForClone(eventId: string) {
     where: { id: eventId },
     include: {
       candidates: { orderBy: { number: "asc" } },
-      managerCredential: true,
     },
   });
 }
 
 export type EventCloneSource = NonNullable<Awaited<ReturnType<typeof findEventForClone>>>;
 
-export function cloneEvent(source: EventCloneSource, code: string, name: string) {
+export function cloneEvent(
+  source: EventCloneSource,
+  code: string,
+  name: string,
+  managerPasswordRecord: PasswordRecord,
+) {
   return prisma.event.create({
     data: {
       code,
@@ -145,15 +149,7 @@ export function cloneEvent(source: EventCloneSource, code: string, name: string)
           templateId: candidate.templateId,
         })),
       },
-      managerCredential: source.managerCredential
-        ? {
-            create: {
-              passwordHash: source.managerCredential.passwordHash,
-              passwordSalt: source.managerCredential.passwordSalt,
-              passwordIterations: source.managerCredential.passwordIterations,
-            },
-          }
-        : undefined,
+      managerCredential: { create: managerPasswordRecord },
     },
     select: eventSummarySelect,
   });

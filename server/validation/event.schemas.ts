@@ -47,6 +47,37 @@ export const createEventSchema = z
     return { name, managerPassword, requestedCode, subtitle, popularVoteMode, maxPreferences };
   });
 
+// Mirrors createEventSchema's transform/ctx.addIssue pattern: validate name ->
+// managerPassword -> optional code, stopping at the first failing check.
+export const cloneEventSchema = z
+  .object({
+    name: z.unknown().optional(),
+    managerPassword: z.unknown().optional(),
+    code: z.unknown().optional(),
+  })
+  .transform((body, ctx) => {
+    const name = normalizeEventName(body.name);
+    if (!name) {
+      ctx.addIssue({ code: "custom", message: "Il nome evento è obbligatorio" });
+      return z.NEVER;
+    }
+
+    const managerPassword = normalizePassword(body.managerPassword);
+    if (!managerPassword) {
+      ctx.addIssue({ code: "custom", message: "La password manager evento è obbligatoria (minimo 8 caratteri)" });
+      return z.NEVER;
+    }
+
+    const hasCustomCode = typeof body.code === "string" && body.code.trim().length > 0;
+    const requestedCode = hasCustomCode ? normalizeEventCode(body.code) : null;
+    if (hasCustomCode && !requestedCode) {
+      ctx.addIssue({ code: "custom", message: "Codice evento non valido (1-5 cifre)" });
+      return z.NEVER;
+    }
+
+    return { name, managerPassword, requestedCode };
+  });
+
 export const setManagerPasswordSchema = z.object({
   password: passwordField("Password manager evento non valida (minimo 8 caratteri)"),
 });

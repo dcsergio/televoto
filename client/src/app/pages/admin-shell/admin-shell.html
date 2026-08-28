@@ -34,7 +34,7 @@
             >
               <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
-              @if (item.section === 'events') {
+              @if (item.section === 'edit-events') {
                 <span matListItemMeta class="text-xs text-text-secondary">{{ activeEvents().length }}</span>
               }
               @if (item.section === 'archived') {
@@ -61,43 +61,6 @@
           <button type="button" mat-icon-button (click)="toggleSidenav()" aria-label="Apri menu">
             <mat-icon>menu</mat-icon>
           </button>
-        }
-
-        @if (isHandset()) {
-          <!-- Narrow viewports: a compact read-only badge instead of the full
-               selector (which doesn't have room to show event name + arrow).
-               Switching events on mobile happens via la sezione "Eventi" o
-               la scorciatoia "Gestisci" della Dashboard. -->
-          @if (selectedEvent(); as ev) {
-            <span class="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary" [title]="selectedEventBadge()">
-              {{ ev.code }}
-            </span>
-          } @else {
-            <span class="flex-1 text-sm text-text-secondary">Nessun evento</span>
-          }
-        } @else {
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-event-select min-w-[200px] flex-1 max-w-sm">
-            <mat-label>Evento selezionato</mat-label>
-            <mat-select [value]="selectedEventId()" (selectionChange)="selectEvent($event.value)" panelClass="theme-pro" data-testid="admin-event-select">
-              @if (activeEvents().length === 0) {
-                <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
-              }
-              @for (ev of activeEvents(); track ev.id) {
-                <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        }
-
-        @if (!isHandset() && selectedEvent()) {
-          <mat-chip-set>
-            <mat-chip [class]="selectedEventVotingClosed() ? '!bg-accent-cyan/15 !text-accent-cyan' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
-              {{ selectedEventStatusLabel() }}
-            </mat-chip>
-            <mat-chip class="!bg-bg-card-hover !text-text-secondary" disabled>
-              Voto popolare: {{ isPreferenceVoteEvent() ? 'Preferenze' : 'Numerico' }}
-            </mat-chip>
-          </mat-chip-set>
         }
 
         <span class="flex-1"></span>
@@ -135,16 +98,13 @@
           @if (eventsError()) {
             <div class="rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-3 text-accent-coral">{{ eventsError() }}</div>
           }
-          @if (error()) {
-            <div class="rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
-          }
 
           @if (activeSection() === 'dashboard') {
             <div class="space-y-6">
               <div>
                 <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Dashboard</p>
                 <h2 class="mt-2 text-2xl font-bold text-text-primary">Panoramica generale</h2>
-                <p class="mt-1 text-sm text-text-secondary">Stato di tutti gli eventi e accesso rapido alla gestione dell'evento selezionato.</p>
+                <p class="mt-1 text-sm text-text-secondary">Stato di tutti gli eventi e accesso rapido alla gestione di ciascun evento.</p>
               </div>
 
               @if (loadingEvents()) {
@@ -171,42 +131,6 @@
                   </div>
                 </div>
 
-                @if (selectedEvent(); as ev) {
-                  <mat-card appearance="outlined" class="!bg-bg-card">
-                    <mat-card-content class="space-y-4">
-                      <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                          <p class="text-xs uppercase tracking-[0.15em] text-accent-cyan">Evento selezionato</p>
-                          <p class="text-lg font-semibold text-text-primary">{{ ev.code }} - {{ ev.name }}</p>
-                        </div>
-                        <mat-chip-set>
-                          @if (!ev.active) {
-                            <mat-chip class="!bg-amber-400/15 !text-amber-200" disabled>Archiviato</mat-chip>
-                          }
-                          <mat-chip [class]="ev.votingClosed ? '!bg-accent-cyan/15 !text-accent-cyan' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
-                            {{ ev.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
-                          </mat-chip>
-                        </mat-chip-set>
-                      </div>
-
-                      <p class="text-sm text-text-secondary">
-                        Candidati, codici giuria e operazioni di votazione si gestiscono nella pagina dedicata all'evento.
-                      </p>
-
-                      <button type="button" mat-flat-button (click)="handleManageEvent(ev.id)">
-                        <mat-icon>open_in_new</mat-icon>
-                        Gestisci evento
-                      </button>
-                    </mat-card-content>
-                  </mat-card>
-                } @else {
-                  <mat-card appearance="outlined" class="!bg-bg-card">
-                    <mat-card-content>
-                      <p class="text-text-secondary">Seleziona un evento dall'elenco qui sotto (o dal menu in alto) per la gestione rapida.</p>
-                    </mat-card-content>
-                  </mat-card>
-                }
-
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-text-primary">Tutti gli eventi</h3>
@@ -224,7 +148,7 @@
                       <p class="mx-auto mt-1 max-w-sm text-sm text-text-secondary">
                         Crea il primo evento per assegnare candidati, generare i codici voto e aprire il televoto.
                       </p>
-                      <button type="button" mat-flat-button class="mt-5" (click)="handleSectionChange('events')">
+                      <button type="button" mat-flat-button class="mt-5" (click)="handleSectionChange('create-events')">
                         <mat-icon>add</mat-icon>
                         Crea un evento
                       </button>
@@ -274,12 +198,12 @@
             </div>
           }
 
-          @if (activeSection() === 'events') {
+          @if (activeSection() === 'create-events') {
             <mat-card appearance="outlined" class="!bg-bg-card">
               <mat-card-content class="space-y-4">
                 <div>
                   <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
-                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Anagrafica eventi</h2>
+                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Crea Eventi</h2>
                 </div>
 
                 @if (loadingEvents()) {
@@ -287,7 +211,148 @@
                     <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
                   </div>
                 } @else {
-                  <div class="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
+                  <form (ngSubmit)="handleCreateEvent()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
+                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
+                    <label class="block space-y-1">
+                      <span class="text-sm text-text-secondary">Nome evento</span>
+                      <input
+                        type="text"
+                        [ngModel]="newEvent().name"
+                        (ngModelChange)="newEvent.set({ ...newEvent(), name: $event })"
+                        name="newEventName"
+                        [placeholder]="'Es. Finale regionale ' + eventNameSeparator + ' GRAN FINALE'"
+                        class="field-input"
+                      />
+                      <p class="text-xs text-text-muted">
+                        Separatore titolo evidenziato: <span class="font-semibold text-text-secondary">{{ eventNameSeparator }}</span>
+                      </p>
+                    </label>
+                    <label class="block space-y-1">
+                      <span class="text-sm text-text-secondary">Sottotitolo (opzionale)</span>
+                      <input
+                        type="text"
+                        [ngModel]="newEvent().subtitle"
+                        (ngModelChange)="newEvent.set({ ...newEvent(), subtitle: $event })"
+                        name="newEventSubtitle"
+                        placeholder="Es. Edizione 2026"
+                        class="field-input"
+                      />
+                    </label>
+                    <label class="block space-y-1">
+                      <span class="text-sm text-text-secondary">Codice evento (opzionale, 1-5 cifre)</span>
+                      <input
+                        type="text"
+                        [ngModel]="newEvent().code"
+                        (ngModelChange)="newEvent.set({ ...newEvent(), code: $event })"
+                        name="newEventCode"
+                        placeholder="Es. 01234"
+                        class="field-input"
+                      />
+                    </label>
+                    <div class="block space-y-1">
+                      <span class="text-sm text-text-secondary">Modalità voto popolare</span>
+                      <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+                        <label class="flex items-center gap-2 text-sm text-text-secondary">
+                          <input
+                            type="radio"
+                            name="newEventPopularVoteMode"
+                            value="NUMERIC"
+                            [checked]="newEvent().popularVoteMode === 'NUMERIC'"
+                            (change)="newEvent.set({ ...newEvent(), popularVoteMode: 'NUMERIC' })"
+                          />
+                          Numerico (1-10)
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-text-secondary">
+                          <input
+                            type="radio"
+                            name="newEventPopularVoteMode"
+                            value="PREFERENCE"
+                            [checked]="newEvent().popularVoteMode === 'PREFERENCE'"
+                            (change)="newEvent.set({ ...newEvent(), popularVoteMode: 'PREFERENCE', maxPreferences: 1 })"
+                          />
+                          Preferenze (elezione)
+                        </label>
+                      </div>
+                      <p class="text-xs text-text-muted">
+                        Solo per la giuria popolare. Non modificabile dopo la creazione dell'evento.
+                      </p>
+                      @if (newEvent().popularVoteMode === 'PREFERENCE') {
+                        <label class="block space-y-1">
+                          <span class="text-sm text-text-secondary">Max preferenze per giudice</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            [ngModel]="newEvent().maxPreferences"
+                            (ngModelChange)="newEvent.set({ ...newEvent(), maxPreferences: $event })"
+                            name="maxPreferences"
+                            placeholder="Es. 3"
+                            class="field-input"
+                          />
+                          <p class="text-xs text-text-muted">
+                            Numero massimo di preferenze che ogni giudice popolare può esprimere.
+                          </p>
+                        </label>
+                      }
+                    </div>
+                    <label class="block space-y-1">
+                      <span class="text-sm text-text-secondary">Password manager evento (min. 8 caratteri)</span>
+                      <input
+                        type="password"
+                        [ngModel]="newEvent().managerPassword"
+                        (ngModelChange)="newEvent.set({ ...newEvent(), managerPassword: $event })"
+                        name="newEventManagerPassword"
+                        placeholder="Password dedicata al manager dell'evento"
+                        class="field-input"
+                      />
+                    </label>
+                    <button type="submit" [disabled]="creatingEvent()" class="btn btn-primary w-full sm:w-56 justify-center min-h-11">
+                      {{ creatingEvent() ? 'Creazione...' : 'Crea evento' }}
+                    </button>
+                  </form>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @if (activeSection() === 'edit-events') {
+            <mat-card appearance="outlined" class="!bg-bg-card">
+              <mat-card-content class="space-y-4">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Modifica Eventi</h2>
+                  <p class="mt-1 text-sm text-text-secondary">Seleziona un evento e modificane nome, pesi, password o stato.</p>
+                </div>
+
+                @if (loadingEvents()) {
+                  <div class="flex items-center justify-center py-8">
+                    <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
+                  </div>
+                } @else {
+                  <div class="space-y-4">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-event-select w-full max-w-sm">
+                      <mat-label>Evento selezionato</mat-label>
+                      <mat-select [value]="selectedEventId()" (selectionChange)="selectEvent($event.value)" panelClass="theme-pro" data-testid="admin-event-select">
+                        @if (activeEvents().length === 0) {
+                          <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
+                        }
+                        @for (ev of activeEvents(); track ev.id) {
+                          <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.name }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+
+                    @if (selectedEvent()) {
+                      <mat-chip-set>
+                        <mat-chip [class]="selectedEventVotingClosed() ? '!bg-accent-cyan/15 !text-accent-cyan' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
+                          {{ selectedEventStatusLabel() }}
+                        </mat-chip>
+                        <mat-chip class="!bg-bg-card-hover !text-text-secondary" disabled>
+                          Voto popolare: {{ isPreferenceVoteEvent() ? 'Preferenze' : 'Numerico' }}
+                        </mat-chip>
+                      </mat-chip-set>
+                    }
+
                     <div class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
                       <h3 class="text-lg font-semibold text-text-primary">Evento corrente</h3>
                       @if (selectedEvent(); as ev) {
@@ -405,145 +470,7 @@
                         <p class="text-sm text-text-secondary">Seleziona prima un evento.</p>
                       }
                     </div>
-
-                    <form (ngSubmit)="handleCreateEvent()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
-                      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
-                      <label class="block space-y-1">
-                        <span class="text-sm text-text-secondary">Nome evento</span>
-                        <input
-                          type="text"
-                          [ngModel]="newEvent().name"
-                          (ngModelChange)="newEvent.set({ ...newEvent(), name: $event })"
-                          name="newEventName"
-                          [placeholder]="'Es. Finale regionale ' + eventNameSeparator + ' GRAN FINALE'"
-                          class="field-input"
-                        />
-                        <p class="text-xs text-text-muted">
-                          Separatore titolo evidenziato: <span class="font-semibold text-text-secondary">{{ eventNameSeparator }}</span>
-                        </p>
-                      </label>
-                      <label class="block space-y-1">
-                        <span class="text-sm text-text-secondary">Sottotitolo (opzionale)</span>
-                        <input
-                          type="text"
-                          [ngModel]="newEvent().subtitle"
-                          (ngModelChange)="newEvent.set({ ...newEvent(), subtitle: $event })"
-                          name="newEventSubtitle"
-                          placeholder="Es. Edizione 2026"
-                          class="field-input"
-                        />
-                      </label>
-                      <label class="block space-y-1">
-                        <span class="text-sm text-text-secondary">Codice evento (opzionale, 1-5 cifre)</span>
-                        <input
-                          type="text"
-                          [ngModel]="newEvent().code"
-                          (ngModelChange)="newEvent.set({ ...newEvent(), code: $event })"
-                          name="newEventCode"
-                          placeholder="Es. 01234"
-                          class="field-input"
-                        />
-                      </label>
-                      <div class="block space-y-1">
-                        <span class="text-sm text-text-secondary">Modalità voto popolare</span>
-                        <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
-                          <label class="flex items-center gap-2 text-sm text-text-secondary">
-                            <input
-                              type="radio"
-                              name="newEventPopularVoteMode"
-                              value="NUMERIC"
-                              [checked]="newEvent().popularVoteMode === 'NUMERIC'"
-                              (change)="newEvent.set({ ...newEvent(), popularVoteMode: 'NUMERIC' })"
-                            />
-                            Numerico (1-10)
-                          </label>
-                          <label class="flex items-center gap-2 text-sm text-text-secondary">
-                            <input
-                              type="radio"
-                              name="newEventPopularVoteMode"
-                              value="PREFERENCE"
-                              [checked]="newEvent().popularVoteMode === 'PREFERENCE'"
-                              (change)="newEvent.set({ ...newEvent(), popularVoteMode: 'PREFERENCE', maxPreferences: 1 })"
-                            />
-                            Preferenze (elezione)
-                          </label>
-                        </div>
-                        <p class="text-xs text-text-muted">
-                          Solo per la giuria popolare. Non modificabile dopo la creazione dell'evento.
-                        </p>
-                        @if (newEvent().popularVoteMode === 'PREFERENCE') {
-                          <label class="block space-y-1">
-                            <span class="text-sm text-text-secondary">Max preferenze per giudice</span>
-                            <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              [ngModel]="newEvent().maxPreferences"
-                              (ngModelChange)="newEvent.set({ ...newEvent(), maxPreferences: $event })"
-                              name="maxPreferences"
-                              placeholder="Es. 3"
-                              class="field-input"
-                            />
-                            <p class="text-xs text-text-muted">
-                              Numero massimo di preferenze che ogni giudice popolare può esprimere.
-                            </p>
-                          </label>
-                        }
-                      </div>
-                      <label class="block space-y-1">
-                        <span class="text-sm text-text-secondary">Password manager evento (min. 8 caratteri)</span>
-                        <input
-                          type="password"
-                          [ngModel]="newEvent().managerPassword"
-                          (ngModelChange)="newEvent.set({ ...newEvent(), managerPassword: $event })"
-                          name="newEventManagerPassword"
-                          placeholder="Password dedicata al manager dell'evento"
-                          class="field-input"
-                        />
-                      </label>
-                      <button type="submit" [disabled]="creatingEvent()" class="btn btn-primary w-full">
-                        {{ creatingEvent() ? 'Creazione...' : 'Crea evento' }}
-                      </button>
-                    </form>
                   </div>
-
-                  <form (ngSubmit)="handleUpdateRootPassword()" class="mt-4 space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
-                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
-                    <p class="text-sm text-text-secondary">Aggiorna la password root usata per l'accesso alle aree protette amministrative.</p>
-                    <div class="grid gap-3 md:grid-cols-3">
-                      <input
-                        type="password"
-                        [ngModel]="rootPasswordDraft().currentPassword"
-                        (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), currentPassword: $event })"
-                        name="rootCurrentPassword"
-                        placeholder="Password root attuale"
-                        class="field-input text-sm"
-                      />
-                      <input
-                        type="password"
-                        [ngModel]="rootPasswordDraft().newPassword"
-                        (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), newPassword: $event })"
-                        name="rootNewPassword"
-                        placeholder="Nuova password root"
-                        class="field-input text-sm"
-                      />
-                      <input
-                        type="password"
-                        [ngModel]="rootPasswordDraft().confirmPassword"
-                        (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), confirmPassword: $event })"
-                        name="rootConfirmPassword"
-                        placeholder="Conferma nuova password root"
-                        class="field-input text-sm"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      [disabled]="updatingRootPassword()"
-                      class="btn btn-tinted btn-sm"
-                    >
-                      {{ updatingRootPassword() ? 'Aggiornamento...' : 'Aggiorna password root' }}
-                    </button>
-                  </form>
                 }
               </mat-card-content>
             </mat-card>
@@ -607,6 +534,58 @@
                     }
                   </div>
                 }
+              </mat-card-content>
+            </mat-card>
+          }
+
+          @if (activeSection() === 'settings') {
+            <mat-card appearance="outlined" class="!bg-bg-card">
+              <mat-card-content class="space-y-4">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Sicurezza</p>
+                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Impostazioni</h2>
+                  <p class="mt-1 text-sm text-text-secondary">
+                    Gestisci le credenziali di accesso all'area amministrativa.
+                  </p>
+                </div>
+
+                <form (ngSubmit)="handleUpdateRootPassword()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
+                  <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
+                  <p class="text-sm text-text-secondary">Aggiorna la password root usata per l'accesso alle aree protette amministrative.</p>
+                  <div class="grid gap-3 md:grid-cols-3">
+                    <input
+                      type="password"
+                      [ngModel]="rootPasswordDraft().currentPassword"
+                      (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), currentPassword: $event })"
+                      name="rootCurrentPassword"
+                      placeholder="Password root attuale"
+                      class="field-input text-sm"
+                    />
+                    <input
+                      type="password"
+                      [ngModel]="rootPasswordDraft().newPassword"
+                      (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), newPassword: $event })"
+                      name="rootNewPassword"
+                      placeholder="Nuova password root"
+                      class="field-input text-sm"
+                    />
+                    <input
+                      type="password"
+                      [ngModel]="rootPasswordDraft().confirmPassword"
+                      (ngModelChange)="rootPasswordDraft.set({ ...rootPasswordDraft(), confirmPassword: $event })"
+                      name="rootConfirmPassword"
+                      placeholder="Conferma nuova password root"
+                      class="field-input text-sm"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    [disabled]="updatingRootPassword()"
+                    class="btn btn-tinted btn-sm"
+                  >
+                    {{ updatingRootPassword() ? 'Aggiornamento...' : 'Aggiorna password root' }}
+                  </button>
+                </form>
               </mat-card-content>
             </mat-card>
           }
