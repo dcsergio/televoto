@@ -26,3 +26,18 @@ export function eventManagerSectionFromQueryParam(section: string | null): Event
   if (section === 'voting') return 'voting-codes';
   return isEventManagerSection(section) ? section : DEFAULT_EVENT_MANAGER_SECTION;
 }
+
+/**
+ * Contextual landing section for a freshly-opened event when the URL carries no
+ * explicit `adminSection`: an event with no candidates opens on «Candidati», one
+ * that has candidates but is still closed opens on «Codici Voto», and an event
+ * with voting open opens on the live «Backstage».
+ */
+export function contextualDefaultEventManagerSection(input: {
+  candidateCount: number;
+  votingClosed: boolean;
+}): EventManagerSection {
+  if (input.candidateCount === 0) return 'candidates';
+  if (input.votingClosed) return 'voting-codes';
+  return 'voting-backstage';
+}
