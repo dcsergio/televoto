@@ -20,7 +20,7 @@ import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
-import { EVENT_NAME_SEPARATOR } from '../../shared/event-name-display.util';
+import { EVENT_NAME_SEPARATOR, splitEventNameForDisplay } from '../../shared/event-name-display.util';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { CloneEventDialogComponent } from '../../components/clone-event-dialog/clone-event-dialog';
@@ -112,10 +112,34 @@ export class AdminShellComponent {
   protected readonly selectedEventPopularVoteMode = computed(() => this.selectedEvent()?.popularVoteMode ?? 'NUMERIC');
   protected readonly isPreferenceVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'PREFERENCE');
 
+  /**
+   * Decorates each event with the parsed name parts so the admin cards / selector
+   * never print the raw "//" separator (same public rendering as `HeroBannerComponent`).
+   */
+  private withDisplayName(list: AdminEventSummary[]): (AdminEventSummary & {
+    nameParts: { prefix: string; emphasized: string };
+    displayName: string;
+  })[] {
+    return list.map((e) => {
+      const nameParts = splitEventNameForDisplay(e.name);
+      return {
+        ...e,
+        nameParts,
+        displayName: nameParts.prefix ? `${nameParts.prefix} ${nameParts.emphasized}` : nameParts.emphasized,
+      };
+    });
+  }
+
   /** Non-archived events: used for selection, the dashboard event grid, and the toolbar selector. */
-  protected readonly activeEvents = computed(() => this.events().filter((e) => e.active));
+  protected readonly activeEvents = computed(() => this.withDisplayName(this.events().filter((e) => e.active)));
   /** Archived events: shown only in the dedicated "Archiviati" section. */
-  protected readonly archivedEvents = computed(() => this.events().filter((e) => !e.active));
+  protected readonly archivedEvents = computed(() => this.withDisplayName(this.events().filter((e) => !e.active)));
+
+  /** Parsed name parts of the currently selected event (for the "Evento corrente" header line). */
+  protected readonly selectedEventNameParts = computed(() => {
+    const ev = this.selectedEvent();
+    return ev ? splitEventNameForDisplay(ev.name) : { prefix: '', emphasized: '' };
+  });
 
   /** Cross-event snapshot for the Dashboard "overview" cards. */
   protected readonly eventsOverview = computed(() => {
@@ -130,6 +154,31 @@ export class AdminShellComponent {
 
   protected readonly archivingEventId = signal<string | null>(null);
   protected readonly cloningEventId = signal<string | null>(null);
+
+  /** Post-create confirmation panel: the freshly created event (its code is the payload). */
+  protected readonly lastCreatedEvent = signal<AdminEventSummary | null>(null);
+  protected readonly eventCodeCopied = signal(false);
+
+  /** Which "Modifica Eventi" block just saved — drives the inline "Salvato" confirmation. */
+  protected readonly savedFlash = signal<'name' | 'managerPassword' | 'votingSettings' | null>(null);
+
+  /** Per-block dirty state so each "Salva" button is disabled while the block is pristine. */
+  protected readonly selectedEventNameDirty = computed(() => {
+    const ev = this.selectedEvent();
+    const draft = this.selectedEventNameDraft().trim();
+    return !!ev && draft.length > 0 && draft !== ev.name;
+  });
+  protected readonly managerPasswordDirty = computed(() => this.managerPasswordDraft().length > 0);
+  protected readonly votingSettingsDirty = computed(() => {
+    const ev = this.selectedEvent();
+    if (!ev) return false;
+    const draft = this.eventSettingsDraft();
+    return (
+      Number(draft.weightQualificata) !== ev.weightQualificata ||
+      draft.enableTrimmedMean !== ev.enableTrimmedMean ||
+      Number(draft.trimmedMeanPercentage) !== ev.trimmedMeanPercentage
+    );
+  });
 
   private lastEventCode: string | null = null;
   /**
@@ -184,6 +233,13 @@ export class AdminShellComponent {
         trimmedMeanPercentage: ev?.trimmedMeanPercentage ?? 10,
       });
       this.managerPasswordDraft.set('');
+    });
+
+    // Clear the "Salvato" confirmation only when the operator switches event
+    // (not when the same event's data refreshes after a save).
+    effect(() => {
+      this.selectedEventId();
+      this.savedFlash.set(null);
     });
   }
 
@@ -258,7 +314,42 @@ export class AdminShellComponent {
     this.selectEvent(eventId);
     const ev = this.events().find((e) => e.id === eventId);
     if (!ev) return;
-    window.open(`/manager?eventCode=${encodeURIComponent(ev.code)}`, '_blank');
+    this.openManager(ev.code);
+  }
+
+  /**
+   * Opens the single-event workspace (`/manager`) in a new tab, optionally deep-linking
+   * to one of its sections (`candidates` | `voting-codes` | `voting-backstage`, see
+   * `event-manager-shell.util.ts`). Same opener/sessionStorage rationale as above — no `noopener`.
+   */
+  protected openManager(
+    eventCode: string,
+    section?: 'candidates' | 'voting-codes' | 'voting-backstage',
+  ): void {
+    const sectionParam = section ? `&adminSection=${section}` : '';
+    window.open(`/manager?eventCode=${encodeURIComponent(eventCode)}${sectionParam}`, '_blank');
+  }
+
+  protected async copyEventCode(code: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(code);
+      this.eventCodeCopied.set(true);
+      setTimeout(() => this.eventCodeCopied.set(false), 2000);
+    } catch {
+      this.toast.error('Copia del codice non riuscita');
+    }
+  }
+
+  protected dismissCreatedEvent(): void {
+    this.lastCreatedEvent.set(null);
+    this.eventCodeCopied.set(false);
+  }
+
+  private flashSaved(key: 'name' | 'managerPassword' | 'votingSettings'): void {
+    this.savedFlash.set(key);
+    setTimeout(() => {
+      if (this.savedFlash() === key) this.savedFlash.set(null);
+    }, 2500);
   }
 
   protected handleLogout(): void {
@@ -269,6 +360,7 @@ export class AdminShellComponent {
     this.events.set([]);
     this.selectedEventId.set(null);
     this.eventsError.set(null);
+    this.lastCreatedEvent.set(null);
   }
 
   protected async handleLoginSubmit(password: string): Promise<void> {
@@ -340,6 +432,8 @@ export class AdminShellComponent {
       this.events.update((prev) => [created, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(created.id);
       this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC', maxPreferences: 1 });
+      this.eventCodeCopied.set(false);
+      this.lastCreatedEvent.set(created);
       this.toast.success('Evento creato');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : 'Errore');
@@ -367,6 +461,7 @@ export class AdminShellComponent {
         prev.map((e) => (e.id === updated.id ? { ...e, name: updated.name, subtitle: updated.subtitle } : e)),
       );
       this.selectedEventNameDraft.set(updated.name);
+      this.flashSaved('name');
       this.toast.success('Nome evento aggiornato');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : 'Errore');
@@ -417,6 +512,7 @@ export class AdminShellComponent {
             : e,
         ),
       );
+      this.flashSaved('votingSettings');
       this.toast.success('Impostazioni votazione aggiornate');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento impostazioni votazione");
@@ -465,6 +561,7 @@ export class AdminShellComponent {
     try {
       await firstValueFrom(this.eventsApi.updateEventManagerPassword(ev.id, password, token));
       this.managerPasswordDraft.set('');
+      this.flashSaved('managerPassword');
       this.toast.success('Password evento aggiornata');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");

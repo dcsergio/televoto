@@ -65,31 +65,37 @@
 
         <span class="flex-1"></span>
 
-        <button type="button" mat-icon-button matTooltip="Aggiorna eventi" data-testid="admin-refresh-events" (click)="refreshEvents()" [disabled]="loadingEvents()">
+        <button type="button" mat-button matTooltip="Aggiorna eventi" aria-label="Aggiorna eventi" data-testid="admin-refresh-events" (click)="refreshEvents()" [disabled]="loadingEvents()">
           <mat-icon>refresh</mat-icon>
+          <span class="hidden sm:inline">Aggiorna</span>
         </button>
         <button
           type="button"
-          mat-icon-button
+          mat-button
           matTooltip="Apri pagina voto pubblico — vista pubblica, nuova scheda"
+          aria-label="Apri pagina voto pubblico in una nuova scheda"
           data-testid="admin-open-voting"
           [disabled]="!selectedEvent()"
           (click)="handleOpenPublicVoting()"
         >
           <mat-icon>how_to_vote</mat-icon>
+          <span class="hidden sm:inline">Voto pubblico</span>
         </button>
         <button
           type="button"
-          mat-icon-button
+          mat-button
           matTooltip="Apri Classifica — vista pubblica, nuova scheda"
+          aria-label="Apri Classifica in una nuova scheda"
           data-testid="admin-open-score"
           [disabled]="!selectedEvent()"
           (click)="handleOpenScore()"
         >
           <mat-icon>emoji_events</mat-icon>
+          <span class="hidden sm:inline">Classifica</span>
         </button>
-        <button type="button" mat-icon-button matTooltip="Esci dall'area admin" data-testid="admin-toolbar-logout" (click)="handleLogout()">
+        <button type="button" mat-button matTooltip="Esci dall'area admin" aria-label="Esci dall'area admin" data-testid="admin-toolbar-logout" (click)="handleLogout()">
           <mat-icon>logout</mat-icon>
+          <span class="hidden sm:inline">Esci</span>
         </button>
       </mat-toolbar>
 
@@ -118,7 +124,7 @@
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{{ eventsOverview().total }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi attivi</p>
+                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi non archiviati</p>
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-accent-cyan">{{ eventsOverview().active }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
@@ -164,7 +170,10 @@
                           <mat-card-content class="space-y-3">
                             <div>
                               <p class="text-xs text-text-secondary">{{ ev.code }}</p>
-                              <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.name }}</p>
+                              @if (ev.nameParts.prefix) {
+                                <p class="truncate text-[0.7rem] uppercase tracking-[0.18em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
+                              }
+                              <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.nameParts.emphasized }}</p>
                               @if (ev.subtitle) {
                                 <p class="truncate text-xs text-text-secondary" [title]="ev.subtitle">{{ ev.subtitle }}</p>
                               }
@@ -175,8 +184,9 @@
                               </mat-chip>
                             </mat-chip-set>
                             <div class="flex gap-2">
-                              <button type="button" mat-flat-button class="flex-1" (click)="handleManageEvent(ev.id)">
+                              <button type="button" mat-flat-button iconPositionEnd class="flex-1" matTooltip="Apre in una nuova scheda" (click)="handleManageEvent(ev.id)">
                                 Gestisci
+                                <mat-icon>open_in_new</mat-icon>
                               </button>
                               <button
                                 type="button"
@@ -211,6 +221,42 @@
                     <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
                   </div>
                 } @else {
+                  @if (lastCreatedEvent(); as created) {
+                  <div class="space-y-4 rounded-2xl border border-emerald-400/40 bg-emerald-400/5 p-5" data-testid="admin-create-confirmation">
+                    <div class="flex items-center gap-2 text-emerald-300">
+                      <mat-icon>check_circle</mat-icon>
+                      <p class="text-sm font-semibold uppercase tracking-[0.2em]">Evento creato</p>
+                    </div>
+                    <p class="text-sm text-text-secondary">
+                      L'evento <span class="font-semibold text-text-primary">{{ created.name }}</span> è pronto.
+                      Comunica il codice ai votanti e al manager per accedere.
+                    </p>
+                    <div class="space-y-1">
+                      <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Codice evento</p>
+                      <div class="flex flex-wrap items-center gap-3">
+                        <span class="font-display text-3xl font-bold tabular-nums tracking-[0.2em] text-text-primary" data-testid="admin-created-event-code">{{ created.code }}</span>
+                        <button type="button" mat-stroked-button (click)="copyEventCode(created.code)">
+                          <mat-icon>{{ eventCodeCopied() ? 'check' : 'content_copy' }}</mat-icon>
+                          {{ eventCodeCopied() ? 'Copiato' : 'Copia' }}
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                      <button type="button" mat-flat-button matTooltip="Apre in una nuova scheda" (click)="openManager(created.code, 'candidates')">
+                        <mat-icon>groups</mat-icon>
+                        Aggiungi candidati
+                      </button>
+                      <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(created.code)">
+                        <mat-icon>tune</mat-icon>
+                        Vai alla gestione evento
+                      </button>
+                      <button type="button" mat-button (click)="dismissCreatedEvent()">
+                        <mat-icon>add</mat-icon>
+                        Crea un altro evento
+                      </button>
+                    </div>
+                  </div>
+                } @else {
                   <form (ngSubmit)="handleCreateEvent()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
                     <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
                     <label class="block space-y-1">
@@ -242,11 +288,13 @@
                       <span class="text-sm text-text-secondary">Codice evento (opzionale, 1-5 cifre)</span>
                       <input
                         type="text"
+                        inputmode="numeric"
+                        maxlength="5"
                         [ngModel]="newEvent().code"
                         (ngModelChange)="newEvent.set({ ...newEvent(), code: $event })"
                         name="newEventCode"
                         placeholder="Es. 01234"
-                        class="field-input"
+                        class="field-input !w-28"
                       />
                     </label>
                     <div class="block space-y-1">
@@ -310,6 +358,7 @@
                       {{ creatingEvent() ? 'Creazione...' : 'Crea evento' }}
                     </button>
                   </form>
+                  }
                 }
               </mat-card-content>
             </mat-card>
@@ -337,7 +386,7 @@
                           <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
                         }
                         @for (ev of activeEvents(); track ev.id) {
-                          <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.name }}</mat-option>
+                          <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.displayName }}</mat-option>
                         }
                       </mat-select>
                     </mat-form-field>
@@ -356,9 +405,34 @@
                     <div class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
                       <h3 class="text-lg font-semibold text-text-primary">Evento corrente</h3>
                       @if (selectedEvent(); as ev) {
-                        <p class="text-sm text-text-secondary">{{ ev.code }} - <span class="font-semibold text-text-primary">{{ ev.name }}</span></p>
+                        <p class="text-sm text-text-secondary">
+                          {{ ev.code }} -
+                          @if (selectedEventNameParts().prefix) {
+                            <span class="text-text-secondary">{{ selectedEventNameParts().prefix }} </span>
+                          }
+                          <span class="font-semibold text-text-primary">{{ selectedEventNameParts().emphasized }}</span>
+                        </p>
 
-                        <form (ngSubmit)="handleRenameSelectedEvent()" class="flex flex-col gap-2 sm:flex-row">
+                        <div class="flex flex-wrap gap-2">
+                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'candidates')">
+                            <mat-icon>groups</mat-icon>
+                            Candidati
+                          </button>
+                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-codes')">
+                            <mat-icon>qr_code_2</mat-icon>
+                            Codici voto
+                          </button>
+                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-backstage')">
+                            <mat-icon>insights</mat-icon>
+                            Backstage
+                          </button>
+                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="handleOpenScore()">
+                            <mat-icon>emoji_events</mat-icon>
+                            Apri Classifica
+                          </button>
+                        </div>
+
+                        <form (ngSubmit)="handleRenameSelectedEvent()" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                           <input
                             type="text"
                             [ngModel]="selectedEventNameDraft()"
@@ -369,11 +443,17 @@
                           />
                           <button
                             type="submit"
-                            [disabled]="updatingSelectedEventName()"
+                            [disabled]="updatingSelectedEventName() || !selectedEventNameDirty()"
                             class="btn btn-tinted btn-sm"
                           >
-                            {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Rinomina' }}
+                            {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Salva' }}
                           </button>
+                          @if (savedFlash() === 'name') {
+                            <span class="flex items-center gap-1 text-xs font-semibold text-emerald-300">
+                              <mat-icon class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                              Salvato
+                            </span>
+                          }
                         </form>
 
                         <button
@@ -386,7 +466,7 @@
                           {{ archivingEventId() === ev.id ? 'Archiviazione...' : 'Archivia evento' }}
                         </button>
 
-                        <form (ngSubmit)="handleRotateEventManagerPassword()" class="flex flex-col gap-2 sm:flex-row">
+                        <form (ngSubmit)="handleRotateEventManagerPassword()" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                           <input
                             type="password"
                             [ngModel]="managerPasswordDraft()"
@@ -397,11 +477,17 @@
                           />
                           <button
                             type="submit"
-                            [disabled]="updatingManagerPassword()"
+                            [disabled]="updatingManagerPassword() || !managerPasswordDirty()"
                             class="btn btn-tinted btn-sm"
                           >
-                            {{ updatingManagerPassword() ? 'Aggiornamento...' : 'Aggiorna password evento' }}
+                            {{ updatingManagerPassword() ? 'Salvataggio...' : 'Salva' }}
                           </button>
+                          @if (savedFlash() === 'managerPassword') {
+                            <span class="flex items-center gap-1 text-xs font-semibold text-emerald-300">
+                              <mat-icon class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                              Salvato
+                            </span>
+                          }
                         </form>
 
                         <form (ngSubmit)="handleUpdateVotingSettings()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-primary/60 p-3">
@@ -458,13 +544,21 @@
                               />
                             </label>
                           }
-                          <button
-                            type="submit"
-                            [disabled]="updatingVotingSettings()"
-                            class="btn btn-tinted btn-sm"
-                          >
-                            {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva impostazioni voto' }}
-                          </button>
+                          <div class="flex flex-wrap items-center gap-2">
+                            <button
+                              type="submit"
+                              [disabled]="updatingVotingSettings() || !votingSettingsDirty()"
+                              class="btn btn-tinted btn-sm"
+                            >
+                              {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva' }}
+                            </button>
+                            @if (savedFlash() === 'votingSettings') {
+                              <span class="flex items-center gap-1 text-xs font-semibold text-emerald-300">
+                                <mat-icon class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                                Salvato
+                              </span>
+                            }
+                          </div>
                         </form>
                       } @else {
                         <p class="text-sm text-text-secondary">Seleziona prima un evento.</p>
@@ -500,7 +594,10 @@
                         <mat-card-content class="space-y-3">
                           <div>
                             <p class="text-xs text-text-secondary">{{ ev.code }}</p>
-                            <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.name }}</p>
+                            @if (ev.nameParts.prefix) {
+                              <p class="truncate text-[0.7rem] uppercase tracking-[0.18em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
+                            }
+                            <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.nameParts.emphasized }}</p>
                             @if (ev.subtitle) {
                               <p class="truncate text-xs text-text-secondary" [title]="ev.subtitle">{{ ev.subtitle }}</p>
                             }
