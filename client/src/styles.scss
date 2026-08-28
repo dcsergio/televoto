@@ -639,6 +639,11 @@ input[type="color"]::-moz-color-swatch {
   --mat-sys-on-tertiary: #ffffff;
   --mat-sys-error: #c11919;
   --mat-dialog-container-color: #ffffff;
+  /* `mat.select-overrides` in _material-theme.scss pins the dropdown panel to a
+     solid dark #141417 globally; that override isn't a `--mat-sys-*` token, so
+     it survives into the `panelClass="theme-pro"` overlay and leaves the event
+     selector panel near-black on the light Studio paper. Re-point it here. */
+  --mat-select-panel-background-color: #ffffff;
 
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
