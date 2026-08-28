@@ -367,6 +367,7 @@ export class AdminShellComponent {
         prev.map((e) => (e.id === updated.id ? { ...e, name: updated.name, subtitle: updated.subtitle } : e)),
       );
       this.selectedEventNameDraft.set(updated.name);
+      this.toast.success('Nome evento aggiornato');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -416,6 +417,7 @@ export class AdminShellComponent {
             : e,
         ),
       );
+      this.toast.success('Impostazioni votazione aggiornate');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento impostazioni votazione");
     } finally {
@@ -442,6 +444,7 @@ export class AdminShellComponent {
     try {
       await firstValueFrom(this.authApi.updateRootPassword(token, currentPassword, newPassword));
       this.rootPasswordDraft.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      this.toast.success('Password root aggiornata');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento password root");
     } finally {
@@ -462,6 +465,7 @@ export class AdminShellComponent {
     try {
       await firstValueFrom(this.eventsApi.updateEventManagerPassword(ev.id, password, token));
       this.managerPasswordDraft.set('');
+      this.toast.success('Password evento aggiornata');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
     } finally {
@@ -501,6 +505,7 @@ export class AdminShellComponent {
       if (archived && this.selectedEventId() === eventId) {
         this.selectedEventId.set(this.activeEvents().find((e) => e.id !== eventId)?.id ?? null);
       }
+      this.toast.success(archived ? 'Evento archiviato' : 'Evento ripristinato');
     } catch (err) {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento dell'archiviazione");
     } finally {
