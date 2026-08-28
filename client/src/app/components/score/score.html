@@ -441,7 +441,7 @@
           </div>
         }
 
-        @if (rankings().length > 0 && !revealStarted()) {
+        @if (rankings().length > 0 && (!revealStarted() || showWinner())) {
           <div class="mt-12">
             <h3 class="mb-3 text-xs uppercase tracking-[0.2em] text-text-secondary">Statistiche evento</h3>
             <div class="surface-card flex flex-wrap divide-y divide-border-glass sm:divide-y-0 sm:divide-x">
@@ -453,10 +453,13 @@
                 <div class="font-display text-2xl font-semibold tabular-nums text-text-primary">{{ rankings().length }}</div>
                 <div class="mt-0.5 text-sm text-text-secondary">Candidati</div>
               </div>
-              <div class="min-w-[9rem] flex-1 px-5 py-4">
-                <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ formatScore(averageFinalScore()) }}</div>
-                <div class="mt-0.5 text-sm text-text-secondary">Punteggio finale medio</div>
-              </div>
+              <!-- Il punteggio finale medio anticipa l'esito: mostrato solo a cerimonia conclusa (audit D4). -->
+              @if (showWinner()) {
+                <div class="min-w-[9rem] flex-1 px-5 py-4">
+                  <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ formatScore(averageFinalScore()) }}</div>
+                  <div class="mt-0.5 text-sm text-text-secondary">Punteggio finale medio</div>
+                </div>
+              }
             </div>
           </div>
         }
