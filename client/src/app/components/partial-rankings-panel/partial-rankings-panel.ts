@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, input, signal } fro
 import { firstValueFrom } from 'rxjs';
 import { PartialRankingEntry, PartialRankings, RankingsApi } from '../../api/rankings.api';
 import { formatScore } from '../../shared/format-score.util';
+import { pluralize } from '../../shared/pluralize.util';
 
 function getMedalEmoji(position: number): string {
   if (position === 1) return '\u{1F947}';
@@ -17,6 +18,8 @@ interface RankingColumn {
   scoreKey: 'avgQualificata' | 'avgPopolare' | 'finalScore';
   voteCountKey: 'qualifiedVoteCount' | 'popularVoteCount' | 'totalVoteCount';
   emptyMessage: string;
+  /** C7 — footnote explaining a score that looks off without context (e.g. "Media qualificata: 0.67"). */
+  note?: string;
 }
 
 @Component({
@@ -35,6 +38,7 @@ export class PartialRankingsPanelComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly getMedalEmoji = getMedalEmoji;
   protected readonly formatScore = formatScore;
+  protected readonly pluralize = pluralize;
 
   constructor() {
     effect(() => {
@@ -64,22 +68,24 @@ export class PartialRankingsPanelComponent {
   protected columns(): RankingColumn[] {
     const r = this.rankings();
     if (!r) return [];
+    const eligible = r.eligibleQualifiedJudges;
     return [
       {
-        title: 'Giuria Qualificata',
+        title: 'Giuria',
         entries: r.qualified,
         scoreLabel: 'Media',
         scoreKey: 'avgQualificata',
         voteCountKey: 'qualifiedVoteCount',
-        emptyMessage: 'Nessun voto qualificato registrato.',
+        emptyMessage: 'Nessun voto di giuria registrato.',
+        note: `Media su ${eligible} ${pluralize(eligible, 'giurato eleggibile', 'giurati eleggibili')} — le mancate votazioni contano come astensione.`,
       },
       {
-        title: 'Giuria Popolare',
+        title: 'Televoto',
         entries: r.popular,
         scoreLabel: 'Media',
         scoreKey: 'avgPopolare',
         voteCountKey: 'popularVoteCount',
-        emptyMessage: 'Nessun voto popolare registrato.',
+        emptyMessage: 'Nessun voto del pubblico registrato.',
       },
       {
         title: 'Classifica Ponderata',

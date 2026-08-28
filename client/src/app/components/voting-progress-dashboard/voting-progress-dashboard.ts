@@ -20,6 +20,7 @@ import {
   getJudgeTokenStatusClass as getStatusClass,
   getJudgeTokenStatusLabel as getStatusLabel,
 } from '../../shared/judge-token-status.util';
+import { pluralize } from '../../shared/pluralize.util';
 
 // The judge-token SSE stream only emits on token lifecycle events (generate /
 // revoke / reissue / finalize / event start) — NOT on every cast vote — so
@@ -55,6 +56,7 @@ export class VotingProgressDashboardComponent {
   protected readonly streamConnected = signal(false);
   protected readonly getStatusLabel = getStatusLabel;
   protected readonly getStatusClass = getStatusClass;
+  protected readonly pluralize = pluralize;
 
   private readonly rankingsPanel = viewChild(PartialRankingsPanelComponent);
 
