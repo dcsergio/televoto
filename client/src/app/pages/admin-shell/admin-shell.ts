@@ -130,6 +130,14 @@ export class AdminShellComponent {
   protected readonly cloningEventId = signal<string | null>(null);
 
   private lastEventCode: string | null = null;
+  /**
+   * Guards the two auto-load effects below so the initial `GET /api/events` fires
+   * exactly once. Without it, an empty event list (fresh DB / all events deleted)
+   * keeps `events()` empty, `eventsError()` null and `loadingEvents()` false after
+   * a successful load — i.e. the effect condition stays true and re-fires forever.
+   * Manual reloads go through `refreshEvents()`, which calls `loadEvents()` directly.
+   */
+  private eventsLoadKicked = false;
 
   constructor() {
     // Sidenav starts closed on handset (opened via the toolbar menu button)
@@ -148,16 +156,21 @@ export class AdminShellComponent {
     });
 
     effect(() => {
-      if (!this.authState.isRootAuthenticated()) return;
+      if (!this.authState.isRootAuthenticated() || this.eventsLoadKicked) return;
       const ev = this.votingState.event();
       if (this.selectedEventId() || !ev) return;
+      this.eventsLoadKicked = true;
       void this.loadEvents(ev.id, ev.code);
     });
 
     effect(() => {
-      if (this.authState.isRootAuthenticated() && this.events().length === 0 && !this.loadingEvents() && this.eventsError() === null) {
-        void this.loadEvents();
-      }
+      if (!this.authState.isRootAuthenticated() || this.eventsLoadKicked) return;
+      // If the URL carries an eventCode, let the effect above load with that
+      // context once the event resolves (or fails) instead of racing it here.
+      const code = this.queryParamMap().get('eventCode');
+      if (code && !this.votingState.event() && !this.votingState.eventLoadError()) return;
+      this.eventsLoadKicked = true;
+      void this.loadEvents();
     });
 
     effect(() => {
@@ -249,6 +262,11 @@ export class AdminShellComponent {
   protected handleLogout(): void {
     this.authState.logoutRoot();
     this.authState.logoutEventManager();
+    // Allow the auto-load effects to fire again on the next login within this tab.
+    this.eventsLoadKicked = false;
+    this.events.set([]);
+    this.selectedEventId.set(null);
+    this.eventsError.set(null);
   }
 
   protected async handleLoginSubmit(password: string): Promise<void> {
