@@ -90,17 +90,24 @@ export class JudgeCodeManagerComponent {
   private lastLoadedEventId: string | null = null;
 
   constructor() {
+    // Reset transient state + reload the snapshot when the selected event changes.
     effect(() => {
       const eventId = this.eventId();
-      const token = this.authToken();
       if (eventId === this.lastLoadedEventId) return;
       this.lastLoadedEventId = eventId;
       this.generatedTokens.set([]);
       this.validationInput.set('');
       this.validationResult.set(null);
       void this.loadTokens();
+    });
 
-      const url = this.judgeTokensApi.buildJudgeTokenStreamUrl(eventId, token);
+    // Live token updates over SSE. The effect re-runs when the event or auth
+    // token changes; `onCleanup` closes the previous EventSource before the next
+    // one opens and also fires on component destroy — a returned function would
+    // be ignored by `effect`, orphaning the connection.
+    effect((onCleanup) => {
+      const eventId = this.eventId();
+      const url = this.judgeTokensApi.buildJudgeTokenStreamUrl(eventId, this.authToken());
       const subscription = this.stream.connect(url).subscribe({
         next: (payload) => {
           if (payload.eventId === eventId) {
@@ -109,7 +116,7 @@ export class JudgeCodeManagerComponent {
           }
         },
       });
-      return () => subscription.unsubscribe();
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 
