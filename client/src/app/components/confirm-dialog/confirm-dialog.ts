@@ -29,7 +29,7 @@ export interface ConfirmDialogData {
         <button
           type="button"
           (click)="dialogRef.close(true)"
-          class="rounded-2xl bg-accent-cyan px-4 py-2 text-sm font-semibold text-[#1a1206] hover:bg-accent-cyan/90 transition"
+          class="rounded-2xl bg-accent-cyan px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cyan/90 transition"
         >
           {{ data.confirmLabel }}
         </button>
