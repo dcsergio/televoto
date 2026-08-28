@@ -7,9 +7,9 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Codici Voto</p>
-        <h2 class="mt-2 text-2xl font-bold text-text-primary">Codici di voto per la giuria</h2>
+        <h2 class="mt-2 text-2xl font-bold text-text-primary">Codici di voto</h2>
         <p class="mt-2 max-w-2xl text-sm text-text-secondary">
-          Genera i codici, consegnali ai giudici tramite QR, validali o revocali. L'elenco si aggiorna in tempo reale.
+          Genera i codici, consegnali tramite QR, validali o revocali. L'elenco si aggiorna in tempo reale.
         </p>
       </div>
       <div class="grid grid-cols-3 gap-3 text-sm">
@@ -27,7 +27,7 @@
         </div>
       </div>
       <p class="w-full text-xs text-text-secondary">
-        Qualificata: {{ qualifiedTokens().length }} codici &middot; Popolare: {{ popularTokens().length }} codici
+        Giuria: {{ qualifiedTokens().length }} codici &middot; Televoto: {{ popularTokens().length }} codici
       </p>
     </div>
 
@@ -62,34 +62,38 @@
             />
           </label>
           <label class="space-y-2">
-            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Lunghezza</span>
-            <div class="rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2 text-text-primary">16 caratteri fissi</div>
-          </label>
-          <label class="space-y-2">
-            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Prefisso</span>
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Prefisso etichetta</span>
             <input
               type="text"
               [ngModel]="generatorForm().labelPrefix"
               (ngModelChange)="updateGeneratorForm({ labelPrefix: $event })"
               name="labelPrefix"
               class="field-input"
-              placeholder="Giudice"
+              placeholder="Giuria"
             />
           </label>
-          <label class="space-y-2">
-            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Tipo giuria</span>
+          <label class="space-y-2 sm:col-span-2">
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Tipo</span>
             <select
               [ngModel]="generatorForm().voterType"
               (ngModelChange)="onVoterTypeChange($event)"
               name="voterType"
               class="field-input"
             >
-              <option value="QUALIFICATA">Giuria Qualificata</option>
-              <option value="POPOLARE">Giuria Popolare</option>
+              <option value="QUALIFICATA">Giuria</option>
+              <option value="POPOLARE">Pubblico (Televoto)</option>
             </select>
           </label>
-          <label class="space-y-2 sm:col-span-2">
-            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Base URL</span>
+        </div>
+
+        <p class="mt-3 text-xs text-text-secondary">Ogni codice ha una lunghezza fissa di 16 caratteri.</p>
+
+        <details class="mt-3 rounded-2xl border border-border-glass bg-bg-secondary px-4 py-3">
+          <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
+            Opzioni avanzate
+          </summary>
+          <label class="mt-3 block space-y-2">
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Base URL dei link</span>
             <input
               type="url"
               [ngModel]="generatorForm().baseUrl"
@@ -98,103 +102,38 @@
               class="field-input"
               placeholder="https://televoto.example.com"
             />
+            <span class="block text-xs text-text-secondary">
+              Predefinito: l'indirizzo di questo sito. Cambialo solo se i QR devono puntare a un dominio diverso.
+            </span>
           </label>
-        </div>
+        </details>
 
         <button type="submit" [disabled]="generating()" class="btn btn-primary mt-5">
           {{ generating() ? 'Generazione...' : 'Genera codici' }}
         </button>
-
-        @if (generatedTokens().length > 0) {
-          <div class="mt-6 space-y-4">
-            <div class="flex items-center justify-between gap-3">
-              <h4 class="text-sm font-semibold uppercase tracking-[0.2em] text-text-secondary">Ultimi codici generati</h4>
-              <div class="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  (click)="copyAllLinks()"
-                  class="btn btn-ghost btn-sm"
-                >
-                  Copia tutti i link
-                </button>
-                <button type="button" (click)="handlePrintA4Sheet()" class="btn btn-tinted btn-sm">
-                  Stampa foglio A4
-                </button>
-              </div>
-            </div>
-            <div class="space-y-3">
-              @for (token of generatedTokens(); track token.id) {
-                <div class="surface-panel bg-bg-secondary p-4">
-                  <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p class="text-sm font-semibold text-text-primary">{{ token.label ?? 'Codice giudice' }}</p>
-                      <p class="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
-                        {{ token.type === 'QUALIFICATA' ? 'Giuria qualificata' : 'Giuria popolare' }}
-                      </p>
-                    </div>
-                    <span class="rounded-md border px-2.5 py-1 text-xs font-semibold" [class]="getStatusClass(token.status)">
-                      {{ getStatusLabel(token.status) }}
-                    </span>
-                  </div>
-
-                  <div class="mt-4 grid gap-4 lg:grid-cols-[auto_1fr]">
-                    <app-qr-code-preview [value]="token.url" [label]="qrLabelFor(token)" />
-                    <div class="space-y-2 text-sm">
-                      <div class="rounded-xl border border-border-glass bg-bg-primary px-3 py-2 font-mono text-xs break-all text-text-primary">
-                        {{ formatJudgeToken(token.token) }}
-                      </div>
-                      <div class="rounded-xl border border-border-glass bg-bg-primary px-3 py-2 text-xs break-all text-text-secondary">
-                        {{ token.url }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="mt-4 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      (click)="handleCopy(formatJudgeToken(token.token), 'Codice copiato')"
-                      class="btn btn-ghost btn-sm"
-                    >
-                      Copia codice
-                    </button>
-                    <button
-                      type="button"
-                      (click)="handleCopy(token.url, 'Link copiato')"
-                      class="btn btn-ghost btn-sm"
-                    >
-                      Copia URL QR
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        }
       </form>
 
-      <div class="space-y-6">
-        <form (ngSubmit)="handleValidate()" class="surface-panel bg-bg-primary/60 p-5">
-          <h3 class="text-lg font-semibold text-text-primary">Valida un codice</h3>
-          <p class="mt-1 text-sm text-text-secondary">Inserisci un codice opaco per verificare se &egrave; attivo, gi&agrave; usato o revocato.</p>
-          <div class="mt-4 space-y-3">
-            <textarea
-              [ngModel]="validationInput()"
-              (ngModelChange)="validationInput.set($event)"
-              name="validationInput"
-              rows="4"
-              placeholder="Incolla qui il codice"
-              class="field-input text-sm"
-            ></textarea>
-            <button type="submit" [disabled]="validationLoading()" class="btn btn-ghost">
-              {{ validationLoading() ? 'Verifica...' : 'Valida codice' }}
-            </button>
-          </div>
-        </form>
+      <form (ngSubmit)="handleValidate()" class="surface-panel bg-bg-primary/60 p-5">
+        <h3 class="text-lg font-semibold text-text-primary">Valida un codice</h3>
+        <p class="mt-1 text-sm text-text-secondary">Inserisci un codice opaco per verificare se &egrave; attivo, gi&agrave; usato o revocato.</p>
+        <div class="mt-4 space-y-3">
+          <textarea
+            [ngModel]="validationInput()"
+            (ngModelChange)="validationInput.set($event)"
+            name="validationInput"
+            rows="4"
+            placeholder="Incolla qui il codice"
+            class="field-input text-sm"
+          ></textarea>
+          <button type="submit" [disabled]="validationLoading()" class="btn btn-ghost">
+            {{ validationLoading() ? 'Verifica...' : 'Valida codice' }}
+          </button>
+        </div>
 
         @if (validationResult(); as vr) {
-          <div class="surface-panel bg-bg-primary/60 p-5">
+          <div class="mt-4 rounded-2xl border border-border-glass bg-bg-secondary p-4">
             <div class="flex items-center justify-between gap-3">
-              <h3 class="text-lg font-semibold text-text-primary">Risultato validazione</h3>
+              <h4 class="text-sm font-semibold text-text-primary">Risultato validazione</h4>
               <span class="rounded-md border px-2.5 py-1 text-xs font-semibold" [class]="getStatusClass(vr.status)">
                 {{ getStatusLabel(vr.status) }}
               </span>
@@ -202,15 +141,15 @@
             <p class="mt-3 text-sm text-text-secondary">{{ vr.message }}</p>
             @if (vr.code) {
               <dl class="mt-4 grid gap-3 text-sm text-text-primary">
-                <div class="rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
+                <div class="rounded-2xl border border-border-glass bg-bg-primary px-3 py-2">
                   <dt class="text-xs uppercase tracking-[0.2em] text-text-secondary">Etichetta</dt>
                   <dd class="mt-1 font-semibold">{{ vr.code.label ?? '-' }}</dd>
                 </div>
-                <div class="rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
+                <div class="rounded-2xl border border-border-glass bg-bg-primary px-3 py-2">
                   <dt class="text-xs uppercase tracking-[0.2em] text-text-secondary">Creato</dt>
                   <dd class="mt-1 font-semibold">{{ formatDate(vr.code.createdAt) }}</dd>
                 </div>
-                <div class="rounded-2xl border border-border-glass bg-bg-secondary px-3 py-2">
+                <div class="rounded-2xl border border-border-glass bg-bg-primary px-3 py-2">
                   <dt class="text-xs uppercase tracking-[0.2em] text-text-secondary">Usato</dt>
                   <dd class="mt-1 font-semibold">{{ formatDate(vr.code.usedAt) }}</dd>
                 </div>
@@ -218,55 +157,106 @@
             }
           </div>
         }
+      </form>
+    </div>
 
-        <div class="surface-panel bg-bg-primary/60 p-5">
-          <div class="flex items-center justify-between gap-3">
-            <h3 class="text-lg font-semibold text-text-primary">Codici attivi</h3>
-            <button type="button" (click)="loadTokens()" class="btn btn-ghost btn-sm">Aggiorna</button>
-          </div>
+    @if (hasFreshCodes()) {
+      <div class="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+        <p class="text-sm font-semibold text-amber-100">
+          Stampa o copia ora — per sicurezza i codici non saranno pi&ugrave; visibili in chiaro dopo aver lasciato questa pagina.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" (click)="handlePrintA4Sheet()" class="btn btn-primary btn-sm">Stampa foglio A4</button>
+          <button type="button" (click)="copyAllLinks()" class="btn btn-tinted btn-sm">Copia tutti i link</button>
+        </div>
+      </div>
+    }
 
-          @if (activeTokens().length === 0) {
-            <p class="mt-4 text-sm text-text-secondary">Nessun codice attivo presente per questo evento.</p>
-          } @else {
-            <div class="mt-4 space-y-3">
-              @for (token of activeTokens(); track token.id) {
-                <div class="surface-panel bg-bg-secondary p-4">
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <p class="font-semibold text-text-primary">{{ token.label ?? 'Codice giudice' }}</p>
-                      <p class="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
-                        {{ token.type === 'QUALIFICATA' ? 'Giuria qualificata' : 'Giuria popolare' }}
-                      </p>
-                      <p class="mt-1 text-xs font-mono tracking-[0.2em] text-text-secondary">{{ token.tokenPreview }}&bull;&bull;&bull;&bull;</p>
-                    </div>
-                    <span class="text-xs text-text-secondary">Creato {{ formatDate(token.createdAt) }}</span>
+    <div class="surface-panel mt-6 bg-bg-primary/60 p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold text-text-primary">Codici attivi</h3>
+        <button type="button" (click)="loadTokens()" class="btn btn-ghost btn-sm">Aggiorna</button>
+      </div>
+
+      @if (listTokens().length === 0) {
+        <p class="mt-4 text-sm text-text-secondary">Nessun codice attivo presente per questo evento.</p>
+      } @else {
+        <div class="mt-4 space-y-3">
+          @for (token of listTokens(); track token.id) {
+            @let fresh = generatedById().get(token.id);
+            <div class="surface-panel bg-bg-secondary p-4" [class.border-amber-500]="fresh">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-semibold text-text-primary">{{ token.label ?? 'Codice di voto' }}</p>
+                    @if (fresh) {
+                      <span class="rounded-md border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-100">
+                        nuovo
+                      </span>
+                    }
                   </div>
+                  <p class="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">{{ typeLabel(token.type) }}</p>
+                </div>
+                <span class="rounded-md border px-2.5 py-1 text-xs font-semibold" [class]="getStatusClass(token.status)">
+                  {{ getStatusLabel(token.status) }}
+                </span>
+              </div>
 
-                  <div class="mt-4 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      (click)="confirmReissue(token.id)"
-                      [disabled]="reissuingId() === token.id"
-                      title="Il codice originale non è più recuperabile: genera un codice nuovo e sposta su di esso gli eventuali voti già dati"
-                      class="btn btn-tinted btn-sm"
-                    >
-                      {{ reissuingId() === token.id ? 'Rigenerazione...' : 'Codice perso? Rigenera' }}
-                    </button>
-                    <button
-                      type="button"
-                      (click)="confirmRevoke(token.id)"
-                      [disabled]="revokingId() === token.id"
-                      class="btn btn-danger btn-sm"
-                    >
-                      {{ revokingId() === token.id ? 'Revoca...' : 'Revoca codice' }}
-                    </button>
+              @if (fresh; as f) {
+                <div class="mt-4 grid gap-4 lg:grid-cols-[auto_1fr]">
+                  <app-qr-code-preview [value]="f.url" [label]="qrLabelFor(f)" />
+                  <div class="space-y-2 text-sm">
+                    <div class="rounded-xl border border-border-glass bg-bg-primary px-3 py-2 font-mono text-xs break-all text-text-primary">
+                      {{ formatJudgeToken(f.token) }}
+                    </div>
+                    <div class="rounded-xl border border-border-glass bg-bg-primary px-3 py-2 text-xs break-all text-text-secondary">
+                      {{ f.url }}
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                      <button
+                        type="button"
+                        (click)="handleCopy(formatJudgeToken(f.token), 'Codice copiato')"
+                        class="btn btn-ghost btn-sm"
+                      >
+                        Copia codice
+                      </button>
+                      <button type="button" (click)="handleCopy(f.url, 'Link copiato')" class="btn btn-ghost btn-sm">
+                        Copia URL QR
+                      </button>
+                    </div>
                   </div>
                 </div>
+              } @else {
+                <p class="mt-3 text-xs font-mono tracking-[0.2em] text-text-secondary">
+                  {{ token.tokenPreview }}&bull;&bull;&bull;&bull;
+                </p>
               }
+
+              <p class="mt-3 text-xs text-text-secondary">Creato {{ formatDate(token.createdAt) }}</p>
+
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  (click)="confirmReissue(token.id)"
+                  [disabled]="reissuingId() === token.id"
+                  title="Il codice originale non è più recuperabile: genera un codice nuovo e sposta su di esso gli eventuali voti già dati"
+                  class="btn btn-tinted btn-sm"
+                >
+                  {{ reissuingId() === token.id ? 'Rigenerazione...' : 'Codice perso? Rigenera' }}
+                </button>
+                <button
+                  type="button"
+                  (click)="confirmRevoke(token.id)"
+                  [disabled]="revokingId() === token.id"
+                  class="btn btn-danger btn-sm"
+                >
+                  {{ revokingId() === token.id ? 'Revoca...' : 'Revoca codice' }}
+                </button>
+              </div>
             </div>
           }
         </div>
-      </div>
+      }
     </div>
   </section>
 }
