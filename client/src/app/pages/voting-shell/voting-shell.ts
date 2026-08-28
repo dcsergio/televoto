@@ -80,11 +80,14 @@ export class VotingShellComponent {
   protected readonly isPopularVoter = computed(() => this.voterType() === 'POPOLARE');
   protected readonly popularVoteMode = computed(() => this.event()?.popularVoteMode ?? 'NUMERIC');
   protected readonly isPreferenceVoteMode = computed(() => this.isPopularVoter() && this.popularVoteMode() === 'PREFERENCE');
-  protected readonly singleVotedCandidateName = computed(() => {
+  protected readonly maxPreferences = computed(() => Math.max(1, this.event()?.maxPreferences ?? 1));
+  protected readonly votedCandidateNames = computed(() => {
     const ev = this.event();
-    const votedId = Object.keys(this.myVotes())[0];
-    return ev?.candidates.find((c) => c.id === votedId)?.name ?? null;
+    if (!ev) return [];
+    const votedIds = new Set(Object.keys(this.myVotes()));
+    return ev.candidates.filter((c) => votedIds.has(c.id)).map((c) => c.name);
   });
+  protected readonly singleVotedCandidateName = computed(() => this.votedCandidateNames().join(', ') || null);
   protected readonly allJudgeVotesCast = computed(() => {
     const ev = this.event();
     if (!ev) return false;
@@ -172,6 +175,12 @@ export class VotingShellComponent {
     const token = this.judgeToken();
     if (!token || !this.canVote()) return;
     this.votingState.castVote(payload.candidateId, payload.score, token, this.isPreferenceVoteMode());
+  }
+
+  protected onUnvote(candidateId: string): void {
+    const token = this.judgeToken();
+    if (!token || !this.canVote()) return;
+    this.votingState.removeVote(candidateId, token);
   }
 
   protected openFinalizeDialog(): void {

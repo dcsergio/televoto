@@ -57,7 +57,7 @@ export async function createEvent(input: CreateEventInput) {
   try {
     const code = input.requestedCode ?? (await createUniqueEventCode());
     const managerPasswordRecord = createPasswordRecord(input.managerPassword);
-    const maxPreferences = input.maxPreferences ?? (input.popularVoteMode === "PREFERENCE" ? 1 : 1);
+    const maxPreferences = input.popularVoteMode === "PREFERENCE" ? Math.max(1, input.maxPreferences ?? 1) : 1;
     return await eventRepository.createEvent({
       code,
       name: input.name,

@@ -135,6 +135,7 @@ export function cloneEvent(source: EventCloneSource, code: string, name: string)
       enableTrimmedMean: source.enableTrimmedMean,
       trimmedMeanPercentage: source.trimmedMeanPercentage,
       popularVoteMode: source.popularVoteMode,
+      maxPreferences: source.maxPreferences,
       candidates: {
         create: source.candidates.map((candidate) => ({
           number: candidate.number,

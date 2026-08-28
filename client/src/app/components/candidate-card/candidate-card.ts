@@ -99,22 +99,43 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
         <div class="px-3.5 pb-3.5 md:px-4 md:pb-4 animate-slide-down">
           <div class="rounded-2xl border border-border-glass bg-bg-secondary p-4">
             <div class="mb-3.5 flex items-center justify-between gap-4">
-              <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
-                Seleziona un punteggio
-              </p>
+              @if (voteMode() === 'PREFERENCE') {
+                <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
+                  {{ isVoted() ? 'Preferenza espressa' : 'Conferma la preferenza' }}
+                </p>
+              } @else {
+                <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
+                  Seleziona un punteggio
+                </p>
+              }
               @if (submitting()) {
                 <span class="text-xs font-semibold text-accent-cyan animate-pulse">Salvataggio...</span>
               }
             </div>
             @if (voteMode() === 'PREFERENCE') {
-              <button
-                type="button"
-                [disabled]="submitting()"
-                (click)="vote.emit({ candidateId: candidate().id, score: 1 })"
-                class="btn btn-primary w-full py-3"
-              >
-                Vota questo candidato
-              </button>
+              @if (isVoted()) {
+                <button
+                  type="button"
+                  [disabled]="submitting()"
+                  (click)="unvote.emit(candidate().id)"
+                  class="btn btn-ghost w-full py-3"
+                >
+                  Rimuovi preferenza
+                </button>
+              } @else if (preferencesFull()) {
+                <button type="button" disabled class="btn btn-ghost w-full py-3">
+                  Preferenze esaurite ({{ votedCount() }}/{{ maxPreferences() }})
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  [disabled]="submitting()"
+                  (click)="vote.emit({ candidateId: candidate().id, score: 1 })"
+                  class="btn btn-primary w-full py-3"
+                >
+                  Vota questo candidato
+                </button>
+              }
             } @else {
               <app-score-selector [value]="votedScore()" (change)="vote.emit({ candidateId: candidate().id, score: $event })" />
             }
@@ -132,11 +153,17 @@ export class CandidateCardComponent {
   readonly delay = input(0);
   readonly voteEnabled = input(false);
   readonly voteMode = input<'NUMERIC' | 'PREFERENCE'>('NUMERIC');
+  readonly maxPreferences = input(1);
+  readonly votedCount = input(0);
 
   readonly pick = output<string>();
   readonly vote = output<{ candidateId: string; score: number }>();
+  readonly unvote = output<string>();
 
   protected readonly isVoted = computed(() => this.votedScore() !== null);
+  protected readonly preferencesFull = computed(
+    () => this.maxPreferences() > 1 && this.votedCount() >= this.maxPreferences(),
+  );
   protected readonly shapeIndex = computed(() => (this.candidate().number - 1) % 6);
 
   protected readonly containerClasses = computed(() => {
