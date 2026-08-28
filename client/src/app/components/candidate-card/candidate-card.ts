@@ -15,7 +15,8 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
     >
       <button
         type="button"
-        (click)="pick.emit(candidate().id)"
+        (click)="onCardClick()"
+        [attr.aria-pressed]="voteMode() === 'PREFERENCE' && voteEnabled() ? isVoted() : null"
         class="relative w-full flex items-center gap-3 md:gap-4 p-3.5 md:p-4 text-left touch-manipulation"
       >
         <span class="absolute inset-y-0 left-0 w-[3px]" [style.background-color]="candidate().color"></span>
@@ -50,22 +51,22 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
         </div>
 
         <span
-          class="font-display text-3xl md:text-4xl font-bold tabular-nums tracking-[-0.04em]"
+          class="font-display text-xl md:text-2xl font-bold tabular-nums tracking-[-0.04em]"
           [style.color]="candidate().color"
-          [style.opacity]="isVoted() && !selected() ? 0.4 : 0.95"
+          [style.opacity]="isVoted() && !selected() ? 0.4 : 0.9"
         >
           {{ candidate().number.toString().padStart(2, '0') }}
         </span>
 
         <div class="flex-1 min-w-0">
           <p
-            class="truncate text-sm font-semibold text-text-primary md:text-base"
+            class="truncate text-xl font-bold text-text-primary md:text-2xl"
             [ngClass]="{ 'opacity-55': isVoted() && !selected() }"
           >
             {{ candidate().name }}
           </p>
           @if (candidate().subtitle) {
-            <p class="text-xs md:text-sm text-text-muted truncate">{{ candidate().subtitle }}</p>
+            <p class="text-xs md:text-sm font-medium text-text-secondary truncate">{{ candidate().subtitle }}</p>
           }
         </div>
 
@@ -95,50 +96,18 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
         </div>
       </button>
 
-      @if (selected() && voteEnabled()) {
+      @if (selected() && voteEnabled() && voteMode() === 'NUMERIC') {
         <div class="px-3.5 pb-3.5 md:px-4 md:pb-4 animate-slide-down">
           <div class="rounded-2xl border border-border-glass bg-bg-secondary p-4">
             <div class="mb-3.5 flex items-center justify-between gap-4">
-              @if (voteMode() === 'PREFERENCE') {
-                <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
-                  {{ isVoted() ? 'Preferenza espressa' : 'Conferma la preferenza' }}
-                </p>
-              } @else {
-                <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
-                  Seleziona un punteggio
-                </p>
-              }
+              <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
+                Seleziona un punteggio
+              </p>
               @if (submitting()) {
                 <span class="text-xs font-semibold text-accent-cyan animate-pulse">Salvataggio...</span>
               }
             </div>
-            @if (voteMode() === 'PREFERENCE') {
-              @if (isVoted()) {
-                <button
-                  type="button"
-                  [disabled]="submitting()"
-                  (click)="unvote.emit(candidate().id)"
-                  class="btn btn-ghost w-full py-3"
-                >
-                  Rimuovi preferenza
-                </button>
-              } @else if (preferencesFull()) {
-                <button type="button" disabled class="btn btn-ghost w-full py-3">
-                  Preferenze esaurite ({{ votedCount() }}/{{ maxPreferences() }})
-                </button>
-              } @else {
-                <button
-                  type="button"
-                  [disabled]="submitting()"
-                  (click)="vote.emit({ candidateId: candidate().id, score: 1 })"
-                  class="btn btn-primary w-full py-3"
-                >
-                  Vota questo candidato
-                </button>
-              }
-            } @else {
-              <app-score-selector [value]="votedScore()" (change)="vote.emit({ candidateId: candidate().id, score: $event })" />
-            }
+            <app-score-selector [value]="votedScore()" (change)="vote.emit({ candidateId: candidate().id, score: $event })" />
           </div>
         </div>
       }
@@ -161,10 +130,25 @@ export class CandidateCardComponent {
   readonly unvote = output<string>();
 
   protected readonly isVoted = computed(() => this.votedScore() !== null);
-  protected readonly preferencesFull = computed(
-    () => this.maxPreferences() > 1 && this.votedCount() >= this.maxPreferences(),
-  );
   protected readonly shapeIndex = computed(() => (this.candidate().number - 1) % 6);
+
+  /**
+   * Preference ballots commit on the first tap (tap = vote, tap again = unvote)
+   * so they match the numeric flow's single-tap scoring — the only safety net
+   * is the shared «Conferma definitiva» dialog. Numeric cards still expand a
+   * score selector, so they just surface the selection.
+   */
+  protected onCardClick(): void {
+    if (this.voteMode() === 'PREFERENCE' && this.voteEnabled()) {
+      if (this.isVoted()) {
+        this.unvote.emit(this.candidate().id);
+      } else {
+        this.vote.emit({ candidateId: this.candidate().id, score: 1 });
+      }
+      return;
+    }
+    this.pick.emit(this.candidate().id);
+  }
 
   protected readonly containerClasses = computed(() => {
     const selected = this.selected();
