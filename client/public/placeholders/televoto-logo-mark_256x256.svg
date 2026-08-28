@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Logo Televoto simbolo — segnaposto">
+  <rect width="256" height="256" rx="56" fill="#0a0a0c"/>
+  <rect x="8" y="8" width="240" height="240" rx="50" fill="none" stroke="#ffb020" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="9 8"/>
+  <g transform="translate(74,60)" fill="#ffb020">
+    <rect x="0" y="0" width="30" height="136" rx="12"/>
+    <rect x="42" y="38" width="30" height="98" rx="12" opacity="0.72"/>
+    <rect x="84" y="74" width="30" height="62" rx="12" opacity="0.46"/>
+  </g>
+  <text x="128" y="224" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="13" fill="#a1a1aa">256 &#215; 256 &#183; simbolo quadrato</text>
+</svg>

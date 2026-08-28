@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320" role="img" aria-label="Illustrazione voto registrato — segnaposto">
+  <rect width="320" height="320" rx="24" fill="#101312"/>
+  <rect x="8" y="8" width="304" height="304" rx="18" fill="none" stroke="#34d399" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="10 8"/>
+  <circle cx="160" cy="140" r="58" fill="none" stroke="#34d399" stroke-opacity="0.7" stroke-width="6"/>
+  <path d="M133 140l19 19 36-40" fill="none" stroke="#34d399" stroke-opacity="0.9" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="160" y="248" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="19" font-weight="700" fill="#f4f4f5" letter-spacing="1">VOTO REGISTRATO</text>
+  <text x="160" y="274" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="13" fill="#a1a1aa">320 &#215; 320 &#183; schermata di conferma voto</text>
+</svg>
