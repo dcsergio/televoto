@@ -43,6 +43,9 @@ export class EventCandidatesManagerComponent {
   protected readonly editDraft = signal<EditDraft | null>(null);
   protected readonly newCandidate = signal({ name: '', subtitle: '', color: getRandomColor() });
 
+  /** C6 — two clear states only: «Automatico» (preview of the next colour) or «Scegli colore» (palette / picker). */
+  protected readonly colorMode = signal<'auto' | 'custom'>('auto');
+
   protected readonly candidateColorPalette = CANDIDATE_COLOR_PALETTE;
   protected readonly modificationsLocked = computed(() => !this.votingClosed());
   protected readonly modificationLockMessage = 'Disponibile solo a televoto chiuso';
@@ -65,6 +68,7 @@ export class EventCandidatesManagerComponent {
       const data = await firstValueFrom(this.candidatesApi.fetchCandidates(this.eventId(), this.authToken()));
       this.candidates.set(data);
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
+      this.colorMode.set('auto');
       this.error.set(null);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore');
@@ -75,6 +79,17 @@ export class EventCandidatesManagerComponent {
 
   protected regenerateNewCandidateColor(): void {
     this.newCandidate.update((prev) => ({ ...prev, color: getRandomColor() }));
+  }
+
+  protected setColorMode(mode: 'auto' | 'custom'): void {
+    this.colorMode.set(mode);
+    if (mode === 'auto') {
+      this.regenerateNewCandidateColor();
+    }
+  }
+
+  protected pickCandidateColor(color: string): void {
+    this.newCandidate.update((prev) => ({ ...prev, color }));
   }
 
   protected startEditingCandidate(candidate: CandidateData): void {
@@ -129,6 +144,7 @@ export class EventCandidatesManagerComponent {
       );
       this.candidates.update((prev) => [...prev, candidate].sort((a, b) => a.number - b.number));
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
+      this.colorMode.set('auto');
       this.error.set(null);
       this.toast.success('Candidato aggiunto');
     } catch (err) {
@@ -153,6 +169,7 @@ export class EventCandidatesManagerComponent {
       const renumbered = ordered.map((c, index) => ({ ...c, number: index + 1 }));
       this.candidates.set(renumbered);
       this.newCandidate.set({ name: '', subtitle: '', color: getRandomColor() });
+      this.colorMode.set('auto');
       this.error.set(null);
       this.toast.success('Candidato eliminato');
     } catch (err) {
