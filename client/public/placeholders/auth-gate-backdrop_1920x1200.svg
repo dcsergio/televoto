@@ -1,18 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" role="img" aria-label="Sfondo pagina di accesso — segnaposto">
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" role="img" aria-label="">
+  <title>Sfondo pagina di accesso</title>
   <defs>
-    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.65">
-      <stop offset="0" stop-color="#211a0d"/>
-      <stop offset="0.55" stop-color="#101013"/>
+    <radialGradient id="pool" cx="0.5" cy="0.36" r="0.72">
+      <stop offset="0" stop-color="#1b160c"/>
+      <stop offset="0.5" stop-color="#0c0c0f"/>
       <stop offset="1" stop-color="#08080a"/>
     </radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#ffb020" stop-opacity="0.04"/>
+    </linearGradient>
+    <radialGradient id="vig" cx="0.5" cy="0.5" r="0.75">
+      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
   </defs>
-  <rect width="1920" height="1200" fill="url(#glow)"/>
-  <rect x="16" y="16" width="1888" height="1168" fill="none" stroke="#ffb020" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="18 12"/>
-  <g transform="translate(884,470)" fill="#ffb020" opacity="0.9">
-    <rect x="0" y="0" width="48" height="180" rx="12"/>
-    <rect x="72" y="52" width="48" height="128" rx="12" opacity="0.7"/>
-    <rect x="144" y="96" width="48" height="84" rx="12" opacity="0.45"/>
+  <rect width="1920" height="1200" fill="url(#pool)"/>
+  <!-- fasci di luce dall'alto -->
+  <g>
+    <polygon points="960,-40 720,1200 900,1200 980,-40" fill="url(#beam)"/>
+    <polygon points="960,-40 1200,1200 1030,1200 980,-40" fill="url(#beam)"/>
+    <polygon points="500,-40 260,1200 430,1200" fill="url(#beam)" opacity="0.6"/>
+    <polygon points="1440,-40 1680,1200 1500,1200" fill="url(#beam)" opacity="0.6"/>
   </g>
-  <text x="960" y="740" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="52" font-weight="700" fill="#f4f4f5" letter-spacing="3">SFONDO ACCESSO</text>
-  <text x="960" y="792" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="24" fill="#a1a1aa">1920 &#215; 1200 &#183; dietro le schede codice evento / area protetta</text>
+  <!-- barre-firma in filigrana -->
+  <g>
+    <rect x="812" y="560" width="72" height="340" rx="18" fill="url(#hero)"/>
+    <rect x="924" y="650" width="72" height="250" rx="18" fill="#ffb020" opacity="0.08"/>
+    <rect x="1036" y="730" width="72" height="170" rx="18" fill="#ffb020" opacity="0.05"/>
+  </g>
+  <!-- skyline di barre sul fondo -->
+  <g fill="#ffb020" opacity="0.06">
+    <rect x="0" y="1052" width="46" height="148"/>
+    <rect x="80" y="980" width="46" height="220"/>
+    <rect x="160" y="1096" width="46" height="104"/>
+    <rect x="240" y="1010" width="46" height="190"/>
+    <rect x="320" y="1110" width="46" height="90"/>
+    <rect x="400" y="1044" width="46" height="156"/>
+    <rect x="480" y="964" width="46" height="236"/>
+    <rect x="560" y="1084" width="46" height="116"/>
+    <rect x="640" y="1024" width="46" height="176"/>
+    <rect x="720" y="1102" width="46" height="98"/>
+    <rect x="800" y="1000" width="46" height="200"/>
+    <rect x="1120" y="1030" width="46" height="170"/>
+    <rect x="1200" y="1094" width="46" height="106"/>
+    <rect x="1280" y="972" width="46" height="228"/>
+    <rect x="1360" y="1064" width="46" height="136"/>
+    <rect x="1440" y="1016" width="46" height="184"/>
+    <rect x="1520" y="1104" width="46" height="96"/>
+    <rect x="1600" y="1040" width="46" height="160"/>
+    <rect x="1680" y="988" width="46" height="212"/>
+    <rect x="1760" y="1088" width="46" height="112"/>
+    <rect x="1840" y="1034" width="46" height="166"/>
+  </g>
+  <g fill="#ffb020" opacity="0.09">
+    <rect x="360" y="1030" width="46" height="170"/>
+    <rect x="880" y="956" width="46" height="244"/>
+    <rect x="1240" y="1010" width="46" height="190"/>
+  </g>
+  <rect width="1920" height="1200" fill="url(#vig)"/>
 </svg>

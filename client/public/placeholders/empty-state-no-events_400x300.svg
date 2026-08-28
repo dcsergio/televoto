@@ -1,10 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="Illustrazione nessun evento — segnaposto">
-  <rect width="400" height="300" rx="20" fill="#111013"/>
-  <rect x="8" y="8" width="384" height="284" rx="16" fill="none" stroke="#ffb020" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="10 8"/>
-  <rect x="132" y="88" width="136" height="96" rx="12" fill="none" stroke="#ffb020" stroke-opacity="0.55" stroke-width="3"/>
-  <line x1="132" y1="118" x2="268" y2="118" stroke="#ffb020" stroke-opacity="0.55" stroke-width="3"/>
-  <line x1="164" y1="80" x2="164" y2="100" stroke="#ffb020" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
-  <line x1="236" y1="80" x2="236" y2="100" stroke="#ffb020" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
-  <text x="200" y="232" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="20" font-weight="700" fill="#f4f4f5" letter-spacing="1">NESSUN EVENTO</text>
-  <text x="200" y="258" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="14" fill="#a1a1aa">400 &#215; 300 &#183; empty state dashboard admin</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="">
+  <title>Empty state — nessun evento (Studio)</title>
+  <rect width="400" height="300" rx="20" fill="#f6f6f7"/>
+  <rect x="1" y="1" width="398" height="298" rx="19" fill="none" stroke="#000000" stroke-opacity="0.08"/>
+  <!-- tre slot-barra vuoti, motivo del brand in chiave Studio -->
+  <g>
+    <rect x="139" y="86" width="40" height="128" rx="12" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="187" y="120" width="40" height="94" rx="12" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.4" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="235" y="150" width="40" height="64" rx="12" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.3" stroke-width="2.5" stroke-dasharray="7 7"/>
+  </g>
+  <!-- affordance "crea": + sopra la barra piu alta -->
+  <g stroke="#b45309" stroke-opacity="0.85" stroke-width="3" stroke-linecap="round">
+    <path d="M159 60 v20 M149 70 h20"/>
+  </g>
+  <rect x="112" y="222" width="176" height="3" rx="1.5" fill="#b45309" opacity="0.35"/>
 </svg>
