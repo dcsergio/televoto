@@ -231,7 +231,7 @@
           class="fixed inset-x-4 bottom-4 z-50 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-glass bg-bg-card/90 p-3 backdrop-blur-md"
         >
           <p class="px-1 text-xs text-text-muted">
-            {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }} rivelati
+            <span class="font-semibold uppercase tracking-[0.15em] text-text-secondary">{{ revealPhaseLabel() }}</span>
             &middot; Spazio prossimo &middot; Backspace annulla &middot; Esc esci
           </p>
           <div class="flex flex-nowrap gap-2 overflow-x-auto">
@@ -288,7 +288,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Reveal progressivo</p>
               <p class="mt-1 text-base font-semibold text-text-primary">Dalla posizione pi&ugrave; bassa verso la vetta</p>
               <p class="mt-1 text-sm text-text-secondary">
-                Rivelati {{ showWinner() ? rankings().length : revealedIndices().length }}/{{ rankings().length }}
+                Fase: <span class="font-semibold text-text-primary">{{ revealPhaseLabel() }}</span>
               </p>
               <p class="mt-1 text-xs text-text-muted">
                 Spazio/Invio prossimo &middot; Backspace annulla &middot; F presentazione &middot; Esc esci

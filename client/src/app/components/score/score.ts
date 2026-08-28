@@ -11,7 +11,7 @@ import { CountUpDirective } from '../../shared/count-up.directive';
 import { formatScore } from '../../shared/format-score.util';
 import { EventCodeGateComponent } from '../event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../protected-page-gate/protected-page-gate';
-import { getButtonLabel, getFinalistLabel, getMedalEmoji, rankingsToCsv } from './score.util';
+import { getButtonLabel, getFinalistLabel, getMedalEmoji, getRevealPhaseLabel, rankingsToCsv } from './score.util';
 
 @Component({
   selector: 'app-score',
@@ -133,6 +133,17 @@ export class ScoreComponent {
   });
   protected readonly heroIsThirdPlace = computed(() => this.presenterHeroIndex() === 2);
   protected readonly runnerUp = computed<RankingEntry | null>(() => this.rankings()[1] ?? null);
+
+  /** Ceremony phase label shown in place of the old "Rivelati X/Y" counter (audit D3 / E4). */
+  protected readonly revealPhaseLabel = computed(() =>
+    getRevealPhaseLabel({
+      showWinner: this.showWinner(),
+      isFinalistsStage: this.isFinalistsStage(),
+      isThirdPlaceStage: this.isThirdPlaceStage(),
+      revealedCount: this.revealedIndices().length,
+      heroPosition: this.presenterHeroIndex() + 1,
+    }),
+  );
 
   private lastRankingsEventId: string | null = null;
 
