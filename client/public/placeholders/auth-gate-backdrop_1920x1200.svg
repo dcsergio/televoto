@@ -1,66 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" role="img" aria-label="">
   <title>Sfondo pagina di accesso</title>
   <defs>
-    <radialGradient id="pool" cx="0.5" cy="0.36" r="0.72">
-      <stop offset="0" stop-color="#1b160c"/>
-      <stop offset="0.5" stop-color="#0c0c0f"/>
+    <radialGradient id="pool" cx="0.5" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="#1e1810"/>
+      <stop offset="0.45" stop-color="#0d0d10"/>
       <stop offset="1" stop-color="#08080a"/>
     </radialGradient>
     <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.10"/>
+      <stop offset="0" stop-color="#ffca57" stop-opacity="0.13"/>
+      <stop offset="0.65" stop-color="#ffb020" stop-opacity="0.025"/>
       <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="hero" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.14"/>
-      <stop offset="1" stop-color="#ffb020" stop-opacity="0.04"/>
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ffb020" stop-opacity="0.03"/>
     </linearGradient>
     <radialGradient id="vig" cx="0.5" cy="0.5" r="0.75">
-      <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.58"/>
     </radialGradient>
   </defs>
   <rect width="1920" height="1200" fill="url(#pool)"/>
-  <!-- fasci di luce dall'alto -->
+  <!-- spotlight beams from above -->
   <g>
-    <polygon points="960,-40 720,1200 900,1200 980,-40" fill="url(#beam)"/>
-    <polygon points="960,-40 1200,1200 1030,1200 980,-40" fill="url(#beam)"/>
-    <polygon points="500,-40 260,1200 430,1200" fill="url(#beam)" opacity="0.6"/>
-    <polygon points="1440,-40 1680,1200 1500,1200" fill="url(#beam)" opacity="0.6"/>
+    <polygon points="960,-60 700,1200 900,1200 985,-60" fill="url(#beam)"/>
+    <polygon points="960,-60 1220,1200 1035,1200 985,-60" fill="url(#beam)"/>
+    <polygon points="470,-60 250,1200 430,1200" fill="url(#beam)" opacity="0.55"/>
+    <polygon points="1450,-60 1670,1200 1490,1200" fill="url(#beam)" opacity="0.55"/>
   </g>
-  <!-- barre-firma in filigrana -->
+  <!-- signature bars, watermark -->
   <g>
-    <rect x="812" y="560" width="72" height="340" rx="18" fill="url(#hero)"/>
-    <rect x="924" y="650" width="72" height="250" rx="18" fill="#ffb020" opacity="0.08"/>
-    <rect x="1036" y="730" width="72" height="170" rx="18" fill="#ffb020" opacity="0.05"/>
+    <rect x="806" y="540" width="80" height="370" rx="22" fill="url(#hero)"/>
+    <rect x="922" y="636" width="80" height="274" rx="22" fill="#ffb020" opacity="0.07"/>
+    <rect x="1038" y="720" width="80" height="190" rx="22" fill="#ffb020" opacity="0.045"/>
+    <rect x="792" y="909" width="326" height="3" rx="1.5" fill="#ffd58a" opacity="0.16"/>
   </g>
-  <!-- skyline di barre sul fondo -->
-  <g fill="#ffb020" opacity="0.06">
-    <rect x="0" y="1052" width="46" height="148"/>
-    <rect x="80" y="980" width="46" height="220"/>
-    <rect x="160" y="1096" width="46" height="104"/>
-    <rect x="240" y="1010" width="46" height="190"/>
-    <rect x="320" y="1110" width="46" height="90"/>
-    <rect x="400" y="1044" width="46" height="156"/>
-    <rect x="480" y="964" width="46" height="236"/>
-    <rect x="560" y="1084" width="46" height="116"/>
-    <rect x="640" y="1024" width="46" height="176"/>
-    <rect x="720" y="1102" width="46" height="98"/>
-    <rect x="800" y="1000" width="46" height="200"/>
-    <rect x="1120" y="1030" width="46" height="170"/>
-    <rect x="1200" y="1094" width="46" height="106"/>
-    <rect x="1280" y="972" width="46" height="228"/>
-    <rect x="1360" y="1064" width="46" height="136"/>
-    <rect x="1440" y="1016" width="46" height="184"/>
-    <rect x="1520" y="1104" width="46" height="96"/>
-    <rect x="1600" y="1040" width="46" height="160"/>
-    <rect x="1680" y="988" width="46" height="212"/>
-    <rect x="1760" y="1088" width="46" height="112"/>
-    <rect x="1840" y="1034" width="46" height="166"/>
-  </g>
-  <g fill="#ffb020" opacity="0.09">
-    <rect x="360" y="1030" width="46" height="170"/>
-    <rect x="880" y="956" width="46" height="244"/>
-    <rect x="1240" y="1010" width="46" height="190"/>
+  <!-- skyline of bars on the floor -->
+  <g fill="#ffb020">
+    <rect x="0" y="1052" width="44" height="148" opacity="0.055"/>
+    <rect x="78" y="978" width="44" height="222" opacity="0.06"/>
+    <rect x="156" y="1096" width="44" height="104" opacity="0.05"/>
+    <rect x="234" y="1008" width="44" height="192" opacity="0.075"/>
+    <rect x="312" y="1110" width="44" height="90" opacity="0.045"/>
+    <rect x="390" y="1044" width="44" height="156" opacity="0.06"/>
+    <rect x="468" y="962" width="44" height="238" opacity="0.09"/>
+    <rect x="546" y="1084" width="44" height="116" opacity="0.05"/>
+    <rect x="624" y="1022" width="44" height="178" opacity="0.07"/>
+    <rect x="702" y="1102" width="44" height="98" opacity="0.045"/>
+    <rect x="780" y="998" width="44" height="202" opacity="0.08"/>
+    <rect x="1096" y="1028" width="44" height="172" opacity="0.075"/>
+    <rect x="1174" y="1094" width="44" height="106" opacity="0.05"/>
+    <rect x="1252" y="970" width="44" height="230" opacity="0.09"/>
+    <rect x="1330" y="1064" width="44" height="136" opacity="0.055"/>
+    <rect x="1408" y="1014" width="44" height="186" opacity="0.07"/>
+    <rect x="1486" y="1104" width="44" height="96" opacity="0.045"/>
+    <rect x="1564" y="1040" width="44" height="160" opacity="0.06"/>
+    <rect x="1642" y="986" width="44" height="214" opacity="0.08"/>
+    <rect x="1720" y="1088" width="44" height="112" opacity="0.05"/>
+    <rect x="1798" y="1034" width="44" height="166" opacity="0.06"/>
+    <rect x="1876" y="1100" width="44" height="100" opacity="0.045"/>
   </g>
   <rect width="1920" height="1200" fill="url(#vig)"/>
 </svg>

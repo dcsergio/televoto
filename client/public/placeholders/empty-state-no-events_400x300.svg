@@ -1,16 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="">
   <title>Empty state — nessun evento (Studio)</title>
-  <rect width="400" height="300" rx="20" fill="#f6f6f7"/>
+  <defs>
+    <linearGradient id="enebg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f4f4f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" rx="20" fill="url(#enebg)"/>
   <rect x="1" y="1" width="398" height="298" rx="19" fill="none" stroke="#000000" stroke-opacity="0.08"/>
-  <!-- tre slot-barra vuoti, motivo del brand in chiave Studio -->
+  <!-- three empty podium slots, brand motif in Studio key -->
   <g>
-    <rect x="139" y="86" width="40" height="128" rx="12" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="7 7"/>
-    <rect x="187" y="120" width="40" height="94" rx="12" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.4" stroke-width="2.5" stroke-dasharray="7 7"/>
-    <rect x="235" y="150" width="40" height="64" rx="12" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.3" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="135" y="80" width="42" height="134" rx="13" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.55" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="185" y="116" width="42" height="98" rx="13" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.4" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="235" y="148" width="42" height="66" rx="13" fill="#b45309" fill-opacity="0.06" stroke="#b45309" stroke-opacity="0.3" stroke-width="2.5" stroke-dasharray="7 7"/>
   </g>
-  <!-- affordance "crea": + sopra la barra piu alta -->
-  <g stroke="#b45309" stroke-opacity="0.85" stroke-width="3" stroke-linecap="round">
-    <path d="M159 60 v20 M149 70 h20"/>
+  <!-- "create" affordance: + above the tallest slot -->
+  <g stroke="#b45309" stroke-opacity="0.9" stroke-width="3" stroke-linecap="round">
+    <path d="M156 54 v20 M146 64 h20"/>
   </g>
-  <rect x="112" y="222" width="176" height="3" rx="1.5" fill="#b45309" opacity="0.35"/>
+  <rect x="108" y="221" width="188" height="3" rx="1.5" fill="#b45309" opacity="0.35"/>
 </svg>

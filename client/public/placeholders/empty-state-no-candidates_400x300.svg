@@ -1,20 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="">
   <title>Empty state — nulla ancora (Palco)</title>
   <defs>
-    <radialGradient id="escspot" cx="0.5" cy="0.42" r="0.62">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.08"/>
+    <radialGradient id="escspot" cx="0.5" cy="0.4" r="0.66">
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.10"/>
       <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="400" height="300" rx="20" fill="#111013"/>
+  <rect width="400" height="300" rx="20" fill="#111014"/>
   <rect width="400" height="300" rx="20" fill="url(#escspot)"/>
   <rect x="1" y="1" width="398" height="298" rx="19" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
-  <!-- tre slot-barra vuoti, in attesa -->
+  <!-- three empty podium slots, waiting -->
   <g>
-    <rect x="139" y="86" width="40" height="128" rx="12" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.5" stroke-width="2.5" stroke-dasharray="7 7"/>
-    <rect x="187" y="120" width="40" height="94" rx="12" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.36" stroke-width="2.5" stroke-dasharray="7 7"/>
-    <rect x="235" y="150" width="40" height="64" rx="12" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.26" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="135" y="80" width="42" height="134" rx="13" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.5" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="185" y="116" width="42" height="98" rx="13" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.35" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="235" y="148" width="42" height="66" rx="13" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.25" stroke-width="2.5" stroke-dasharray="7 7"/>
   </g>
-  <!-- pedana -->
-  <rect x="112" y="222" width="176" height="3" rx="1.5" fill="#ffb020" opacity="0.3"/>
+  <!-- stage line -->
+  <rect x="108" y="221" width="188" height="3" rx="1.5" fill="#ffd58a" opacity="0.3"/>
 </svg>

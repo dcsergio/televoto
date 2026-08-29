@@ -1,55 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440" role="img" aria-label="">
   <title>Sfondo palco — schermata d'attesa Classifica</title>
   <defs>
-    <radialGradient id="floor" cx="0.5" cy="0.98" r="1.05">
-      <stop offset="0" stop-color="#241c0e"/>
-      <stop offset="0.42" stop-color="#14110c"/>
-      <stop offset="1" stop-color="#070709"/>
+    <radialGradient id="floor" cx="0.5" cy="1" r="1.1">
+      <stop offset="0" stop-color="#2a2010"/>
+      <stop offset="0.4" stop-color="#15120c"/>
+      <stop offset="1" stop-color="#060608"/>
     </radialGradient>
     <linearGradient id="beam2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffca57" stop-opacity="0.14"/>
+      <stop offset="0" stop-color="#ffca57" stop-opacity="0.16"/>
       <stop offset="0.7" stop-color="#ffb020" stop-opacity="0.03"/>
       <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="markfade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.10"/>
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.12"/>
       <stop offset="1" stop-color="#ffb020" stop-opacity="0.03"/>
     </linearGradient>
-    <radialGradient id="vig2" cx="0.5" cy="0.46" r="0.8">
-      <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="0.6"/>
+    <radialGradient id="vig2" cx="0.5" cy="0.44" r="0.82">
+      <stop offset="0.48" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.62"/>
     </radialGradient>
   </defs>
-  <rect width="2560" height="1440" fill="#070709"/>
+  <rect width="2560" height="1440" fill="#060608"/>
   <rect width="2560" height="1440" fill="url(#floor)"/>
-  <!-- fascio riflettori dall'alto -->
+  <!-- spotlight fans from above -->
   <g>
-    <polygon points="1280,-120 780,1440 1010,1440 1300,-120" fill="url(#beam2)"/>
-    <polygon points="1280,-120 1780,1440 1550,1440 1260,-120" fill="url(#beam2)"/>
-    <polygon points="1280,-120 520,1440 760,1440" fill="url(#beam2)" opacity="0.55"/>
-    <polygon points="1280,-120 2040,1440 1800,1440" fill="url(#beam2)" opacity="0.55"/>
+    <polygon points="1280,-140 760,1440 1000,1440 1300,-140" fill="url(#beam2)"/>
+    <polygon points="1280,-140 1800,1440 1560,1440 1260,-140" fill="url(#beam2)"/>
+    <polygon points="1280,-140 500,1440 750,1440" fill="url(#beam2)" opacity="0.5"/>
+    <polygon points="1280,-140 2060,1440 1810,1440" fill="url(#beam2)" opacity="0.5"/>
   </g>
-  <!-- barre-firma in filigrana al centro -->
+  <!-- watermark bars, centre stage -->
   <g>
-    <rect x="1120" y="470" width="96" height="470" rx="24" fill="url(#markfade)"/>
-    <rect x="1266" y="602" width="96" height="338" rx="24" fill="#ffb020" opacity="0.06"/>
-    <rect x="1412" y="712" width="96" height="228" rx="24" fill="#ffb020" opacity="0.04"/>
+    <rect x="1110" y="452" width="104" height="490" rx="26" fill="url(#markfade)"/>
+    <rect x="1258" y="586" width="104" height="356" rx="26" fill="#ffb020" opacity="0.055"/>
+    <rect x="1406" y="700" width="104" height="242" rx="26" fill="#ffb020" opacity="0.038"/>
+    <rect x="1090" y="940" width="440" height="3" rx="1.5" fill="#ffd58a" opacity="0.16"/>
   </g>
-  <!-- orizzonte: barre basse -->
+  <!-- horizon of low bars -->
   <g fill="#ffb020" opacity="0.05">
-    <rect x="120" y="1150" width="60" height="290"/>
-    <rect x="300" y="1240" width="60" height="200"/>
-    <rect x="480" y="1120" width="60" height="320"/>
-    <rect x="660" y="1270" width="60" height="170"/>
-    <rect x="840" y="1200" width="60" height="240"/>
-    <rect x="1700" y="1210" width="60" height="230"/>
-    <rect x="1880" y="1140" width="60" height="300"/>
-    <rect x="2060" y="1260" width="60" height="180"/>
-    <rect x="2240" y="1180" width="60" height="260"/>
-    <rect x="2400" y="1240" width="60" height="200"/>
+    <rect x="110" y="1150" width="58" height="290"/>
+    <rect x="290" y="1240" width="58" height="200"/>
+    <rect x="470" y="1120" width="58" height="320"/>
+    <rect x="650" y="1270" width="58" height="170"/>
+    <rect x="830" y="1200" width="58" height="240"/>
+    <rect x="1690" y="1210" width="58" height="230"/>
+    <rect x="1870" y="1140" width="58" height="300"/>
+    <rect x="2050" y="1260" width="58" height="180"/>
+    <rect x="2230" y="1180" width="58" height="260"/>
+    <rect x="2400" y="1240" width="58" height="200"/>
   </g>
-  <!-- pulviscolo di luce -->
-  <g fill="#ffd76a" opacity="0.16">
+  <!-- light dust -->
+  <g fill="#ffd76a" opacity="0.14">
     <circle cx="600" cy="360" r="3"/>
     <circle cx="880" cy="240" r="2.5"/>
     <circle cx="1180" cy="420" r="2"/>
