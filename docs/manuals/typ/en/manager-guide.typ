@@ -284,16 +284,22 @@ Each candidate's final score combines two components:
   set text(0.92em)
   raw("Qualified average = sum of qualified judges' scores ÷ number of active QUALIFIED codes (not just those who voted)")
   parbreak()
-  raw("Public average (numeric vote) = average of public votes (optionally a \"trimmed mean\" to reduce the effect of anomalous votes)")
+  raw("Public average (numeric vote) = average of the public votes ACTUALLY cast (optionally a \"trimmed mean\" to reduce the effect of anomalous votes)")
   parbreak()
   raw("Public average (preference vote) = candidate's share of all preferences cast, rescaled to 0-10")
   parbreak()
   raw("Final score = (Qualified average × Qualified weight) + (Public average × Public weight)")
 })
 
-- *Abstentions count*: the qualified judges' average is divided by all valid QUALIFIED codes
-  assigned to the event, not only the ones actually used — so a qualified judge who doesn't
-  vote still lowers the candidate's average.
+- *Qualified abstentions count*: the qualified judges' average is divided by all valid QUALIFIED
+  codes assigned to the event, not only the ones actually used — so a qualified judge who
+  doesn't vote still lowers the candidate's average.
+- *Public abstentions do NOT count*: public turnout can be intermittent during the evening, so
+  the public average is computed only over the votes actually cast — a member of the public who
+  doesn't vote is not counted as a zero. If a candidate receives *no* public vote at all, the
+  public component is dropped from that candidate's score and the qualified weight is
+  renormalised to 100% (final score = qualified average); the rankings show the public average
+  as "n/d (esclusa dal calcolo)".
 - *Preference-based public vote*: if the event uses "Preferences" mode (the public picks one or
   more candidates instead of scoring them), a candidate's public component is its share of all
   preferences cast, rescaled to 0–10. The trimmed mean is not applied in this mode.

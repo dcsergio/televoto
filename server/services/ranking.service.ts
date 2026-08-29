@@ -32,6 +32,47 @@ function computePopularVoteShare(candidateVoteCount: number, totalVotesCast: num
   return totalVotesCast > 0 ? (candidateVoteCount / totalVotesCast) * 10 : 0;
 }
 
+/**
+ * Blends the qualified and popular averages using the per-event weights.
+ *
+ * Public participation can be discontinuous over the evening, so a candidate
+ * with no popular signal at all must not be penalised with a 0 on the popular
+ * side: in that case (`popularComponentApplies === false`) the popular component
+ * is dropped and the qualified weight is renormalised to 100% (final score =
+ * qualified average). When the popular component applies and the weights sum to
+ * 100 this is identical to the old formula.
+ */
+function blendFinalScore(
+  avgQualificata: number,
+  avgPopolare: number,
+  popularComponentApplies: boolean,
+  settings: { weightQualificata: number; weightPopolare: number },
+): number {
+  const weightQualificata = settings.weightQualificata;
+  const weightPopolare = popularComponentApplies ? settings.weightPopolare : 0;
+  const totalWeight = weightQualificata + weightPopolare;
+  if (totalWeight <= 0) return 0;
+  return (avgQualificata * weightQualificata + avgPopolare * weightPopolare) / totalWeight;
+}
+
+/**
+ * Whether a candidate's popular component should count toward the blended score.
+ *
+ * - NUMERIC: applies as soon as the candidate has at least one popular score.
+ *   A candidate that came up during a lull in public turnout gets no popular
+ *   votes and is scored on the qualified jury alone.
+ * - PREFERENCE: applies as soon as *any* preference was cast in the whole event.
+ *   Here a candidate with zero preferences is a real result (people voted, just
+ *   not for them), not an abstention, so it must not be excused.
+ */
+function popularComponentApplies(
+  popularVoteMode: RankingSettings["popularVoteMode"],
+  candidatePopularVoteCount: number,
+  totalPopularVotesCast: number,
+): boolean {
+  return popularVoteMode === "PREFERENCE" ? totalPopularVotesCast > 0 : candidatePopularVoteCount > 0;
+}
+
 async function loadRankingInputs(eventId: string) {
   const [event, candidates, qualifiedTokenIds] = await Promise.all([
     eventRepository.findEventRankingSettings(eventId),
@@ -87,7 +128,12 @@ export async function getRankings(eventId: string) {
         event.popularVoteMode === "PREFERENCE"
           ? computePopularVoteShare(candidateVotes.popularScores.length, totalPopularVotesCast)
           : computeTrimmedMean(candidateVotes.popularScores, event);
-      const finalScore = avgQualificata * (event.weightQualificata / 100) + avgPopolare * (event.weightPopolare / 100);
+      const applyPopular = popularComponentApplies(
+        event.popularVoteMode,
+        candidateVotes.popularScores.length,
+        totalPopularVotesCast,
+      );
+      const finalScore = blendFinalScore(avgQualificata, avgPopolare, applyPopular, event);
       const totalValidVotes = candidateVotes.qualifiedScores.length + candidateVotes.popularScores.length;
 
       return {
@@ -104,6 +150,7 @@ export async function getRankings(eventId: string) {
             : 0,
         avgQualificata,
         avgPopolare,
+        popularCounted: applyPopular,
         qualifiedVoteCount: candidateVotes.qualifiedScores.length,
         popularVoteCount: candidateVotes.popularScores.length,
       };
@@ -131,7 +178,12 @@ export async function getPartialRankings(eventId: string) {
       event.popularVoteMode === "PREFERENCE"
         ? computePopularVoteShare(candidateVotes.popularScores.length, totalPopularVotesCast)
         : computeTrimmedMean(candidateVotes.popularScores, event);
-    const finalScore = avgQualificata * (event.weightQualificata / 100) + avgPopolare * (event.weightPopolare / 100);
+    const applyPopular = popularComponentApplies(
+      event.popularVoteMode,
+      candidateVotes.popularScores.length,
+      totalPopularVotesCast,
+    );
+    const finalScore = blendFinalScore(avgQualificata, avgPopolare, applyPopular, event);
 
     return {
       id: candidate.id,

@@ -285,16 +285,23 @@ Il punteggio finale di ciascun candidato combina due componenti:
   set text(0.92em)
   raw("Media Qualificata = somma punti giudici qualificati ÷ numero di codici QUALIFICATA attivi (non solo chi ha votato)")
   parbreak()
-  raw("Media Popolare (voto numerico) = media dei voti popolari (eventualmente \"trimmed mean\" per ridurre l'effetto di voti anomali)")
+  raw("Media Popolare (voto numerico) = media dei SOLI voti popolari effettivamente espressi (eventualmente \"trimmed mean\" per ridurre l'effetto di voti anomali)")
   parbreak()
   raw("Media Popolare (voto a preferenze) = quota di preferenze del candidato sul totale delle preferenze espresse, su scala 0-10")
   parbreak()
   raw("Punteggio finale = (Media Qualificata × peso Qualificata) + (Media Popolare × peso Popolare)")
 })
 
-- *Le astensioni pesano*: la media dei giudici qualificati si divide per _tutti_ i codici
-  QUALIFICATA validi assegnati all'evento, non solo per quelli effettivamente usati — quindi un
-  giudice qualificato che non vota abbassa comunque la media del candidato.
+- *Le astensioni della giuria qualificata pesano*: la media dei giudici qualificati si divide
+  per _tutti_ i codici QUALIFICATA validi assegnati all'evento, non solo per quelli
+  effettivamente usati — quindi un giudice qualificato che non vota abbassa comunque la media
+  del candidato.
+- *Le astensioni del pubblico NON pesano*: la partecipazione del pubblico può essere
+  discontinua durante la serata, quindi la media popolare si calcola solo sui voti realmente
+  espressi — un membro del pubblico che non vota non vale come zero. Se un candidato non
+  riceve *alcun* voto popolare, la componente popolare viene esclusa dal suo punteggio e il
+  peso della giuria qualificata viene riportato al 100% (punteggio finale = media
+  qualificata); nella Classifica la media pubblico compare come "n/d (esclusa dal calcolo)".
 - *Voto popolare a preferenze*: se l'evento usa la modalità "Preferenze" (il pubblico sceglie
   uno o più candidati anziché dare un punteggio), la componente popolare di un candidato è la
   sua quota di preferenze sul totale, riportata su scala 0–10. In questa modalità la trimmed

@@ -304,11 +304,14 @@ Nel riquadro *"Pesatura giurie"* si imposta il bilanciamento tra la media della 
 Premi *"Salva impostazioni voto"* per confermare. Il valore predefinito di fabbrica è 70%
 Qualificata / 30% Popolare.
 
-#nota(title: "Come viene usato il peso Qualificata")[
+#nota(title: "Come vengono usati i pesi")[
   La media della giuria Qualificata viene divisa per il numero di giudici qualificata idonei e
   non revocati assegnati all'evento (non solo per chi ha effettivamente votato): le astensioni
-  abbassano quindi la media del candidato. Il punteggio finale combina le due medie secondo i
-  pesi impostati qui.
+  abbassano quindi la media del candidato. La media Popolare, al contrario, si calcola solo sui
+  voti del pubblico effettivamente espressi — la partecipazione del pubblico può essere
+  discontinua e chi non vota non deve valere zero. Il punteggio finale combina le due medie
+  secondo i pesi impostati qui; se un candidato non riceve *nessun* voto popolare la componente
+  popolare viene esclusa e il peso Qualificata è riportato al 100% per quel candidato.
 ]
 
 #nota(title: "Voto popolare a preferenze e trimmed mean")[

@@ -17,6 +17,8 @@ export interface RankingEntry {
   avgScore: number;
   avgQualificata: number;
   avgPopolare: number;
+  /** False when the candidate had no popular signal and the popular weight was renormalised away. */
+  popularCounted: boolean;
   qualifiedVoteCount: number;
   popularVoteCount: number;
 }
