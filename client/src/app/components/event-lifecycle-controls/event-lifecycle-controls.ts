@@ -101,7 +101,12 @@ export class EventLifecycleControlsComponent {
 
   protected confirmResetRanking(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Azzera classifica', message: 'Vuoi azzerare tutti i voti e ricominciare da capo?', confirmLabel: 'Azzera' },
+      data: {
+        title: 'Azzera classifica',
+        message:
+          'Vuoi azzerare tutti i voti e ricominciare da capo? I codici giudice non revocati torneranno attivi (lo stesso codice resta valido).',
+        confirmLabel: 'Azzera',
+      },
     });
     ref.afterClosed().subscribe((confirmed) => {
       if (confirmed) void this.resetRanking();
@@ -112,7 +117,7 @@ export class EventLifecycleControlsComponent {
     try {
       await firstValueFrom(this.eventsApi.resetEventVotes(this.eventId(), this.authToken()));
       this.error.set(null);
-      this.toast.success('Classifica azzerata');
+      this.toast.success('Classifica azzerata, codici giudice riattivati');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : "Errore nell'azzeramento della classifica");
     }

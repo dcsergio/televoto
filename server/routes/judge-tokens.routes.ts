@@ -43,6 +43,18 @@ judgeTokensRouter.post("/api/events/:eventId/judge-tokens", async (req, res) => 
   void judgeTokenService.broadcastJudgeTokenSnapshot(eventId);
 });
 
+judgeTokensRouter.post("/api/events/:eventId/judge-tokens/reissue-all", async (req, res) => {
+  const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
+
+  const { origin } = req.body as { origin?: unknown };
+  const fallbackOrigin = `${req.protocol}://${req.get("host")}`;
+  const codes = await judgeTokenService.reissueAllJudgeTokens({ eventId, origin, fallbackOrigin });
+
+  res.json({ ok: true, codes });
+  void judgeTokenService.broadcastJudgeTokenSnapshot(eventId);
+});
+
 judgeTokensRouter.post("/api/judge-tokens/validate", voteRateLimiter, async (req, res) => {
   const { token, eventCode } = parseBody(judgeTokenLookupSchema, req.body);
   const result = await judgeTokenService.validateJudgeToken(token ?? "", eventCode);

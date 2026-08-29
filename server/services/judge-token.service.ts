@@ -231,6 +231,73 @@ export async function reissueJudgeToken(input: ReissueJudgeTokenInput) {
   };
 }
 
+export type ReissueAllJudgeTokensInput = {
+  eventId: string;
+  origin?: unknown;
+  fallbackOrigin: string;
+};
+
+// Bulk "Rigenera tutti i codici": every ACTIVE (non-finalized, non-revoked)
+// judge token for the event gets a fresh value in a single transaction —
+// partial votes move onto the new token and the old one is revoked, exactly
+// like the per-token reissue. Used/revoked tokens are left untouched.
+// Returns the new plaintext codes so the operator can redistribute them.
+export async function reissueAllJudgeTokens(input: ReissueAllJudgeTokensInput) {
+  const event = await eventRepository.findEventCodeById(input.eventId);
+  if (!event) {
+    throw new AppError(404, "Evento non trovato");
+  }
+
+  const clientOrigin = typeof input.origin === "string" && input.origin.trim() ? input.origin.trim() : input.fallbackOrigin;
+  const baseUrl = new URL(clientOrigin).origin;
+
+  const existing = await judgeTokenRepository.findJudgeTokensByEvent(input.eventId);
+  const plan = existing
+    .filter((token) => getJudgeTokenStatus(token) === "active")
+    .map((token) => ({ old: token, rawToken: generateOpaqueToken(judgeTokenLength) }));
+
+  if (plan.length === 0) {
+    return [];
+  }
+
+  const created = await prisma.$transaction(async (tx) => {
+    const results: Array<{ record: Awaited<ReturnType<typeof judgeTokenRepository.createJudgeToken>>; rawToken: string }> = [];
+    for (const { old, rawToken } of plan) {
+      const record = await judgeTokenRepository.createJudgeToken(
+        {
+          eventId: input.eventId,
+          label: old.label,
+          type: old.type as VoterType,
+          tokenHash: hashOpaqueToken(rawToken),
+          tokenPreview: rawToken.slice(0, 8),
+        },
+        tx,
+      );
+      await voteRepository.updateVotesJudgeToken(old.id, record.id, tx);
+      await judgeTokenRepository.revokeJudgeToken(old.id, tx);
+      results.push({ record, rawToken });
+    }
+    return results;
+    // Timeout bumped from the 5s default: an event can hold up to ~200 tokens
+    // and each costs a create + a vote re-parent + a revoke in this transaction.
+  }, { timeout: 60_000, maxWait: 10_000 });
+
+  return created.map(({ record, rawToken }) => ({
+    id: record.id,
+    label: record.label,
+    type: record.type as VoterType,
+    voterStatus: record.status as VoterStatus,
+    tokenPreview: record.tokenPreview,
+    createdAt: record.createdAt,
+    finalizedAt: record.finalizedAt,
+    usedAt: record.finalizedAt ?? null,
+    revokedAt: record.revokedAt,
+    status: getJudgeTokenStatus(record),
+    token: rawToken,
+    url: `${baseUrl}/?${new URLSearchParams({ eventCode: event.code, judgeToken: rawToken }).toString()}`,
+  }));
+}
+
 type JudgeTokenLookup =
   | { kind: "not_found" }
   | { kind: "event_not_found" }

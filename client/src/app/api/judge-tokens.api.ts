@@ -99,4 +99,18 @@ export class JudgeTokensApi {
       .post<{ ok: boolean; code: GeneratedJudgeToken }>(`${BASE}/judge-tokens/${id}/reissue`, { origin }, withAuth(authToken))
       .pipe(catchError((err) => throwError(() => toApiError(err, 'Errore nella rigenerazione del codice'))));
   }
+
+  reissueAllJudgeTokens(
+    eventId: string,
+    origin: string,
+    authToken: string,
+  ): Observable<{ ok: boolean; codes: GeneratedJudgeToken[] }> {
+    return this.http
+      .post<{ ok: boolean; codes: GeneratedJudgeToken[] }>(
+        `${BASE}/events/${eventId}/judge-tokens/reissue-all`,
+        { origin },
+        withAuth(authToken),
+      )
+      .pipe(catchError((err) => throwError(() => toApiError(err, 'Errore nella rigenerazione dei codici'))));
+  }
 }

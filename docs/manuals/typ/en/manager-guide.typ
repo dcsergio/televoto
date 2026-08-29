@@ -171,6 +171,11 @@ code is visible *only at the moment it's generated*: from then on the system kee
 - *Lost code? Regenerate*: generates a new code to replace a lost one, transferring any votes
   already cast with the original code onto it — the original code is no longer recoverable once
   regenerated.
+- *Regenerate all codes*: at the top of the "Active codes" list, regenerates every active code
+  at once with a new value (votes already cast are transferred). The previous codes and their
+  links/QRs stop working and must be redistributed; the new codes stay visible in clear text
+  (with QR, copy and A4 print) until you leave the page. Handy after a *Reset ranking* when you
+  want to start over with fresh codes.
 
 #suggerimento(title: "Real-time updates")[
   The code list and the Active / Used / Revoked counters at the top of the section update
@@ -195,7 +200,7 @@ you control starting, closing, and resetting the voting.
   [Votes are no longer accepted; candidate edits become available again.],
   [Reset the ranking],
   [*Reset ranking* (in the "Danger zone")],
-  [Clears all votes collected so far to start over, without touching candidates or judge codes.],
+  [Clears all votes collected so far to start over, without touching candidates. Non-revoked judge codes become "Active" again (the same code stays valid).],
 )
 
 #attenzione(title: [Warning — "Start voting" clears all votes])[
@@ -215,7 +220,8 @@ Every action requires explicit confirmation in a dialog box before it's carried 
 - *Close voting* → confirm with the *Close* button (message: "Do you want to close voting?
   Votes will no longer be accepted and edits will become available again.").
 - *Reset ranking* → confirm with the *Reset* button (message: "Do you want to clear all votes
-  and start over?").
+  and start over? Non-revoked judge codes will become active again (the same code stays
+  valid).").
 
 The box also shows the event code and name and the current *Status* (voting open/closed), and
 includes a quick-access *Open Final Ranking* button (with the same warning already mentioned:

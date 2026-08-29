@@ -168,6 +168,11 @@ conserva solo un'impronta (hash) e un'anteprima parziale, non più il valore com
 - *Codice perso? Rigenera*: genera un nuovo codice al posto di uno smarrito, trasferendo su di
   esso gli eventuali voti già espressi con il codice originale — che non è più recuperabile una
   volta rigenerato.
+- *Rigenera tutti i codici*: in cima all'elenco "Codici attivi", rigenera in un colpo solo
+  tutti i codici attivi con un nuovo valore (i voti già dati vengono trasferiti). I codici
+  precedenti e i relativi link/QR smettono di funzionare e vanno ridistribuiti; i nuovi codici
+  restano visibili in chiaro (con QR, copia e stampa A4) finché non lasci la pagina. Utile dopo
+  un *Azzera classifica* se vuoi ripartire con codici nuovi.
 
 #suggerimento(title: "Aggiornamento in tempo reale")[
   L'elenco dei codici e i contatori *Attivi / Usati / Revocati* in alto alla sezione si
@@ -194,8 +199,8 @@ aperto, rosso = chiuso), quindi non viene ripetuto in questo blocco.
   tornano disponibili.],
   [Azzerare la classifica],
   [*Azzera classifica* (nella "Danger zone")],
-  [Azzera tutti i voti raccolti per ricominciare da capo, senza toccare candidati o codici
-  giudice.],
+  [Azzera tutti i voti raccolti per ricominciare da capo, senza toccare i candidati. I codici
+  giudice non revocati tornano allo stato *Attivo* (lo stesso codice resta valido).],
 )
 
 #attenzione(title: [Avviso — "Avvia votazione" azzera tutti i voti])[
@@ -215,7 +220,8 @@ Ogni azione richiede una conferma esplicita in un riquadro di dialogo prima di e
 - *Chiudi televoto* → conferma con il pulsante *Chiudi* (messaggio: "Vuoi chiudere il televoto?
   I voti non saranno più accettati e le modifiche torneranno disponibili.").
 - *Azzera classifica* → conferma con il pulsante *Azzera* (messaggio: "Vuoi azzerare tutti i
-  voti e ricominciare da capo?").
+  voti e ricominciare da capo? I codici giudice non revocati torneranno attivi (lo stesso
+  codice resta valido).").
 
 Il riquadro mostra anche il codice e nome evento e include un accesso rapido al pulsante *Apri
 Classifica* (con lo stesso avviso già visto: bloccato finché il televoto resta aperto).
