@@ -9,13 +9,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, HeaderComponent],
   template: `
-    <div class="relative isolate flex min-h-dvh flex-col">
-      <img
-        src="/placeholders/auth-gate-backdrop_1920x1200.svg"
-        alt=""
-        aria-hidden="true"
-        class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
-      />
+    <div class="flex min-h-dvh flex-col">
       @if (showBranding()) {
         <app-header />
       }
