@@ -382,7 +382,7 @@
                             <div>Voti: {{ entry.voteCount }}</div>
                             <div>Media complessiva: {{ formatScore(entry.avgScore) }}</div>
                             <div>Media giuria: {{ formatScore(entry.avgQualificata) }}</div>
-                            <div>Media pubblico: {{ formatScore(entry.avgPopolare) }}</div>
+                            <div>Media pubblico: {{ entry.popularCounted ? formatScore(entry.avgPopolare) : 'n/d (esclusa dal calcolo)' }}</div>
                           </div>
                         }
                       </div>
@@ -427,7 +427,7 @@
                         <div>Voti: {{ entry.voteCount }}</div>
                         <div>Media complessiva: {{ formatScore(entry.avgScore) }}</div>
                         <div>Media giuria: {{ formatScore(entry.avgQualificata) }}</div>
-                        <div>Media pubblico: {{ formatScore(entry.avgPopolare) }}</div>
+                        <div>Media pubblico: {{ entry.popularCounted ? formatScore(entry.avgPopolare) : 'n/d (esclusa dal calcolo)' }}</div>
                       </div>
                     }
                   </div>

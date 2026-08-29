@@ -292,11 +292,14 @@ the *Public* vote average in the final score calculation.
 
 Press *"Save voting settings"* to confirm. The factory default is 70% Qualified / 30% Public.
 
-#nota(title: "How the Qualified weight is used")[
+#nota(title: "How the weights are used")[
   The Qualified judges' average is divided by the number of eligible, non-revoked qualified
   judges assigned to the event (not just those who actually voted): abstentions therefore lower
-  the candidate's average. The final score combines the two averages according to the weights
-  set here.
+  the candidate's average. The Public average, by contrast, is computed only over the public
+  votes actually cast — public turnout can be intermittent and a non-voter must not count as a
+  zero. The final score combines the two averages according to the weights set here; if a
+  candidate receives *no* public vote, the public component is dropped and the Qualified weight
+  is renormalised to 100% for that candidate.
 ]
 
 #nota(title: "Preference voting and trimmed mean")[

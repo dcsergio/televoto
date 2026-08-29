@@ -62,8 +62,8 @@ Voters are also gated by `Event.popularVoteMode` (`NUMERIC` default, or `PREFERE
 ### Ranking / scoring algorithm
 Implemented in `GET /api/rankings/:eventId` (`server/routes/rankings.routes.ts`, `server/services/ranking.service.ts`) — not derivable from the schema alone:
 - Qualified-judge average is divided by the count of *eligible non-revoked* `QUALIFICATA` tokens for the event (not just the judges who actually voted), so abstentions pull a candidate's average down.
-- Popular-vote average optionally uses a trimmed mean (`enableTrimmedMean` + `trimmedMeanPercentage` on `Event`) to reduce outlier impact, via `computeTrimmedMean`.
-- Final score blends both pools using per-event weights (`weightQualificata` / `weightPopolare`, default 70/30, expected to sum to 100).
+- Popular-vote average is a plain mean over the popular votes *actually cast* for that candidate (optionally a trimmed mean — `enableTrimmedMean` + `trimmedMeanPercentage` on `Event` — to reduce outlier impact, via `computeTrimmedMean`). Unlike the qualified pool, unexpressed popular votes are **not** counted as zero: public participation can be discontinuous over the evening, so a voter who doesn't vote must not drag a candidate down.
+- Final score blends both pools using per-event weights (`weightQualificata` / `weightPopolare`, default 70/30, expected to sum to 100) via `blendFinalScore`, which divides by the *actual* sum of the applied weights rather than a hard-coded 100. When a candidate received **zero** popular votes, the popular component is dropped entirely and the qualified weight is renormalised to 100% (final score = qualified average) — otherwise that candidate would eat a `0 * weightPopolare` penalty for an absence rather than a judgement. `avgPopolare` is still reported as `0` in that case (with `popularVoteCount === 0`); the Classifica UI shows "n/d (esclusa dal calcolo)" instead of `0`.
 - Ties (within 0.001) break first on the qualified average, then on candidate `number`.
 
 `GET /api/events/:eventId/partial-rankings` computes a related but distinct in-progress view for the live dashboard — check both when changing scoring behavior.
