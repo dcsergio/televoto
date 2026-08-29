@@ -248,7 +248,13 @@ export async function startEvent(eventId: string) {
 }
 
 export async function clearVotes(eventId: string) {
-  await deleteVotesByEvent(eventId);
+  // "Azzera classifica" cancella i voti e, come "Avvia votazione", rimette
+  // ATTIVI tutti i codici giudice non revocati (anche quelli già "Usato"),
+  // senza cambiarne il valore: i link/QR già distribuiti restano validi.
+  await prisma.$transaction(async (tx) => {
+    await deleteVotesByEvent(eventId, tx);
+    await resetJudgeTokensForRestart(eventId, tx);
+  });
 }
 
 export async function setEventArchivedState(eventId: string, archived: boolean) {

@@ -111,6 +111,7 @@ eventsRouter.delete("/api/events/:eventId/votes", async (req, res) => {
 
   await eventService.clearVotes(eventId);
   res.json({ ok: true });
+  await broadcastJudgeTokenSnapshot(eventId);
 });
 
 eventsRouter.put("/api/events/:eventId/archive-state", async (req, res) => {

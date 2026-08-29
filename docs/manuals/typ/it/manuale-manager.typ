@@ -194,8 +194,8 @@ aperto, rosso = chiuso), quindi non viene ripetuto in questo blocco.
   tornano disponibili.],
   [Azzerare la classifica],
   [*Azzera classifica* (nella "Danger zone")],
-  [Azzera tutti i voti raccolti per ricominciare da capo, senza toccare candidati o codici
-  giudice.],
+  [Azzera tutti i voti raccolti per ricominciare da capo, senza toccare i candidati. I codici
+  giudice non revocati tornano allo stato *Attivo* (lo stesso codice resta valido).],
 )
 
 #attenzione(title: [Avviso — "Avvia votazione" azzera tutti i voti])[
@@ -215,7 +215,8 @@ Ogni azione richiede una conferma esplicita in un riquadro di dialogo prima di e
 - *Chiudi televoto* → conferma con il pulsante *Chiudi* (messaggio: "Vuoi chiudere il televoto?
   I voti non saranno più accettati e le modifiche torneranno disponibili.").
 - *Azzera classifica* → conferma con il pulsante *Azzera* (messaggio: "Vuoi azzerare tutti i
-  voti e ricominciare da capo?").
+  voti e ricominciare da capo? I codici giudice non revocati torneranno attivi (lo stesso
+  codice resta valido).").
 
 Il riquadro mostra anche il codice e nome evento e include un accesso rapido al pulsante *Apri
 Classifica* (con lo stesso avviso già visto: bloccato finché il televoto resta aperto).
