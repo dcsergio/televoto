@@ -171,6 +171,11 @@ code is visible *only at the moment it's generated*: from then on the system kee
 - *Lost code? Regenerate*: generates a new code to replace a lost one, transferring any votes
   already cast with the original code onto it — the original code is no longer recoverable once
   regenerated.
+- *Regenerate all codes*: at the top of the "Active codes" list, regenerates every active code
+  at once with a new value (votes already cast are transferred). The previous codes and their
+  links/QRs stop working and must be redistributed; the new codes stay visible in clear text
+  (with QR, copy and A4 print) until you leave the page. Handy after a *Reset ranking* when you
+  want to start over with fresh codes.
 
 #suggerimento(title: "Real-time updates")[
   The code list and the Active / Used / Revoked counters at the top of the section update

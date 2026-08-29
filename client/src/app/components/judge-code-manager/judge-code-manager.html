@@ -173,9 +173,22 @@
     }
 
     <div class="surface-panel mt-6 bg-bg-primary/60 p-5">
-      <div class="flex items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <h3 class="text-lg font-semibold text-text-primary">Codici attivi</h3>
-        <button type="button" (click)="loadTokens()" class="btn btn-ghost btn-sm">Aggiorna</button>
+        <div class="flex flex-wrap gap-2">
+          @if (activeTokens().length > 0) {
+            <button
+              type="button"
+              (click)="confirmReissueAll()"
+              [disabled]="reissuingAll()"
+              title="Rigenera tutti i codici attivi con un nuovo valore: i link/QR attuali smettono di funzionare"
+              class="btn btn-tinted btn-sm"
+            >
+              {{ reissuingAll() ? 'Rigenerazione...' : 'Rigenera tutti i codici' }}
+            </button>
+          }
+          <button type="button" (click)="loadTokens()" class="btn btn-ghost btn-sm">Aggiorna</button>
+        </div>
       </div>
 
       @if (listTokens().length === 0) {

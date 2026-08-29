@@ -168,6 +168,11 @@ conserva solo un'impronta (hash) e un'anteprima parziale, non più il valore com
 - *Codice perso? Rigenera*: genera un nuovo codice al posto di uno smarrito, trasferendo su di
   esso gli eventuali voti già espressi con il codice originale — che non è più recuperabile una
   volta rigenerato.
+- *Rigenera tutti i codici*: in cima all'elenco "Codici attivi", rigenera in un colpo solo
+  tutti i codici attivi con un nuovo valore (i voti già dati vengono trasferiti). I codici
+  precedenti e i relativi link/QR smettono di funzionare e vanno ridistribuiti; i nuovi codici
+  restano visibili in chiaro (con QR, copia e stampa A4) finché non lasci la pagina. Utile dopo
+  un *Azzera classifica* se vuoi ripartire con codici nuovi.
 
 #suggerimento(title: "Aggiornamento in tempo reale")[
   L'elenco dei codici e i contatori *Attivi / Usati / Revocati* in alto alla sezione si

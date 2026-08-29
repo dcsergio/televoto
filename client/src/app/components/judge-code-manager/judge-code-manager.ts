@@ -45,6 +45,7 @@ export class JudgeCodeManagerComponent {
   protected readonly generating = signal(false);
   protected readonly revokingId = signal<string | null>(null);
   protected readonly reissuingId = signal<string | null>(null);
+  protected readonly reissuingAll = signal(false);
   protected readonly validationInput = signal('');
   protected readonly validationResult = signal<JudgeTokenValidationResult | null>(null);
   protected readonly validationLoading = signal(false);
@@ -248,6 +249,47 @@ export class JudgeCodeManagerComponent {
       this.error.set(err instanceof Error ? err.message : 'Errore nella revoca');
     } finally {
       this.revokingId.set(null);
+    }
+  }
+
+  protected confirmReissueAll(): void {
+    const count = this.activeTokens().length;
+    if (count === 0) {
+      this.error.set('Non ci sono codici attivi da rigenerare.');
+      return;
+    }
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Rigenera tutti i codici',
+        message: `Verranno rigenerati ${count} codici attivi con un nuovo valore: i codici attuali e i relativi link/QR smetteranno di funzionare immediatamente e andranno ridistribuiti. Continuare?`,
+        confirmLabel: 'Rigenera tutti',
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) void this.handleReissueAll();
+    });
+  }
+
+  protected async handleReissueAll(): Promise<void> {
+    this.reissuingAll.set(true);
+    this.error.set(null);
+    try {
+      const result = await firstValueFrom(
+        this.judgeTokensApi.reissueAllJudgeTokens(this.eventId(), window.location.origin, this.authToken()),
+      );
+      this.generatedTokens.set(result.codes);
+      this.validationResult.set(null);
+      this.validationInput.set('');
+      await this.loadTokens();
+      this.toast.success(
+        result.codes.length === 1 ? '1 codice rigenerato' : `${result.codes.length} codici rigenerati`,
+      );
+      this.copyMessage.set('Nuovi codici generati: stampa o copia ora i nuovi link/QR qui sotto.');
+      setTimeout(() => this.copyMessage.set(null), 5000);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : 'Errore nella rigenerazione dei codici');
+    } finally {
+      this.reissuingAll.set(false);
     }
   }
 
