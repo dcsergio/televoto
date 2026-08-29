@@ -1,33 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Foto candidato — segnaposto">
-  <title>Foto candidato — segnaposto (ritratto)</title>
   <defs>
-    <linearGradient id="cpbg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#18181c"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17171b"/>
       <stop offset="1" stop-color="#0a0a0c"/>
     </linearGradient>
-    <radialGradient id="cpspot" cx="0.5" cy="0.38" r="0.62">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.11"/>
-      <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
-    </radialGradient>
-    <clipPath id="cpround"><rect width="400" height="400" rx="24"/></clipPath>
   </defs>
-  <g clip-path="url(#cpround)">
-    <rect width="400" height="400" fill="url(#cpbg)"/>
-    <rect width="400" height="400" fill="url(#cpspot)"/>
-    <!-- ritratto: sagoma unica -->
-    <g fill="#ffb020" fill-opacity="0.06" stroke="#ffb020" stroke-opacity="0.5" stroke-width="3" stroke-linejoin="round">
-      <circle cx="200" cy="152" r="54"/>
-      <path d="M108 344 C108 258 148 210 200 210 C252 210 292 258 292 344 Z"/>
-    </g>
-    <rect x="0" y="330" width="400" height="70" fill="#000000" opacity="0.28"/>
-  </g>
-  <!-- crop marks: lettura "template" -->
-  <g stroke="#ffb020" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round">
-    <path d="M24 24 h26 M24 24 v26"/>
-    <path d="M376 24 h-26 M376 24 v26"/>
-    <path d="M24 376 h26 M24 376 v-26"/>
-    <path d="M376 376 h-26 M376 376 v-26"/>
-  </g>
-  <text x="200" y="356" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-size="19" font-weight="700" fill="#f4f4f5" letter-spacing="0.5">Foto candidato</text>
-  <text x="200" y="378" text-anchor="middle" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="12.5" fill="#a1a1aa">400 &#215; 400 &#183; ritratto quadrato</text>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect x="8" y="8" width="384" height="384" rx="24" fill="none" stroke="#ffb020" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="10 8"/>
+  <circle cx="200" cy="168" r="58" fill="none" stroke="#ffb020" stroke-opacity="0.6" stroke-width="3"/>
+  <path d="M118 316c0-46 37-82 82-82s82 36 82 82" fill="none" stroke="#ffb020" stroke-opacity="0.6" stroke-width="3"/>
+  <text x="200" y="356" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="22" font-weight="700" fill="#f4f4f5" letter-spacing="1">FOTO CANDIDATO</text>
+  <text x="200" y="382" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="15" fill="#a1a1aa">400 &#215; 400 &#183; 1:1 &#183; ritratto quadrato</text>
 </svg>

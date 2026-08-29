@@ -1,17 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120" role="img" aria-label="Televoto">
-  <title>Televoto — lockup orizzontale</title>
-  <defs>
-    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffc24d"/>
-      <stop offset="1" stop-color="#ffb020"/>
-    </linearGradient>
-  </defs>
-  <!-- mark: barre discendenti (equalizzatore / podio) -->
-  <g>
-    <rect x="20" y="28" width="15" height="64" rx="5" fill="url(#bar)"/>
-    <rect x="43" y="46" width="15" height="46" rx="5" fill="#ffb020" opacity="0.72"/>
-    <rect x="66" y="62" width="15" height="30" rx="5" fill="#ffb020" opacity="0.46"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120" role="img" aria-label="Logo Televoto orizzontale — segnaposto">
+  <rect width="480" height="120" rx="16" fill="#0a0a0c"/>
+  <rect x="6" y="6" width="468" height="108" rx="14" fill="none" stroke="#ffb020" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="8 7"/>
+  <g transform="translate(28,32)" fill="#ffb020">
+    <rect x="0" y="0" width="14" height="56" rx="5"/>
+    <rect x="22" y="16" width="14" height="40" rx="5" opacity="0.72"/>
+    <rect x="44" y="30" width="14" height="26" rx="5" opacity="0.46"/>
   </g>
-  <!-- wordmark -->
-  <text x="112" y="74" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-size="40" font-weight="600" fill="#f4f4f5" letter-spacing="1.5">TELEVOTO</text>
+  <text x="112" y="58" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="34" font-weight="700" fill="#f4f4f5" letter-spacing="3">TELEVOTO</text>
+  <text x="112" y="86" font-family="'Segoe UI',Arial,sans-serif" font-size="13" fill="#a1a1aa">480 &#215; 120 &#183; lockup orizzontale (header / sidenav)</text>
 </svg>

@@ -1,8 +1,7 @@
 # Immagini segnaposto (`client/public/placeholders/`)
 
-Asset SVG **on-brand** («Palco» / «Studio») pensati per rimpiazzare icone/forme grezze.
-Tutti costruiti sullo stesso motivo del `favicon.svg`: tre barre discendenti (equalizzatore / podio).
-Nessun codice dell'app è stato modificato: questi file sono solo asset statici.
+Segnaposto SVG generati per valutare **dove inserire immagini al posto di icone/forme**.
+Nessun codice dell'app è stato modificato: questi file sono solo materiale di prova.
 Le dimensioni nel nome file sono quelle consigliate per l'asset reale.
 
 Servite staticamente da `public/` → raggiungibili a `/placeholders/<file>`.
@@ -18,15 +17,11 @@ Servite staticamente da `public/` → raggiungibili a `/placeholders/<file>`.
 | 7 | `empty-state-no-events_400x300.svg` | 400×300 | Illustrazione per l'**empty state "Non c'è ancora nessun evento"** al posto della `mat-icon event_note`. | `client/src/app/pages/admin-shell/admin-shell.html:145` |
 | 8 | `empty-state-no-candidates_400x300.svg` | 400×300 | Illustrazione per gli empty state **"Nessun candidato ancora"** e **"Nessun voto ancora registrato"**. | `client/src/app/components/event-candidates-manager/event-candidates-manager.html:103`; `client/src/app/components/score/score.html:283` |
 | 9 | `vote-confirmed-illustration_320x320.svg` | 320×320 | Illustrazione di conferma nella schermata **"Grazie, il tuo voto è stato registrato"** (oggi solo testo + `&check;`). | `client/src/app/pages/voting-shell/voting-shell.html:132` |
-| 10 | `og-share_1200x630.svg` + `og-share_1200x630.png` | 1200×630 | **Immagine anteprima social** (`og:image`), oggi punta al favicon SVG. Usare il **PNG** per `og:image` (molte piattaforme non renderizzano SVG); l'SVG è la sorgente. | `client/src/index.html:22` |
+| 10 | `og-share_1200x630.svg` | 1200×630 | **Immagine anteprima social** (`og:image`), oggi punta al favicon SVG. | `client/src/index.html:22` |
 | 11 | `winner-decoration_800x800.svg` | 800×800, sfondo trasparente | Cornice/alloro decorativo **dietro il nome del 1° classificato** nel "winner takeover" della Classifica (oggi solo emoji medaglia). | `client/src/app/components/score/score.html:100` |
 
 ## Note
 
-- Palette "Palco" (asset pubblici `/` e `/score`): fondo `#0a0a0c`/`#111013`, un solo accento oro `#ffb020` (champagne `#ffd76a` solo per il beat vincitore in `winner-decoration`), verde conferma `#34d399` in `vote-confirmed-illustration`.
-- `empty-state-no-events` usa la palette "Studio" (fondo chiaro `#f6f6f7`, accento ambra `#b45309`) perché compare **solo** nella dashboard `/admin`. `empty-state-no-candidates` resta "Palco" ed è **senza testo** (serve sia per «Nessun candidato» sia per «Nessun voto»).
-- `televoto-logo-horizontal` è a **sfondo trasparente** con wordmark chiaro: pensato per header/sidenav scuri. Su fondo chiaro (sidenav Studio) va usato il solo simbolo (`televoto-logo-mark`) o una variante con wordmark scuro ancora da produrre.
-- `winner-decoration` ha **sfondo trasparente** e centro libero (il nome del 1° va sopra).
-- Per gli asset reali: `event-banner_*` e `candidate-photo_*` restano **segnaposto template** (contenuto specifico di evento/persona); l'asset caricato sarà meglio in JPG/WebP. Richiedono modifiche a schema DB + API di upload; gli altri sono asset statici che basta referenziare.
-- Il `og-share_1200x630.png` è rigenerabile dall'SVG con un rasterizzatore a 1:1 (es. `rsvg-convert -w 1200 -h 630`, oppure headless Chrome a viewport 1200×630). I font Space Grotesk / Inter non sono incorporati nell'SVG: il rasterizzatore usa un fallback sans se non sono installati.
-- Tutti gli SVG sono XML ben formato e mantengono `width`/`height`/`viewBox` originali.
+- Tutti gli SVG usano la palette "Palco": fondo `#0a0a0c`/`#111013`, accent oro `#ffb020`, verde conferma `#34d399`.
+- Per gli asset reali: banner e foto candidato meglio in JP/WebP (contenuto fotografico); logo, empty state e decorazioni possono restare SVG.
+- Il banner evento e la foto candidato sono gli unici che richiedono modifiche a schema DB + API di upload; gli altri sono asset statici che basta referenziare.

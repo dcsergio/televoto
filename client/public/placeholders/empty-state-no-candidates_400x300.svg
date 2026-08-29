@@ -1,20 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="">
-  <title>Empty state — nulla ancora (Palco)</title>
-  <defs>
-    <radialGradient id="escspot" cx="0.5" cy="0.42" r="0.62">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.08"/>
-      <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img" aria-label="Illustrazione nessun candidato — segnaposto">
   <rect width="400" height="300" rx="20" fill="#111013"/>
-  <rect width="400" height="300" rx="20" fill="url(#escspot)"/>
-  <rect x="1" y="1" width="398" height="298" rx="19" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
-  <!-- tre slot-barra vuoti, in attesa -->
-  <g>
-    <rect x="139" y="86" width="40" height="128" rx="12" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.5" stroke-width="2.5" stroke-dasharray="7 7"/>
-    <rect x="187" y="120" width="40" height="94" rx="12" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.36" stroke-width="2.5" stroke-dasharray="7 7"/>
-    <rect x="235" y="150" width="40" height="64" rx="12" fill="#ffb020" fill-opacity="0.04" stroke="#ffb020" stroke-opacity="0.26" stroke-width="2.5" stroke-dasharray="7 7"/>
-  </g>
-  <!-- pedana -->
-  <rect x="112" y="222" width="176" height="3" rx="1.5" fill="#ffb020" opacity="0.3"/>
+  <rect x="8" y="8" width="384" height="284" rx="16" fill="none" stroke="#ffb020" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="10 8"/>
+  <circle cx="200" cy="112" r="30" fill="none" stroke="#ffb020" stroke-opacity="0.55" stroke-width="3"/>
+  <path d="M150 186c0-28 22-50 50-50s50 22 50 50" fill="none" stroke="#ffb020" stroke-opacity="0.55" stroke-width="3"/>
+  <line x1="176" y1="205" x2="224" y2="205" stroke="#ffb020" stroke-opacity="0.3" stroke-width="3" stroke-linecap="round"/>
+  <text x="200" y="238" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="20" font-weight="700" fill="#f4f4f5" letter-spacing="1">NESSUN CANDIDATO</text>
+  <text x="200" y="264" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="14" fill="#a1a1aa">400 &#215; 300 &#183; empty state lista candidati</text>
 </svg>

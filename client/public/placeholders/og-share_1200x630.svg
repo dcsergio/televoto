@@ -1,37 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Televoto — vota in diretta">
-  <title>Televoto — anteprima social</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Immagine anteprima social — segnaposto">
   <defs>
-    <linearGradient id="ogbg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#101014"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18181b"/>
       <stop offset="1" stop-color="#09090b"/>
     </linearGradient>
-    <radialGradient id="ogpool" cx="0.16" cy="0.72" r="0.8">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.10"/>
-      <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="ogbar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffc24d"/>
-      <stop offset="1" stop-color="#ffb020"/>
-    </linearGradient>
   </defs>
-  <rect width="1200" height="630" fill="url(#ogbg)"/>
-  <rect width="1200" height="630" fill="url(#ogpool)"/>
-  <!-- barre-firma grandi, a filo del bordo destro -->
-  <g opacity="0.5">
-    <rect x="980" y="150" width="70" height="480" rx="20" fill="#ffb020" opacity="0.14"/>
-    <rect x="1074" y="260" width="70" height="370" rx="20" fill="#ffb020" opacity="0.10"/>
-    <rect x="1168" y="350" width="70" height="280" rx="20" fill="#ffb020" opacity="0.07"/>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="12" y="12" width="1176" height="606" fill="none" stroke="#ffb020" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="16 10"/>
+  <g transform="translate(120,235)" fill="#ffb020">
+    <rect x="0" y="0" width="40" height="160" rx="12"/>
+    <rect x="60" y="46" width="40" height="114" rx="12" opacity="0.72"/>
+    <rect x="120" y="86" width="40" height="74" rx="12" opacity="0.46"/>
   </g>
-  <!-- tick accento -->
-  <rect x="96" y="150" width="52" height="8" rx="4" fill="#ffb020"/>
-  <!-- mark -->
-  <g transform="translate(96,214)">
-    <rect x="0" y="0" width="34" height="150" rx="12" fill="url(#ogbar)"/>
-    <rect x="48" y="42" width="34" height="108" rx="12" fill="#ffb020" opacity="0.72"/>
-    <rect x="96" y="80" width="34" height="70" rx="12" fill="#ffb020" opacity="0.46"/>
-  </g>
-  <!-- wordmark + tagline -->
-  <text x="258" y="330" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-size="94" font-weight="700" fill="#f4f4f5" letter-spacing="2">TELEVOTO</text>
-  <rect x="262" y="356" width="360" height="3" rx="1.5" fill="#ffb020" opacity="0.55"/>
-  <text x="262" y="410" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="30" fill="#a1a1aa">Vota in diretta. Pubblico e giuria, una sola classifica.</text>
+  <text x="330" y="300" font-family="'Space Grotesk','Segoe UI',sans-serif" font-size="72" font-weight="700" fill="#f4f4f5" letter-spacing="4">TELEVOTO</text>
+  <text x="332" y="352" font-family="'Segoe UI',Arial,sans-serif" font-size="28" fill="#a1a1aa">Vota in diretta &#183; pubblico e giuria &#183; classifica finale</text>
+  <text x="600" y="588" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="20" fill="#71717a">1200 &#215; 630 &#183; og:image / anteprima link</text>
 </svg>
