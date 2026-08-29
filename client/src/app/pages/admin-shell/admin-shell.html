@@ -11,7 +11,7 @@
   <mat-sidenav-container class="h-dvh bg-bg-primary text-text-primary">
     <mat-sidenav
       #sidenav
-      class="w-72 border-r border-border-glass !bg-bg-secondary"
+      class="w-[14.4rem] border-r border-border-glass !bg-bg-secondary"
       [mode]="sidenavMode()"
       [opened]="sidenavOpened()"
       (openedChange)="sidenavOpened.set($event)"
@@ -51,6 +51,7 @@
             <mat-icon>logout</mat-icon>
             Esci
           </button>
+          <p class="text-center text-[10px] uppercase tracking-[0.2em] text-text-muted">ver. 1.0</p>
         </div>
       </div>
     </mat-sidenav>
