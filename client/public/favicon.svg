@@ -1,18 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Televoto">
-  <defs>
-    <linearGradient id="fvtile" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#141418"/>
-      <stop offset="1" stop-color="#09090b"/>
-    </linearGradient>
-    <linearGradient id="fvbar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffd58a"/>
-      <stop offset="1" stop-color="#ffb020"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="7.5" fill="url(#fvtile)"/>
-  <rect x="6.5" y="5.5" width="4.6" height="21" rx="2.3" fill="url(#fvbar)"/>
-  <rect x="13.7" y="10.5" width="4.6" height="16" rx="2.3" fill="#ffb020" opacity="0.7"/>
-  <rect x="20.9" y="15" width="4.6" height="11.5" rx="2.3" fill="#ffb020" opacity="0.44"/>
-  <rect x="6" y="27" width="20" height="1.4" rx="0.7" fill="#ffb020" opacity="0.32"/>
-  <rect x="0.6" y="0.6" width="30.8" height="30.8" rx="7" fill="none" stroke="#ffffff" stroke-opacity="0.06"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#09090b"/>
+  <rect x="7" y="6" width="4.5" height="20" rx="2.25" fill="#ffb020"/>
+  <rect x="14.5" y="11" width="4.5" height="15" rx="2.25" fill="#ffb020" opacity="0.72"/>
+  <rect x="22" y="15" width="4.5" height="11" rx="2.25" fill="#ffb020" opacity="0.46"/>
 </svg>

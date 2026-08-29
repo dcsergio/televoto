@@ -1,28 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500" viewBox="0 0 1600 500" role="img" aria-label="Banner evento — segnaposto">
   <title>Banner evento — segnaposto (caricato dal manager)</title>
   <defs>
-    <linearGradient id="ebbg" x1="0" y1="0" x2="0.6" y2="1">
-      <stop offset="0" stop-color="#16161a"/>
+    <linearGradient id="ebbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141418"/>
       <stop offset="1" stop-color="#0a0a0c"/>
     </linearGradient>
-    <radialGradient id="ebpool" cx="0.5" cy="0.5" r="0.8">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.10"/>
+    <radialGradient id="ebpool" cx="0.5" cy="0.5" r="0.75">
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.09"/>
       <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="ebbar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffd58a"/>
-      <stop offset="1" stop-color="#ffb020"/>
-    </linearGradient>
   </defs>
   <rect width="1600" height="500" fill="url(#ebbg)"/>
   <rect width="1600" height="500" fill="url(#ebpool)"/>
-  <!-- brand mark -->
-  <g transform="translate(56,50)">
-    <rect x="0" y="0" width="14" height="54" rx="5" fill="url(#ebbar)"/>
-    <rect x="21" y="16" width="14" height="38" rx="5" fill="#ffb020" opacity="0.72"/>
-    <rect x="42" y="30" width="14" height="24" rx="5" fill="#ffb020" opacity="0.46"/>
+  <!-- mark: brand anchor -->
+  <g transform="translate(56,52)">
+    <rect x="0" y="0" width="13" height="52" rx="4.5" fill="#ffb020"/>
+    <rect x="20" y="15" width="13" height="37" rx="4.5" fill="#ffb020" opacity="0.72"/>
+    <rect x="40" y="28" width="13" height="24" rx="4.5" fill="#ffb020" opacity="0.46"/>
   </g>
-  <!-- crop ticks: reads as "template" -->
+  <!-- crop ticks: lettura "template" -->
   <g stroke="#ffb020" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round">
     <path d="M40 40 h34 M40 40 v34"/>
     <path d="M1560 40 h-34 M1560 40 v34"/>
@@ -30,11 +26,11 @@
     <path d="M1560 460 h-34 M1560 460 v-34"/>
   </g>
   <!-- dropzone -->
-  <rect x="440" y="98" width="720" height="304" rx="22" fill="#ffffff" fill-opacity="0.02" stroke="#ffb020" stroke-opacity="0.42" stroke-width="2" stroke-dasharray="13 9"/>
-  <g transform="translate(800,194)" stroke="#ffb020" stroke-opacity="0.72" stroke-width="3" fill="none">
-    <rect x="-36" y="-30" width="72" height="60" rx="10"/>
-    <circle cx="-13" cy="-10" r="7" fill="#ffb020" fill-opacity="0.72" stroke="none"/>
-    <path d="M-33 24 l22 -26 15 17 12 -13 19 21" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="440" y="100" width="720" height="300" rx="20" fill="#ffffff" fill-opacity="0.02" stroke="#ffb020" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="12 9"/>
+  <g transform="translate(800,196)">
+    <rect x="-34" y="-34" width="68" height="68" rx="14" fill="none" stroke="#ffb020" stroke-opacity="0.7" stroke-width="3"/>
+    <circle cx="-12" cy="-12" r="7" fill="#ffb020" fill-opacity="0.7"/>
+    <path d="M-30 26 l20 -24 14 16 12 -14 18 22 z" fill="#ffb020" fill-opacity="0.7"/>
   </g>
   <text x="800" y="300" text-anchor="middle" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-size="34" font-weight="700" fill="#f4f4f5" letter-spacing="1">Banner dell'evento</text>
   <text x="800" y="340" text-anchor="middle" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="19" fill="#a1a1aa">1600 &#215; 500 &#183; immagine caricata dal manager</text>

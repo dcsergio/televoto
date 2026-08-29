@@ -1,47 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Televoto">
   <title>Televoto — simbolo</title>
   <defs>
-    <linearGradient id="tile" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0" stop-color="#16161b"/>
-      <stop offset="1" stop-color="#0a0a0c"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101014"/>
+      <stop offset="1" stop-color="#09090b"/>
     </linearGradient>
-    <radialGradient id="stagelight" cx="0.5" cy="0.4" r="0.66">
-      <stop offset="0" stop-color="#ffb020" stop-opacity="0.22"/>
-      <stop offset="0.6" stop-color="#ffb020" stop-opacity="0.05"/>
+    <radialGradient id="stagelight" cx="0.5" cy="0.46" r="0.62">
+      <stop offset="0" stop-color="#ffb020" stop-opacity="0.18"/>
       <stop offset="1" stop-color="#ffb020" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="mbar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffd58a"/>
-      <stop offset="0.5" stop-color="#ffc24d"/>
+      <stop offset="0" stop-color="#ffc24d"/>
       <stop offset="1" stop-color="#ffb020"/>
-    </linearGradient>
-    <linearGradient id="mbarEdge" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/>
-      <stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
     <clipPath id="round"><rect width="256" height="256" rx="56"/></clipPath>
   </defs>
   <g clip-path="url(#round)">
     <rect width="256" height="256" fill="url(#tile)"/>
     <rect width="256" height="256" fill="url(#stagelight)"/>
-    <!-- podium floor -->
-    <rect x="0" y="186" width="256" height="70" fill="#000000" opacity="0.32"/>
-    <ellipse cx="128" cy="200" rx="104" ry="16" fill="#ffb020" opacity="0.10"/>
-    <!-- descending bars -->
+    <rect x="0" y="196" width="256" height="60" fill="#000000" opacity="0.28"/>
     <g>
-      <rect x="68" y="48" width="32" height="152" rx="12" fill="url(#mbar)"/>
-      <rect x="68" y="48" width="32" height="152" rx="12" fill="url(#mbarEdge)"/>
-      <rect x="112" y="92" width="32" height="108" rx="12" fill="#ffb020" opacity="0.74"/>
-      <rect x="156" y="130" width="32" height="70" rx="12" fill="#ffb020" opacity="0.46"/>
+      <rect x="71" y="52" width="30" height="148" rx="11" fill="url(#mbar)"/>
+      <rect x="113" y="94" width="30" height="106" rx="11" fill="#ffb020" opacity="0.72"/>
+      <rect x="155" y="132" width="30" height="68" rx="11" fill="#ffb020" opacity="0.46"/>
     </g>
-    <!-- stage line -->
-    <rect x="56" y="199.5" width="144" height="2" rx="1" fill="#ffd58a" opacity="0.4"/>
-    <!-- reflections -->
-    <g opacity="0.14">
-      <rect x="68" y="203" width="32" height="34" rx="12" fill="#ffb020"/>
-      <rect x="112" y="203" width="32" height="24" rx="12" fill="#ffb020" opacity="0.7"/>
-      <rect x="156" y="203" width="32" height="16" rx="12" fill="#ffb020" opacity="0.5"/>
-    </g>
+    <rect x="60" y="199" width="136" height="2" rx="1" fill="#ffb020" opacity="0.32"/>
   </g>
-  <rect x="1" y="1" width="254" height="254" rx="55" fill="none" stroke="#ffffff" stroke-opacity="0.07"/>
+  <rect x="1" y="1" width="254" height="254" rx="55" fill="none" stroke="#ffffff" stroke-opacity="0.06"/>
 </svg>

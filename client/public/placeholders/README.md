@@ -18,13 +18,13 @@ Servite staticamente da `public/` → raggiungibili a `/placeholders/<file>`.
 | 7 | `empty-state-no-events_400x300.svg` | 400×300 | Illustrazione per l'**empty state "Non c'è ancora nessun evento"** al posto della `mat-icon event_note`. | `client/src/app/pages/admin-shell/admin-shell.html:145` |
 | 8 | `empty-state-no-candidates_400x300.svg` | 400×300 | Illustrazione per gli empty state **"Nessun candidato ancora"** e **"Nessun voto ancora registrato"**. | `client/src/app/components/event-candidates-manager/event-candidates-manager.html:103`; `client/src/app/components/score/score.html:283` |
 | 9 | `vote-confirmed-illustration_320x320.svg` | 320×320 | Illustrazione di conferma nella schermata **"Grazie, il tuo voto è stato registrato"** (oggi solo testo + `&check;`). | `client/src/app/pages/voting-shell/voting-shell.html:132` |
-| 10 | `og-share_1200x630.svg` + `og-share_1200x630.png` | 1200×630 | **Immagine anteprima social** (`og:image` / `twitter:image`). `index.html` punta al **PNG** (molte piattaforme non renderizzano SVG); l'SVG è la sorgente rigenerabile. | `client/src/index.html` (`og:image`, `twitter:image`) |
+| 10 | `og-share_1200x630.svg` + `og-share_1200x630.png` | 1200×630 | **Immagine anteprima social** (`og:image`), oggi punta al favicon SVG. Usare il **PNG** per `og:image` (molte piattaforme non renderizzano SVG); l'SVG è la sorgente. | `client/src/index.html:22` |
 | 11 | `winner-decoration_800x800.svg` | 800×800, sfondo trasparente | Cornice/alloro decorativo **dietro il nome del 1° classificato** nel "winner takeover" della Classifica (oggi solo emoji medaglia). | `client/src/app/components/score/score.html:100` |
 
 ## Note
 
 - Palette "Palco" (asset pubblici `/` e `/score`): fondo `#0a0a0c`/`#111013`, un solo accento oro `#ffb020` (champagne `#ffd76a` solo per il beat vincitore in `winner-decoration`), verde conferma `#34d399` in `vote-confirmed-illustration`.
-- `empty-state-no-events` usa la palette "Studio" (fondo chiaro `#ffffff`→`#f4f4f6`, accento ambra `#b45309`) perché compare **solo** nella dashboard `/admin`. `empty-state-no-candidates` resta "Palco" ed è **senza testo** (serve sia per «Nessun candidato» sia per «Nessun voto»).
+- `empty-state-no-events` usa la palette "Studio" (fondo chiaro `#f6f6f7`, accento ambra `#b45309`) perché compare **solo** nella dashboard `/admin`. `empty-state-no-candidates` resta "Palco" ed è **senza testo** (serve sia per «Nessun candidato» sia per «Nessun voto»).
 - `televoto-logo-horizontal` è a **sfondo trasparente** con wordmark chiaro: pensato per header/sidenav scuri. Su fondo chiaro (sidenav Studio) va usato il solo simbolo (`televoto-logo-mark`) o una variante con wordmark scuro ancora da produrre.
 - `winner-decoration` ha **sfondo trasparente** e centro libero (il nome del 1° va sopra).
 - Per gli asset reali: `event-banner_*` e `candidate-photo_*` restano **segnaposto template** (contenuto specifico di evento/persona); l'asset caricato sarà meglio in JPG/WebP. Richiedono modifiche a schema DB + API di upload; gli altri sono asset statici che basta referenziare.

@@ -14,18 +14,13 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
         src="/placeholders/auth-gate-backdrop_1920x1200.svg"
         alt=""
         aria-hidden="true"
-        class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-45"
+        class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
       />
       @if (showBranding()) {
         <app-header />
       }
       <div class="flex flex-1 items-center justify-center px-4 py-8">
-        <div class="glass w-full max-w-xl p-7 sm:p-9">
-          <svg width="30" height="30" viewBox="0 0 30 30" class="mb-5" aria-hidden="true">
-            <rect x="3" y="3" width="6" height="24" rx="2.5" fill="var(--color-accent-cyan)" />
-            <rect x="12" y="9" width="6" height="18" rx="2.5" fill="var(--color-accent-cyan)" opacity="0.62" />
-            <rect x="21" y="15" width="6" height="12" rx="2.5" fill="var(--color-accent-cyan)" opacity="0.36" />
-          </svg>
+        <div class="glass w-full max-w-xl p-7 sm:p-8">
           <p class="text-xs font-semibold uppercase tracking-[0.28em] text-accent-cyan">Codice evento</p>
           <h2 class="gradient-title mt-3 text-3xl font-bold uppercase leading-[0.98] sm:text-4xl">
             Inserisci il codice
@@ -33,7 +28,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
           <p class="mt-3 max-w-[48ch] text-sm text-text-secondary text-pretty">
             Per accedere al televoto o alla classifica devi indicare un codice evento valido.
           </p>
-          <form class="mt-7 flex flex-col gap-3 sm:flex-row" (ngSubmit)="handleSubmit()">
+          <form class="mt-6 flex flex-col gap-3 sm:flex-row" (ngSubmit)="handleSubmit()">
             <input
               type="text"
               inputmode="numeric"
