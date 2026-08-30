@@ -20,7 +20,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatDialogModule, FormsModule],
   template: `
-    <div class="surface-card bg-bg-secondary p-6 shadow-2xl">
+    <div class="surface-card bg-bg-secondary p-6 shadow-lift">
       <h2 class="text-xl font-semibold text-text-primary">Clona evento</h2>
       <p class="mt-3 text-sm text-text-secondary">
         Una copia di "{{ data.eventName }}" verrà creata: scegli il nome, un codice opzionale e la

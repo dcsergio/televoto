@@ -3,15 +3,23 @@
     <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
   </div>
 } @else if (error() && !progress()) {
-  <div class="mt-8 rounded-2xl border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
+  <div class="notice notice-danger mt-8">
+    <mat-icon aria-hidden="true">error</mat-icon>
+    <span>{{ error() }}</span>
+  </div>
 } @else if (progress(); as p) {
   <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-xl font-semibold text-text-primary">Progresso votazioni</h2>
+      <div>
+        <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Backstage</p>
+        <h2 class="text-xl font-semibold text-text-primary">Progresso votazioni</h2>
+      </div>
       <div class="flex flex-wrap items-center gap-3">
-        <span class="text-xs text-text-secondary">
+        <span class="flex items-center gap-1.5 text-xs text-text-secondary">
           @if (streamConnected()) {
-            <span class="text-emerald-300">In ascolto</span> &middot;
+            <span class="inline-block h-1.5 w-1.5 rounded-full bg-signal-open"></span>
+            <span class="text-signal-open">In ascolto</span>
+            <span aria-hidden="true">&middot;</span>
           }
           {{ lastUpdatedLabel() ?? 'aggiornamento...' }}
         </span>
@@ -22,32 +30,38 @@
     </div>
 
     @if (error()) {
-      <div class="mb-4 rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-3 text-sm text-accent-coral">{{ error() }}</div>
+      <div class="notice notice-danger mb-4">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>{{ error() }}</span>
+      </div>
     }
 
-    <div class="surface-panel mb-6 grid grid-cols-2 divide-x divide-y divide-border-glass sm:grid-cols-4 sm:divide-y-0">
-      <div class="px-4 py-4">
-        <div class="font-display text-2xl font-semibold tabular-nums text-emerald-300">{{ p.qualified.activeJudges }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Giuria attivi</div>
+    <div class="surface-panel mb-6 p-5">
+      <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">Voti televoto espressi</p>
+      <div class="mt-1 font-display text-5xl font-semibold tabular-nums text-accent-cyan">
+        {{ p.popular.totalVotesCast }}
       </div>
-      <div class="px-4 py-4">
-        <div class="font-display text-2xl font-semibold tabular-nums text-amber-300">{{ p.qualified.submittedJudges }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Giuria finalizzati</div>
-      </div>
-      <div class="px-4 py-4">
-        <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ p.popular.activatedTokens }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Televoto QR attivati</div>
-      </div>
-      <div class="px-4 py-4">
-        <div class="font-display text-2xl font-semibold tabular-nums text-accent-cyan">{{ p.popular.totalVotesCast }}</div>
-        <div class="mt-0.5 text-sm text-text-secondary">Voti televoto espressi</div>
+      <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-border-glass pt-3 text-sm">
+        <span class="flex items-baseline gap-1.5">
+          <span class="text-text-secondary">Giuria attivi</span>
+          <span class="font-display tabular-nums text-text-primary">{{ p.qualified.activeJudges }}</span>
+        </span>
+        <span class="flex items-baseline gap-1.5">
+          <span class="text-text-secondary">Giuria finalizzati</span>
+          <span class="font-display tabular-nums text-text-primary">{{ p.qualified.submittedJudges }}</span>
+        </span>
+        <span class="flex items-baseline gap-1.5">
+          <span class="text-text-secondary">Televoto QR attivati</span>
+          <span class="font-display tabular-nums text-text-primary">{{ p.popular.activatedTokens }}</span>
+        </span>
       </div>
     </div>
 
     @if (p.candidateCount > 0 && p.totalJudges > 0) {
-      <div class="mb-6 rounded-xl border border-accent-cyan/20 bg-accent-cyan/10 p-4">
-        <p class="text-sm text-accent-cyan">
-          {{ p.qualified.submittedJudges }} {{ pluralize(p.qualified.submittedJudges, 'giurato', 'giurati') }} su
+      <div class="surface-panel mb-6 p-4">
+        <p class="text-sm text-text-secondary">
+          <span class="font-semibold text-text-primary">{{ p.qualified.submittedJudges }}</span>
+          {{ pluralize(p.qualified.submittedJudges, 'giurato', 'giurati') }} su
           {{ p.qualified.totalJudges }} {{ pluralize(p.qualified.submittedJudges, 'ha', 'hanno') }} bloccato il codice.
           @if (activeIncompleteJudges().length > 0) {
             <span
@@ -62,14 +76,14 @@
 
     @if (p.incompleteCandidates.length > 0) {
       <div class="mb-6">
-        <h3 class="mb-3 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">
+        <h3 class="mb-3 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">
           Candidati con voti incompleti
         </h3>
         <div class="space-y-2">
           @for (candidate of p.incompleteCandidates; track candidate.candidateId) {
-            <div class="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm">
+            <div class="surface-panel flex items-center justify-between px-4 py-2 text-sm">
               <span class="text-text-primary">#{{ candidate.candidateNumber }} {{ candidate.candidateName }}</span>
-              <span class="text-amber-200">
+              <span class="text-signal-warn">
                 {{ pluralize(candidate.missingJudgeCount, 'Manca', 'Mancano') }} {{ candidate.missingJudgeCount }}
                 {{ pluralize(candidate.missingJudgeCount, 'giurato', 'giurati') }}
               </span>
@@ -81,10 +95,10 @@
 
     @if (activeIncompleteJudges().length > 0) {
       <div>
-        <h3 class="mb-3 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">Giurati attivi incompleti</h3>
+        <h3 class="mb-3 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">Giurati attivi incompleti</h3>
         <div class="space-y-2">
           @for (judge of activeIncompleteJudges(); track judge.id) {
-            <div class="rounded-lg border border-border-glass bg-bg-card/60 px-4 py-3">
+            <div class="surface-panel px-4 py-3">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <span class="font-mono text-sm text-text-primary">{{ judge.tokenPreview }}&hellip;</span>
@@ -93,7 +107,7 @@
                   }
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="rounded-md border px-2 py-0.5 text-xs" [ngClass]="getStatusClass(judge.status)">
+                  <span class="status-pill" [ngClass]="getStatusClass(judge.status)">
                     {{ getStatusLabel(judge.status) }}
                   </span>
                   <span class="text-sm text-text-secondary">{{ judge.votesCast }}/{{ judge.votesRequired }} voti</span>

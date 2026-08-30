@@ -13,9 +13,15 @@ export function getJudgeTokenStatusLabel(status: JudgeTokenStatus): string {
   return 'Attivo';
 }
 
+/**
+ * Returns the `.status-*` modifier for the shared `.status-pill` badge
+ * (defined in `styles.scss`). Call sites keep `class="status-pill"` static and
+ * bind this as the variant, so judge-token state runs through the one status
+ * system instead of a bespoke `emerald/amber/red` family.
+ */
 export function getJudgeTokenStatusClass(status: JudgeTokenStatus): string {
-  if (status === 'used') return 'border-amber-500/30 bg-amber-500/15 text-amber-200';
-  if (status === 'revoked') return 'border-red-500/30 bg-red-500/15 text-red-200';
-  if (status === 'invalid') return 'border-border-glass bg-bg-card-hover text-text-secondary';
-  return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-200';
+  if (status === 'used') return 'status-warn';
+  if (status === 'revoked') return 'status-danger';
+  if (status === 'invalid') return 'status-neutral';
+  return 'status-open';
 }

@@ -3,17 +3,17 @@
     <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
   </div>
 } @else if (error() && !rankings()) {
-  <div class="mt-8 rounded-2xl border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
+  <div class="notice notice-danger mt-8"><span>{{ error() }}</span></div>
 } @else if (rankings(); as r) {
   <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Classifica parziale</p>
+        <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Classifica parziale</p>
         <h2 class="text-xl font-semibold text-text-primary">Giuria, Televoto e Ponderata</h2>
         <p class="mt-1 text-xs text-text-secondary">
           Pesi: Giuria {{ r.weights.qualificata }}% &middot; Televoto {{ r.weights.popolare }}%
         </p>
-        @if (r.event.enableTrimmedMean && r.event.popularVoteMode !== 'SINGLE') {
+        @if (r.event.enableTrimmedMean && r.event.popularVoteMode === 'NUMERIC') {
           <p class="mt-1 text-xs text-text-secondary">
             Trimmed mean attivo al {{ r.event.trimmedMeanPercentage }}% sui voti del pubblico
           </p>
@@ -25,7 +25,7 @@
     </div>
 
     @if (error()) {
-      <div class="mb-4 rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-3 text-sm text-accent-coral">{{ error() }}</div>
+      <div class="notice notice-danger mb-4"><span>{{ error() }}</span></div>
     }
 
     <div class="mb-4 rounded-xl border border-border-glass bg-bg-card/60 px-4 py-3">
@@ -42,7 +42,7 @@
     <div class="grid gap-4 lg:grid-cols-3">
       @for (column of columns(); track column.title) {
         <div class="surface-panel bg-bg-card/50 p-5">
-          <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.15em] text-text-secondary">{{ column.title }}</h3>
+          <h3 class="mb-2 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">{{ column.title }}</h3>
           @if (column.note) {
             <p class="mb-3 text-xs text-text-secondary">{{ column.note }}</p>
           }
@@ -51,22 +51,26 @@
           } @else {
             <div class="space-y-2">
               @for (entry of column.entries; track entry.id) {
-                <div
-                  class="flex items-center gap-3 rounded-xl border border-border-glass bg-bg-card/50 px-3 py-2"
-                  [style.border-left-color]="entry.color"
-                  style="border-left-width: 3px"
-                >
-                  <span class="text-lg">{{ getMedalEmoji(entry.position) }}</span>
-                  <span class="w-6 text-center text-sm font-bold text-text-secondary">#{{ entry.position }}</span>
-                  <div class="h-3 w-3 rounded-full flex-shrink-0" [style.background-color]="entry.color"></div>
+                <div class="flex items-center gap-3 rounded-xl border border-border-glass bg-bg-card/50 px-3 py-2">
+                  <span class="w-7 shrink-0 text-center font-display text-base font-semibold tabular-nums text-text-secondary">
+                    {{ entry.position }}
+                  </span>
+                  <span class="h-3 w-3 shrink-0 rounded-full" [style.background-color]="entry.color"></span>
                   <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-semibold text-text-primary">{{ entry.number }}. {{ entry.name }}</p>
                   </div>
                   <div class="text-right">
-                    <div class="text-lg font-bold text-accent-cyan">
+                    <div
+                      class="font-display text-lg font-semibold tabular-nums"
+                      [class]="
+                        column.title === 'Classifica Ponderata' && entry.position === 1
+                          ? 'text-accent-cyan'
+                          : 'text-text-primary'
+                      "
+                    >
                       {{ formatScore(scoreOf(entry, column.scoreKey)) }}
                     </div>
-                    <div class="text-[10px] uppercase tracking-wider text-text-secondary">
+                    <div class="text-[0.625rem] uppercase tracking-wider text-text-secondary">
                       {{ column.scoreLabel }} &middot; {{ voteCountOf(entry, column.voteCountKey) }} voti
                     </div>
                   </div>

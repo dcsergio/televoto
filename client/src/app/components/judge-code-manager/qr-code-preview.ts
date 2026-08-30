@@ -6,9 +6,7 @@ import QRCode from 'qrcode';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (qrError()) {
-      <div class="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-        Impossibile generare il QR per questo link.
-      </div>
+      <div class="notice notice-danger text-xs"><span>Impossibile generare il QR per questo link.</span></div>
     } @else if (!qrDataUrl()) {
       <div
         class="flex h-[124px] w-[124px] items-center justify-center rounded-xl border border-border-glass bg-bg-primary text-xs text-text-secondary"
@@ -21,7 +19,7 @@ import QRCode from 'qrcode';
         <a
           [href]="qrDataUrl()"
           [download]="label() + '.png'"
-          class="inline-flex rounded-lg border border-border-glass px-2 py-1 text-[11px] font-semibold text-text-primary transition hover:bg-bg-secondary"
+          class="inline-flex rounded-lg border border-border-glass px-2 py-1 text-[0.625rem] font-semibold text-text-primary transition hover:bg-bg-secondary"
         >
           Scarica PNG
         </a>

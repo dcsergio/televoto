@@ -25,8 +25,10 @@ import { buildPageTitle } from '../../shared/page-title.util';
 import {
   EVENT_MANAGER_SECTION_NAV,
   EventManagerSection,
+  LifecycleStep,
   contextualDefaultEventManagerSection,
   eventManagerSectionFromQueryParam,
+  lifecycleSteps as buildLifecycleSteps,
 } from './event-manager-shell.util';
 
 @Component({
@@ -82,6 +84,14 @@ export class EventManagerShellComponent {
   protected readonly event = this.votingState.event;
   protected readonly loading = this.votingState.loading;
 
+  /** Slim «Candidati → Codici → Televoto → Classifica» orientation stepper in the shell header. */
+  protected readonly lifecycleSteps = computed(() =>
+    buildLifecycleSteps({
+      candidateCount: this.event()?.candidates?.length ?? 0,
+      votingClosed: this.event()?.votingClosed ?? true,
+    }),
+  );
+
   /** Root can operate any event's workspace without a separate manager-password prompt (backend already accepts role "root" on every manager-scoped route). */
   protected readonly activeToken = computed(() => this.authState.rootAuthToken() ?? this.authState.eventManagerAuthToken());
   protected readonly isAuthenticated = computed(() => this.activeToken() !== null);
@@ -92,7 +102,7 @@ export class EventManagerShellComponent {
     });
 
     effect(() => {
-      this.title.setTitle(buildPageTitle('Regia', this.event()?.name));
+      this.title.setTitle(buildPageTitle('Regia', this.event()?.name, this.event()?.code));
     });
 
     effect(() => {
@@ -133,6 +143,14 @@ export class EventManagerShellComponent {
       queryParams: { adminSection: section },
       queryParamsHandling: 'merge',
     });
+  }
+
+  protected handleLifecycleStepSelect(step: LifecycleStep): void {
+    if (step.section) {
+      this.handleNavSelect(step.section);
+    } else {
+      this.handleOpenScore();
+    }
   }
 
   protected handleEventCodeSubmit(code: string): void {

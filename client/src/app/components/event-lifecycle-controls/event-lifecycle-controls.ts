@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { firstValueFrom } from 'rxjs';
 import { EventsApi } from '../../api/events.api';
 import { CandidateData } from '../../models/types';
@@ -21,8 +22,9 @@ export interface VotingStateChange {
 @Component({
   selector: 'app-event-lifecycle-controls',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [MatIconModule],
   templateUrl: './event-lifecycle-controls.html',
+  host: { '(document:keydown.alt.v)': 'onHotkey($event)' },
 })
 export class EventLifecycleControlsComponent {
   private readonly eventsApi = inject(EventsApi);
@@ -31,6 +33,7 @@ export class EventLifecycleControlsComponent {
 
   readonly eventId = input.required<string>();
   readonly eventCode = input.required<string>();
+  readonly eventName = input<string>('');
   readonly authToken = input.required<string>();
   readonly votingClosed = input.required<boolean>();
 
@@ -47,6 +50,19 @@ export class EventLifecycleControlsComponent {
     }
   }
 
+  /**
+   * Alt+V toggles the primary Avvia/Chiudi action (via its confirm dialog).
+   * Ignored while a dialog is already open or focus sits in a form control,
+   * so it never fires mid-typing or stacks a second confirm.
+   */
+  protected onHotkey(event: Event): void {
+    const dialogOpen = document.querySelector('.cdk-overlay-container .mat-mdc-dialog-container') !== null;
+    const tag = document.activeElement?.tagName ?? '';
+    if (dialogOpen || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    event.preventDefault();
+    this.confirmPrimaryAction();
+  }
+
   protected handleOpenScore(): void {
     openScoreGuarded(this.dialog, this.eventCode(), this.votingClosed());
   }
@@ -55,8 +71,11 @@ export class EventLifecycleControlsComponent {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Avvia votazione',
-        message: 'Vuoi avviare la votazione? I voti precedenti saranno azzerati e i candidati verranno rinumerati progressivamente.',
-        confirmLabel: 'Avvia',
+        message:
+          'Tutti i voti già espressi saranno cancellati definitivamente e i candidati verranno rinumerati progressivamente. Il televoto verrà riaperto.',
+        detail: this.eventName() ? `Evento: ${this.eventName()}` : undefined,
+        confirmLabel: 'Sì, azzera e avvia',
+        confirmVariant: 'danger',
       },
     });
     ref.afterClosed().subscribe((confirmed) => {
@@ -104,8 +123,10 @@ export class EventLifecycleControlsComponent {
       data: {
         title: 'Azzera classifica',
         message:
-          'Vuoi azzerare tutti i voti e ricominciare da capo? I codici giudice non revocati torneranno attivi (lo stesso codice resta valido).',
-        confirmLabel: 'Azzera',
+          'Tutti i voti saranno cancellati definitivamente e si ricomincia da capo. I codici giudice non revocati torneranno attivi (lo stesso codice resta valido).',
+        detail: this.eventName() ? `Evento: ${this.eventName()}` : undefined,
+        confirmLabel: 'Sì, azzera i voti',
+        confirmVariant: 'danger',
       },
     });
     ref.afterClosed().subscribe((confirmed) => {

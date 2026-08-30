@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { firstValueFrom } from 'rxjs';
 import {
   GeneratedJudgeToken,
@@ -13,7 +14,14 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
 import { ToastService } from '../../shared/toast.service';
 import { QrCodePreviewComponent } from './qr-code-preview';
 import { PrintService } from './print.service';
-import { formatDate, formatJudgeToken, getStatusClass, getStatusLabel } from './judge-code-manager.util';
+import {
+  formatDate,
+  formatJudgeToken,
+  getStatusClass,
+  getStatusLabel,
+  readFreshCodes,
+  writeFreshCodes,
+} from './judge-code-manager.util';
 
 interface GeneratorForm {
   count: number;
@@ -25,7 +33,7 @@ interface GeneratorForm {
 @Component({
   selector: 'app-judge-code-manager',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, QrCodePreviewComponent],
+  imports: [FormsModule, MatIconModule, QrCodePreviewComponent],
   templateUrl: './judge-code-manager.html',
 })
 export class JudgeCodeManagerComponent {
@@ -79,6 +87,12 @@ export class JudgeCodeManagerComponent {
     return map;
   });
   protected readonly hasFreshCodes = computed(() => this.generatedTokens().length > 0);
+  // Per-row collapse for session-fresh codes so a long list can be tidied
+  // without regenerating — visibility only, the plaintext stays cached.
+  protected readonly hiddenFreshIds = signal<ReadonlySet<string>>(new Set());
+  protected readonly hasStatusPills = computed(
+    () => this.activeCount() + this.usedCount() + this.revokedCount() > 0,
+  );
   protected readonly listTokens = computed(() => {
     const fresh = this.generatedById();
     return [...this.activeTokens()].sort(
@@ -96,7 +110,8 @@ export class JudgeCodeManagerComponent {
       const eventId = this.eventId();
       if (eventId === this.lastLoadedEventId) return;
       this.lastLoadedEventId = eventId;
-      this.generatedTokens.set([]);
+      this.generatedTokens.set(readFreshCodes(eventId));
+      this.hiddenFreshIds.set(new Set());
       this.validationInput.set('');
       this.validationResult.set(null);
       void this.loadTokens();
@@ -123,12 +138,38 @@ export class JudgeCodeManagerComponent {
 
   private applyTokenSnapshot(snapshot: JudgeTokenRecord[]): void {
     this.tokens.set(snapshot);
+    const byId = new Map(snapshot.map((entry) => [entry.id, entry]));
     this.generatedTokens.update((prev) =>
-      prev.map((token) => {
-        const updated = snapshot.find((entry) => entry.id === token.id);
-        return updated ? { ...token, ...updated } : token;
-      }),
+      prev
+        .map((token) => {
+          const updated = byId.get(token.id);
+          return updated ? { ...token, ...updated } : token;
+        })
+        // Drop codes the server no longer knows or has revoked — their cached
+        // plaintext is dead weight and must not linger in sessionStorage.
+        .filter((token) => {
+          const current = byId.get(token.id);
+          return current != null && current.status !== 'revoked';
+        }),
     );
+    this.persistFreshCodes();
+  }
+
+  private persistFreshCodes(): void {
+    writeFreshCodes(this.eventId(), this.generatedTokens());
+  }
+
+  protected isFreshHidden(id: string): boolean {
+    return this.hiddenFreshIds().has(id);
+  }
+
+  protected toggleFreshVisibility(id: string): void {
+    this.hiddenFreshIds.update((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   protected async loadTokens(): Promise<void> {
@@ -180,6 +221,8 @@ export class JudgeCodeManagerComponent {
         ),
       );
       this.generatedTokens.set(result.codes);
+      this.hiddenFreshIds.set(new Set());
+      this.persistFreshCodes();
       this.validationResult.set(null);
       this.validationInput.set('');
       await this.loadTokens();
@@ -227,8 +270,9 @@ export class JudgeCodeManagerComponent {
   protected confirmReissue(id: string): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Rigenera codice',
-        message: 'Il codice attuale smetterà di funzionare immediatamente. Continuare?',
+        title: 'Rigenera questo codice',
+        message:
+          'Viene creato un codice nuovo solo per questo giudice: quello attuale (e il suo link/QR) smette di funzionare subito, mentre i voti già espressi vengono spostati sul nuovo codice. Continuare?',
         confirmLabel: 'Rigenera',
       },
     });
@@ -243,7 +287,8 @@ export class JudgeCodeManagerComponent {
     try {
       const updated = await firstValueFrom(this.judgeTokensApi.revokeJudgeToken(id, this.authToken()));
       this.tokens.update((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
-      this.generatedTokens.update((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
+      this.generatedTokens.update((prev) => prev.filter((t) => t.id !== id));
+      this.persistFreshCodes();
       this.toast.success('Codice revocato');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella revoca');
@@ -255,14 +300,14 @@ export class JudgeCodeManagerComponent {
   protected confirmReissueAll(): void {
     const count = this.activeTokens().length;
     if (count === 0) {
-      this.error.set('Non ci sono codici attivi da rigenerare.');
+      this.error.set('Non ci sono codici attivi da sostituire.');
       return;
     }
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Rigenera tutti i codici',
-        message: `Verranno rigenerati ${count} codici attivi con un nuovo valore: i codici attuali e i relativi link/QR smetteranno di funzionare immediatamente e andranno ridistribuiti. Continuare?`,
-        confirmLabel: 'Rigenera tutti',
+        title: 'Sostituisci tutti i codici',
+        message: `Verranno sostituiti ${count} codici attivi con un nuovo valore: i codici attuali e i relativi link/QR smetteranno di funzionare immediatamente e andranno ridistribuiti tutti. Questo non serve per rivedere codici già generati. Continuare?`,
+        confirmLabel: 'Sostituisci tutti',
       },
     });
     ref.afterClosed().subscribe((confirmed) => {
@@ -278,13 +323,15 @@ export class JudgeCodeManagerComponent {
         this.judgeTokensApi.reissueAllJudgeTokens(this.eventId(), window.location.origin, this.authToken()),
       );
       this.generatedTokens.set(result.codes);
+      this.hiddenFreshIds.set(new Set());
+      this.persistFreshCodes();
       this.validationResult.set(null);
       this.validationInput.set('');
       await this.loadTokens();
       this.toast.success(
-        result.codes.length === 1 ? '1 codice rigenerato' : `${result.codes.length} codici rigenerati`,
+        result.codes.length === 1 ? '1 codice sostituito' : `${result.codes.length} codici sostituiti`,
       );
-      this.copyMessage.set('Nuovi codici generati: stampa o copia ora i nuovi link/QR qui sotto.');
+      this.copyMessage.set('Codici sostituiti: stampa o copia ora i nuovi link/QR qui sotto.');
       setTimeout(() => this.copyMessage.set(null), 5000);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella rigenerazione dei codici');
@@ -301,9 +348,15 @@ export class JudgeCodeManagerComponent {
         this.judgeTokensApi.reissueJudgeToken(id, window.location.origin, this.authToken()),
       );
       this.generatedTokens.update((prev) => [result.code, ...prev]);
+      this.hiddenFreshIds.update((prev) => {
+        const next = new Set(prev);
+        next.delete(result.code.id);
+        return next;
+      });
+      this.persistFreshCodes();
       await this.loadTokens();
       this.toast.success('Codice rigenerato');
-      this.copyMessage.set('Nuovo codice generato ed evidenziato con il badge «nuovo» nell’elenco.');
+      this.copyMessage.set('Nuovo codice generato: QR e link mostrati qui sotto con il badge «nuovo».');
       setTimeout(() => this.copyMessage.set(null), 4000);
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Errore nella rigenerazione del codice');

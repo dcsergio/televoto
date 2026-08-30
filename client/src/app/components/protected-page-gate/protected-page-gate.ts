@@ -23,7 +23,7 @@ import { FormsModule } from '@angular/forms';
           />
 
           @if (error()) {
-            <p class="text-sm text-accent-coral">{{ error() }}</p>
+            <div class="notice notice-danger"><span>{{ error() }}</span></div>
           }
 
           <div class="flex gap-3 pt-1">

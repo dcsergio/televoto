@@ -21,8 +21,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     <button
       type="button"
       mat-button
-      matTooltip="Apri pagina voto pubblico — vista pubblica, nuova scheda"
-      aria-label="Apri pagina voto pubblico in una nuova scheda"
+      [matTooltip]="withContext('Apri pagina voto pubblico') + ' — vista pubblica, nuova scheda'"
+      [attr.aria-label]="withContext('Apri pagina voto pubblico') + ' in una nuova scheda'"
       [attr.data-testid]="testidPrefix() + '-open-voting'"
       [disabled]="disabled()"
       (click)="openVoting.emit()"
@@ -33,8 +33,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     <button
       type="button"
       mat-button
-      matTooltip="Apri Classifica — vista pubblica, nuova scheda"
-      aria-label="Apri Classifica in una nuova scheda"
+      [matTooltip]="withContext('Apri Classifica') + ' — vista pubblica, nuova scheda'"
+      [attr.aria-label]="withContext('Apri Classifica') + ' in una nuova scheda'"
       [attr.data-testid]="testidPrefix() + '-open-score'"
       [disabled]="disabled()"
       (click)="openScore.emit()"
@@ -62,8 +62,19 @@ export class ShellToolbarActionsComponent {
   readonly disabled = input(false);
   /** Tooltip + aria-label for the logout button (the two shells word it differently). */
   readonly logoutTooltip = input('Esci');
+  /**
+   * Name of the event the public-view actions target (e.g. "01234 — GRAN FINALE").
+   * Folded into the two buttons' tooltip / aria-label so the operator can tell
+   * which event's public view is about to open. Empty = generic wording.
+   */
+  readonly contextLabel = input('');
 
   readonly openVoting = output<void>();
   readonly openScore = output<void>();
   readonly logout = output<void>();
+
+  protected withContext(base: string): string {
+    const ctx = this.contextLabel().trim();
+    return ctx ? `${base} di ${ctx}` : base;
+  }
 }

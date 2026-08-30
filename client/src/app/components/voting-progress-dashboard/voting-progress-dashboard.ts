@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Subject, debounceTime, firstValueFrom } from 'rxjs';
 import { VotingApi, VotingProgress, VotingProgressJudge } from '../../api/voting.api';
 import { JudgeTokensApi } from '../../api/judge-tokens.api';
@@ -37,7 +38,7 @@ const REFRESH_DEBOUNCE_MS = 700;
 @Component({
   selector: 'app-voting-progress-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, PartialRankingsPanelComponent],
+  imports: [NgClass, MatIconModule, PartialRankingsPanelComponent],
   templateUrl: './voting-progress-dashboard.html',
 })
 export class VotingProgressDashboardComponent {

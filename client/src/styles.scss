@@ -61,6 +61,18 @@
   --color-red-300: #d68d82;
   --color-red-500: #d94f3d;
 
+  /* ── Status signals ───────────────────────────────────────────
+     Semantic names for the three operational states surfaced in
+     the regia ("Studio") UI — open / warning / danger. On the
+     dark "Palco" stage they read as text on a dark tint; the
+     `.theme-pro` block below flattens them to one darker step that
+     also clears AA on white and over its own /12–/15 tint. Use the
+     `.status-*` helpers (paired with an icon) rather than the raw
+     `emerald/amber/red` ramps so meaning is never colour-only. */
+  --color-signal-open: #5fb37f;
+  --color-signal-warn: #dcae6f;
+  --color-signal-danger: #df5b48;
+
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
 
   /* ── Radius scale ──────────────────────────────────────────────
@@ -424,6 +436,25 @@ p {
   padding-bottom: 16px !important;
 }
 
+/* Compact event selector living in the admin toolbar — trims the outline
+   field's vertical padding so it sits inside the 64px toolbar, and drops the
+   now-empty subscript row entirely. */
+.admin-toolbar-event {
+  font-size: 0.8125rem;
+}
+.admin-toolbar-event .mat-mdc-text-field-wrapper {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.admin-toolbar-event .mat-mdc-form-field-infix {
+  min-height: 40px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.admin-toolbar-event .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
 /* ──────────────────────────────────────────────────────────────
    Shared component primitives. Before this, every hand-rolled
    button/card/input re-declared the same ~8 utilities inline (and
@@ -544,6 +575,88 @@ p {
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* ── Status pill ──────────────────────────────────────────────
+     The one badge for "televoto aperto / chiuso", token lifecycle
+     counts, and any other operational state. Colour is always
+     paired with the leading icon/dot the call site provides, so a
+     state is never signalled by hue alone. */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    padding: 0.1875rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .status-pill .mat-icon,
+  .status-pill mat-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    font-size: 0.875rem;
+    line-height: 0.875rem;
+  }
+  .status-open {
+    background: color-mix(in srgb, var(--color-signal-open) 15%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-open) 32%, transparent);
+    color: var(--color-signal-open);
+  }
+  .status-warn {
+    background: color-mix(in srgb, var(--color-signal-warn) 15%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-warn) 32%, transparent);
+    color: var(--color-signal-warn);
+  }
+  .status-danger {
+    background: color-mix(in srgb, var(--color-signal-danger) 14%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-danger) 28%, transparent);
+    color: var(--color-signal-danger);
+  }
+  .status-neutral {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-border-glass);
+    color: var(--color-text-secondary);
+  }
+
+  /* ── Inline notice ────────────────────────────────────────────
+     The full-width error/callout box that was hand-rolled (at three
+     radii and two colour families) across the regia components. */
+  .notice {
+    display: flex;
+    gap: 0.625rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid transparent;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  .notice .mat-icon,
+  .notice mat-icon {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    font-size: 1.125rem;
+    line-height: 1.125rem;
+  }
+  .notice-danger {
+    background: color-mix(in srgb, var(--color-signal-danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-danger) 30%, transparent);
+    color: var(--color-signal-danger);
+  }
+  .notice-warn {
+    background: color-mix(in srgb, var(--color-signal-warn) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-warn) 30%, transparent);
+    color: var(--color-signal-warn);
+  }
+  .notice-ok {
+    background: color-mix(in srgb, var(--color-signal-open) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-open) 30%, transparent);
+    color: var(--color-signal-open);
+  }
 }
 
 /* ── Native form controls — checkbox / radio / colour picker.
@@ -631,6 +744,13 @@ input[type="color"]::-moz-color-swatch {
   --color-red-200: #c11919;
   --color-red-300: #c11919;
   --color-red-500: #c11919;
+
+  /* Status signals — one dark step each, same values as the flattened
+     ramps above, chosen to clear AA as solid text on white and over
+     the matching /12–/15 tint the `.status-*` helpers apply. */
+  --color-signal-open: #05664a;
+  --color-signal-warn: #b45309;
+  --color-signal-danger: #c11919;
 
   --shadow-card: 0 1px 2px rgba(18, 20, 24, 0.06), 0 1px 3px rgba(18, 20, 24, 0.04);
   --shadow-lift: 0 2px 4px rgba(18, 20, 24, 0.06), 0 14px 30px -14px rgba(18, 20, 24, 0.16);

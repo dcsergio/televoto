@@ -1,12 +1,14 @@
-<mat-card appearance="outlined" class="!bg-bg-card">
-  <mat-card-content class="space-y-6">
+<div class="surface-card space-y-6 p-6">
     <div>
-      <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione candidati</p>
+      <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Gestione candidati</p>
       <h2 class="mt-2 text-2xl font-bold text-text-primary">Candidati per evento selezionato</h2>
     </div>
 
     @if (error()) {
-      <div class="rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-4 text-accent-coral">{{ error() }}</div>
+      <div class="notice notice-danger">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>{{ error() }}</span>
+      </div>
     }
 
     @if (loading()) {
@@ -14,11 +16,17 @@
         <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
       </div>
     } @else {
-      <div class="inline-flex items-center gap-3 rounded-2xl border border-border-glass bg-bg-card px-4 py-3 text-sm">
-        <span class="font-semibold">Stato evento:</span>
-        <span [class]="votingClosed() ? 'text-accent-cyan' : 'text-emerald-300'">{{ currentStatus() }}</span>
+      <div class="surface-panel flex flex-wrap items-center gap-x-3 gap-y-1 p-3 text-sm">
+        <span
+          class="status-pill"
+          [class.status-open]="!votingClosed()"
+          [class.status-neutral]="votingClosed()"
+        >
+          <mat-icon aria-hidden="true">{{ votingClosed() ? 'lock' : 'lock_open' }}</mat-icon>
+          {{ currentStatus() }}
+        </span>
         <span class="text-text-secondary">
-          {{ votingClosed() ? 'Modifiche abilitate.' : 'Modifiche bloccate finché il televoto è aperto.' }}
+          {{ votingClosed() ? 'Modifiche ai candidati abilitate.' : 'Modifiche bloccate finché il televoto è aperto.' }}
         </span>
       </div>
 
@@ -126,7 +134,7 @@
               Aggiungi candidato
             </button>
             @if (modificationsLocked()) {
-              <p class="text-sm text-amber-200">{{ modificationLockMessage }}</p>
+              <p class="text-sm text-signal-warn">{{ modificationLockMessage }}</p>
             }
           </div>
         </form>
@@ -218,5 +226,4 @@
         }
       </div>
     }
-  </mat-card-content>
-</mat-card>
+</div>

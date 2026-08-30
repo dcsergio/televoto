@@ -41,23 +41,28 @@
               Area admin
             </button>
           }
-          <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
-          <p class="mt-1 text-[10px] uppercase tracking-[0.2em] text-text-muted">Gestione evento</p>
+          <div class="flex items-center gap-2.5">
+            <span class="h-4 w-1 rounded-full bg-accent-cyan"></span>
+            <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
+          </div>
+          <p class="mt-1 text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">Gestione evento</p>
         </div>
 
         <mat-nav-list class="flex-1 px-2">
           @for (item of sectionNav; track item.section) {
-            <a
+            <button
+              type="button"
               mat-list-item
               (click)="handleNavSelect(item.section)"
               [attr.data-testid]="'event-manager-nav-' + item.section"
-              class="mb-1 cursor-pointer rounded-xl transition"
+              [attr.aria-current]="activeSection() === item.section ? 'page' : null"
+              class="mb-1 w-full cursor-pointer rounded-xl text-left transition"
               [class.bg-accent-cyan/15]="activeSection() === item.section"
               [class.text-accent-cyan]="activeSection() === item.section"
             >
               <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
               <span matListItemTitle>{{ item.label }}</span>
-            </a>
+            </button>
           }
         </mat-nav-list>
 
@@ -68,6 +73,7 @@
             <mat-icon>logout</mat-icon>
             Esci
           </button>
+          <p class="text-center text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">ver. 1.0</p>
         </div>
       </div>
     </mat-sidenav>
@@ -80,25 +86,24 @@
           </button>
         }
 
-        <span class="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary" [title]="event()!.code + ' - ' + event()!.name">
-          {{ event()!.code }} - {{ event()!.name }}
-        </span>
-
-        <span
-          [class]="
-            event()!.votingClosed
-              ? 'text-lg font-extrabold uppercase tracking-wider text-accent-cyan'
-              : 'text-lg font-extrabold uppercase tracking-wider text-emerald-400'
-          "
-        >
-          {{ event()!.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
-        </span>
-
-        <span class="flex-1"></span>
+        <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <span class="truncate text-sm font-semibold text-text-primary" [title]="event()!.code + ' — ' + event()!.name">
+            <span class="font-display tabular-nums">{{ event()!.code }}</span> — {{ event()!.name }}
+          </span>
+          <span
+            class="status-pill shrink-0"
+            [class.status-open]="!event()!.votingClosed"
+            [class.status-neutral]="event()!.votingClosed"
+          >
+            <mat-icon aria-hidden="true">{{ event()!.votingClosed ? 'lock' : 'lock_open' }}</mat-icon>
+            {{ event()!.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
+          </span>
+        </div>
 
         <app-shell-toolbar-actions
           testidPrefix="event-manager"
           [disabled]="!event()"
+          [contextLabel]="event()!.code + ' — ' + event()!.name"
           (openVoting)="handleOpenPublicVoting()"
           (openScore)="handleOpenScore()"
           (logout)="handleLogout()"
@@ -107,6 +112,57 @@
 
       <div class="flex-1 overflow-y-auto px-4 py-6 md:px-8">
         <div class="mx-auto max-w-6xl space-y-6">
+          <nav
+            aria-label="Fasi della serata"
+            data-testid="event-manager-lifecycle"
+            class="overflow-x-auto border-b border-border-glass pb-4"
+          >
+            <ol class="flex min-w-max items-center gap-1.5 sm:min-w-0 sm:gap-2">
+              @for (step of lifecycleSteps(); track step.key; let i = $index; let last = $last) {
+                <li class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <button
+                    type="button"
+                    (click)="handleLifecycleStepSelect(step)"
+                    [attr.data-testid]="'event-manager-lifecycle-' + step.key"
+                    [attr.aria-current]="step.state === 'current' ? 'step' : null"
+                    class="flex items-center gap-2 rounded-full py-1 pr-1.5 transition hover:bg-bg-card-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-cyan"
+                  >
+                    <span
+                      class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border font-display text-[0.625rem] font-semibold leading-none tabular-nums transition"
+                      [class.border-transparent]="step.state !== 'todo'"
+                      [class.bg-accent-cyan/15]="step.state === 'done'"
+                      [class.text-accent-cyan]="step.state === 'done'"
+                      [class.bg-accent-cyan]="step.state === 'current'"
+                      [class.text-on-accent]="step.state === 'current'"
+                      [class.border-border-glass]="step.state === 'todo'"
+                      [class.text-text-muted]="step.state === 'todo'"
+                    >
+                      @if (step.state === 'done') {
+                        <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[15px] !leading-none">check</mat-icon>
+                      } @else {
+                        {{ i + 1 }}
+                      }
+                    </span>
+                    <span
+                      class="whitespace-nowrap text-xs font-semibold tracking-tight transition"
+                      [class.text-accent-cyan]="step.state === 'current'"
+                      [class.text-text-secondary]="step.state === 'done'"
+                      [class.text-text-muted]="step.state === 'todo'"
+                    >{{ step.label }}</span>
+                  </button>
+                  @if (!last) {
+                    <span
+                      aria-hidden="true"
+                      class="h-px w-5 shrink-0 sm:w-9"
+                      [class.bg-accent-cyan/50]="step.state === 'done'"
+                      [class.bg-border-glass]="step.state !== 'done'"
+                    ></span>
+                  }
+                </li>
+              }
+            </ol>
+          </nav>
+
           @if (activeSection() === 'candidates') {
             <app-event-candidates-manager [eventId]="event()!.id" [authToken]="activeToken()!" [votingClosed]="event()!.votingClosed" />
           }
@@ -120,6 +176,7 @@
               <app-event-lifecycle-controls
                 [eventId]="event()!.id"
                 [eventCode]="event()!.code"
+                [eventName]="event()!.name"
                 [authToken]="activeToken()!"
                 [votingClosed]="event()!.votingClosed"
                 (votingStateChange)="handleVotingStateChange($event)"

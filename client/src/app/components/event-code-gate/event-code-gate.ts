@@ -35,7 +35,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
             <button type="submit" class="btn btn-primary">Entra</button>
           </form>
           @if (displayError()) {
-            <p class="mt-3 text-sm text-amber-300">{{ displayError() }}</p>
+            <div class="notice notice-danger mt-3"><span>{{ displayError() }}</span></div>
           }
         </div>
       </div>

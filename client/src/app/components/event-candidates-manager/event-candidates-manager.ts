@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { firstValueFrom } from 'rxjs';
 import { CandidatesApi } from '../../api/candidates.api';
 import { CandidateData } from '../../models/types';
@@ -24,7 +24,7 @@ interface EditDraft {
 @Component({
   selector: 'app-event-candidates-manager',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, MatCardModule],
+  imports: [FormsModule, MatIconModule],
   templateUrl: './event-candidates-manager.html',
 })
 export class EventCandidatesManagerComponent {

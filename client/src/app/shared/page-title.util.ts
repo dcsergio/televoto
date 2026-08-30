@@ -10,11 +10,13 @@ function flattenEventName(name: string | null | undefined): string {
 }
 
 /**
- * Builds the `<title>` for a page as "Sezione · Nome Evento", falling back to
- * "Sezione · Televoto" when no event is loaded. Keeps the operator's browser
- * tabs distinguishable when admin/manager/score/voto are open side by side.
+ * Builds the `<title>` for a page as "Sezione · [codice] Nome Evento", falling
+ * back to "Sezione · Televoto" when no event is loaded. Keeps the operator's
+ * browser tabs distinguishable when several events' admin/manager/score/voto
+ * tabs are open side by side during a live evening.
  */
-export function buildPageTitle(section: string, eventName?: string | null): string {
+export function buildPageTitle(section: string, eventName?: string | null, eventCode?: string | null): string {
   const event = flattenEventName(eventName);
-  return event ? `${section} · ${event}` : `${section} · ${APP_NAME}`;
+  if (!event) return `${section} · ${APP_NAME}`;
+  return eventCode ? `${section} · ${eventCode} ${event}` : `${section} · ${event}`;
 }

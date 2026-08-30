@@ -3,6 +3,13 @@ import QRCode from 'qrcode';
 import { GeneratedJudgeToken } from '../../api/judge-tokens.api';
 import { escapeHtml, formatJudgeToken } from './judge-code-manager.util';
 
+/**
+ * Builds a self-contained `@media print` HTML document for the A4 hand-out of
+ * voting codes. It deliberately does NOT use the app's "Palco/Studio" design
+ * tokens: this is ink on paper (slate/sky hexes for print contrast, `mm` radii,
+ * a monospace face for the code) and must render identically regardless of the
+ * screen theme. Design-system audits can skip this file.
+ */
 @Injectable({ providedIn: 'root' })
 export class PrintService {
   async printA4Sheet(tokens: GeneratedJudgeToken[]): Promise<void> {

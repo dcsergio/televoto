@@ -4,13 +4,6 @@ import { PartialRankingEntry, PartialRankings, RankingsApi } from '../../api/ran
 import { formatScore } from '../../shared/format-score.util';
 import { pluralize } from '../../shared/pluralize.util';
 
-function getMedalEmoji(position: number): string {
-  if (position === 1) return '\u{1F947}';
-  if (position === 2) return '\u{1F948}';
-  if (position === 3) return '\u{1F949}';
-  return '  ';
-}
-
 interface RankingColumn {
   title: string;
   entries: PartialRankingEntry[];
@@ -36,7 +29,6 @@ export class PartialRankingsPanelComponent {
   protected readonly rankings = signal<PartialRankings | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
-  protected readonly getMedalEmoji = getMedalEmoji;
   protected readonly formatScore = formatScore;
   protected readonly pluralize = pluralize;
 

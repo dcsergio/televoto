@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
@@ -8,8 +8,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,6 +27,7 @@ import { CloneEventDialogComponent } from '../../components/clone-event-dialog/c
 import { ToastService } from '../../shared/toast.service';
 import { openScoreGuarded } from '../../shared/open-score.util';
 import { buildPageTitle } from '../../shared/page-title.util';
+import { pluralize } from '../../shared/pluralize.util';
 import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQueryParam } from './admin.util';
 
 @Component({
@@ -43,8 +42,6 @@ import { ADMIN_SECTION_NAV, AdminSection, EVENT_CODE_REGEX, adminSectionFromQuer
     MatListModule,
     MatIconModule,
     MatButtonModule,
-    MatCardModule,
-    MatChipsModule,
     MatDividerModule,
     MatTooltipModule,
     MatFormFieldModule,
@@ -99,9 +96,18 @@ export class AdminShellComponent {
   protected readonly eventSettingsWeightPopolare = computed(() => 100 - this.eventSettingsDraft().weightQualificata);
   protected readonly updatingManagerPassword = signal(false);
   protected readonly managerPasswordDraft = signal('');
+  protected readonly managerPasswordConfirmDraft = signal('');
   protected readonly rootPasswordDraft = signal({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   protected readonly eventNameSeparator = EVENT_NAME_SEPARATOR;
+  protected readonly pluralize = pluralize;
+
+  /**
+   * Event codes whose `/manager` workspace was opened from this tab this session.
+   * The real tab state isn't observable, so this is a best-effort "già aperto
+   * altrove" hint on the dashboard cards, cleared on logout.
+   */
+  protected readonly openedManagerCodes = signal<ReadonlySet<string>>(new Set());
 
   protected readonly selectedEvent = computed(
     () => this.events().find((event) => event.id === this.selectedEventId()) ?? null,
@@ -173,7 +179,14 @@ export class AdminShellComponent {
     const draft = this.selectedEventNameDraft().trim();
     return !!ev && draft.length > 0 && draft !== ev.name;
   });
-  protected readonly managerPasswordDirty = computed(() => this.managerPasswordDraft().length > 0);
+  protected readonly managerPasswordDirty = computed(
+    () => this.managerPasswordDraft().length > 0 || this.managerPasswordConfirmDraft().length > 0,
+  );
+  protected readonly managerPasswordMismatch = computed(
+    () =>
+      this.managerPasswordConfirmDraft().length > 0 &&
+      this.managerPasswordDraft() !== this.managerPasswordConfirmDraft(),
+  );
   protected readonly votingSettingsDirty = computed(() => {
     const ev = this.selectedEvent();
     if (!ev) return false;
@@ -203,7 +216,7 @@ export class AdminShellComponent {
     });
 
     effect(() => {
-      this.title.setTitle(buildPageTitle('Admin', this.selectedEvent()?.name));
+      this.title.setTitle(buildPageTitle('Admin', this.selectedEvent()?.name, this.selectedEvent()?.code));
     });
 
     effect(() => {
@@ -242,6 +255,20 @@ export class AdminShellComponent {
         trimmedMeanPercentage: ev?.trimmedMeanPercentage ?? 10,
       });
       this.managerPasswordDraft.set('');
+      this.managerPasswordConfirmDraft.set('');
+    });
+
+    // Keep the persistent event selection in sync with the `?eventCode=` URL
+    // param (deep-linkable, survives refresh). The param is the source of truth
+    // once events are loaded; `selectEvent()` writes it back.
+    effect(() => {
+      const code = this.queryParamMap().get('eventCode');
+      const list = this.activeEvents();
+      if (!code || list.length === 0) return;
+      const match = list.find((e) => e.code === code);
+      if (match && match.id !== untracked(this.selectedEventId)) {
+        this.selectedEventId.set(match.id);
+      }
     });
 
     // Clear the "Salvato" confirmation only when the operator switches event
@@ -337,6 +364,7 @@ export class AdminShellComponent {
   ): void {
     const sectionParam = section ? `&adminSection=${section}` : '';
     window.open(`/manager?eventCode=${encodeURIComponent(eventCode)}${sectionParam}`, '_blank');
+    this.openedManagerCodes.update((prev) => new Set(prev).add(eventCode));
   }
 
   protected async copyEventCode(code: string): Promise<void> {
@@ -370,6 +398,7 @@ export class AdminShellComponent {
     this.selectedEventId.set(null);
     this.eventsError.set(null);
     this.lastCreatedEvent.set(null);
+    this.openedManagerCodes.set(new Set());
   }
 
   protected async handleLoginSubmit(password: string): Promise<void> {
@@ -397,6 +426,17 @@ export class AdminShellComponent {
 
   protected selectEvent(eventId: string): void {
     this.selectedEventId.set(eventId || null);
+    this.syncEventCodeToUrl(this.events().find((e) => e.id === eventId)?.code ?? null);
+  }
+
+  /** Persist the active-event selection to the URL so it survives a refresh and is shareable. */
+  private syncEventCodeToUrl(code: string | null): void {
+    if ((this.queryParamMap().get('eventCode') ?? null) === (code ?? null)) return;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { eventCode: code },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected async handleCreateEvent(): Promise<void> {
@@ -440,6 +480,7 @@ export class AdminShellComponent {
       );
       this.events.update((prev) => [created, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(created.id);
+      this.syncEventCodeToUrl(created.code);
       this.newEvent.set({ code: '', name: '', subtitle: '', managerPassword: '', popularVoteMode: 'NUMERIC', maxPreferences: 1 });
       this.eventCodeCopied.set(false);
       this.lastCreatedEvent.set(created);
@@ -566,10 +607,15 @@ export class AdminShellComponent {
       this.toast.error('La nuova password evento deve avere almeno 8 caratteri.');
       return;
     }
+    if (password !== this.managerPasswordConfirmDraft()) {
+      this.toast.error('La conferma della password non corrisponde.');
+      return;
+    }
     this.updatingManagerPassword.set(true);
     try {
       await firstValueFrom(this.eventsApi.updateEventManagerPassword(ev.id, password, token));
       this.managerPasswordDraft.set('');
+      this.managerPasswordConfirmDraft.set('');
       this.flashSaved('managerPassword');
       this.toast.success('Password evento aggiornata');
     } catch (err) {
@@ -609,7 +655,9 @@ export class AdminShellComponent {
       const updated = await firstValueFrom(this.eventsApi.updateEventArchivedState(eventId, archived, token));
       this.events.update((prev) => prev.map((e) => (e.id === updated.id ? { ...e, active: updated.active } : e)));
       if (archived && this.selectedEventId() === eventId) {
-        this.selectedEventId.set(this.activeEvents().find((e) => e.id !== eventId)?.id ?? null);
+        const fallback = this.activeEvents().find((e) => e.id !== eventId) ?? null;
+        this.selectedEventId.set(fallback?.id ?? null);
+        this.syncEventCodeToUrl(fallback?.code ?? null);
       }
       this.toast.success(archived ? 'Evento archiviato' : 'Evento ripristinato');
     } catch (err) {
@@ -644,6 +692,7 @@ export class AdminShellComponent {
       const cloned = await firstValueFrom(this.eventsApi.cloneEvent(eventId, input, token));
       this.events.update((prev) => [cloned, ...prev].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
       this.selectedEventId.set(cloned.id);
+      this.syncEventCodeToUrl(cloned.code);
       this.handleSectionChange('edit-events');
       this.toast.success('Evento clonato');
     } catch (err) {

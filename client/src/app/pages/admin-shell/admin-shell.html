@@ -18,17 +18,22 @@
     >
       <div class="flex h-full flex-col">
         <div class="px-5 py-6">
-          <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
-          <p class="mt-1 text-[10px] uppercase tracking-[0.2em] text-text-muted">Pannello Admin</p>
+          <div class="flex items-center gap-2.5">
+            <span class="h-4 w-1 rounded-full bg-accent-cyan"></span>
+            <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
+          </div>
+          <p class="mt-1 text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">Pannello Admin</p>
         </div>
 
         <mat-nav-list class="flex-1 px-2">
           @for (item of adminSectionNav; track item.section) {
-            <a
+            <button
+              type="button"
               mat-list-item
               (click)="handleNavSelect(item.section)"
               [attr.data-testid]="'admin-nav-' + item.section"
-              class="mb-1 cursor-pointer rounded-xl transition"
+              [attr.aria-current]="activeSection() === item.section ? 'page' : null"
+              class="mb-1 w-full cursor-pointer rounded-xl text-left transition"
               [class.bg-accent-cyan/15]="activeSection() === item.section"
               [class.text-accent-cyan]="activeSection() === item.section"
             >
@@ -40,7 +45,7 @@
               @if (item.section === 'archived') {
                 <span matListItemMeta class="text-xs text-text-secondary">{{ archivedEvents().length }}</span>
               }
-            </a>
+            </button>
           }
         </mat-nav-list>
 
@@ -64,7 +69,39 @@
           </button>
         }
 
-        <span class="flex-1"></span>
+        <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          @if (activeEvents().length > 0) {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-toolbar-event min-w-0 max-w-[13rem] sm:max-w-xs">
+              <mat-label>Azioni rapide su</mat-label>
+              <mat-select
+                [value]="selectedEventId()"
+                (selectionChange)="selectEvent($event.value)"
+                panelClass="theme-pro"
+                data-testid="admin-event-select"
+              >
+                @for (ev of activeEvents(); track ev.id) {
+                  <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">
+                    {{ ev.code }} — {{ ev.displayName }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            @if (selectedEvent()) {
+              <span
+                class="status-pill hidden shrink-0 sm:inline-flex"
+                [class.status-open]="!selectedEventVotingClosed()"
+                [class.status-neutral]="selectedEventVotingClosed()"
+                [attr.aria-label]="selectedEventStatusLabel()"
+              >
+                <mat-icon aria-hidden="true">{{ selectedEventVotingClosed() ? 'lock' : 'lock_open' }}</mat-icon>
+                {{ selectedEventVotingClosed() ? 'Chiuso' : 'Aperto' }}
+              </span>
+            }
+          } @else {
+            <span class="text-sm text-text-muted">Nessun evento</span>
+          }
+        </div>
 
         <button type="button" mat-button matTooltip="Aggiorna eventi" aria-label="Aggiorna eventi" data-testid="admin-refresh-events" (click)="refreshEvents()" [disabled]="loadingEvents()">
           <mat-icon>refresh</mat-icon>
@@ -73,6 +110,7 @@
         <app-shell-toolbar-actions
           testidPrefix="admin"
           logoutTooltip="Esci dall'area admin"
+          [contextLabel]="selectedEvent() ? selectedEventBadge() : ''"
           [disabled]="!selectedEvent()"
           (openVoting)="handleOpenPublicVoting()"
           (openScore)="handleOpenScore()"
@@ -83,13 +121,16 @@
       <div class="flex-1 overflow-y-auto px-4 py-6 md:px-8">
         <div class="mx-auto max-w-6xl space-y-6">
           @if (eventsError()) {
-            <div class="rounded-lg border border-accent-coral/40 bg-accent-coral/10 p-3 text-accent-coral">{{ eventsError() }}</div>
+            <div class="notice notice-danger">
+              <mat-icon aria-hidden="true">error</mat-icon>
+              <span>{{ eventsError() }}</span>
+            </div>
           }
 
           @if (activeSection() === 'dashboard') {
             <div class="space-y-6">
               <div>
-                <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Dashboard</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Dashboard</p>
                 <h2 class="mt-2 text-2xl font-bold text-text-primary">Panoramica generale</h2>
                 <p class="mt-1 text-sm text-text-secondary">Stato di tutti gli eventi e accesso rapido alla gestione di ciascun evento.</p>
               </div>
@@ -105,12 +146,15 @@
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{{ eventsOverview().total }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi non archiviati</p>
-                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-accent-cyan">{{ eventsOverview().active }}</p>
+                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi attivi</p>
+                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{{ eventsOverview().active }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Televoto aperto</p>
-                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-emerald-300">{{ eventsOverview().votingOpen }}</p>
+                    <p class="flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-text-secondary">
+                      <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent-cyan"></span>
+                      Televoto aperto
+                    </p>
+                    <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-accent-cyan">{{ eventsOverview().votingOpen }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
                     <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Televoto chiuso</p>
@@ -124,7 +168,7 @@
                     @if (archivedEvents().length > 0) {
                       <button type="button" mat-button (click)="handleSectionChange('archived')">
                         <mat-icon>archive</mat-icon>
-                        {{ archivedEvents().length }} archiviat{{ archivedEvents().length === 1 ? 'o' : 'i' }}
+                        {{ archivedEvents().length }} {{ pluralize(archivedEvents().length, 'archiviato', 'archiviati') }}
                       </button>
                     }
                   </div>
@@ -143,44 +187,79 @@
                   } @else {
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       @for (ev of activeEvents(); track ev.id) {
-                        <mat-card
-                          appearance="outlined"
-                          class="!bg-bg-card transition"
-                          [class.!border-accent-cyan]="ev.id === selectedEventId()"
+                        @let isActive = ev.id === selectedEventId();
+                        <div
+                          class="surface-card space-y-3 p-4 transition"
+                          [class.border-border-neon]="isActive"
+                          [class.bg-bg-card-selected]="isActive"
+                          [attr.aria-current]="isActive ? 'true' : null"
                         >
-                          <mat-card-content class="space-y-3">
-                            <div>
-                              <p class="text-xs text-text-secondary">{{ ev.code }}</p>
-                              @if (ev.nameParts.prefix) {
-                                <p class="truncate text-[0.7rem] uppercase tracking-[0.18em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
-                              }
+                          <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                              <p class="font-display text-xs tabular-nums tracking-[0.1em] text-text-secondary">{{ ev.code }}</p>
+                              <p class="min-h-3.5 truncate text-[0.625rem] uppercase leading-[0.875rem] tracking-[0.18em] text-text-muted" [attr.title]="ev.name">{{ ev.nameParts.prefix }}</p>
                               <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.nameParts.emphasized }}</p>
-                              @if (ev.subtitle) {
-                                <p class="truncate text-xs text-text-secondary" [title]="ev.subtitle">{{ ev.subtitle }}</p>
-                              }
+                              <p class="min-h-4 truncate text-xs text-text-secondary" [attr.title]="ev.subtitle">{{ ev.subtitle }}</p>
                             </div>
-                            <mat-chip-set>
-                              <mat-chip [class]="ev.votingClosed ? '!bg-accent-cyan/15 !text-accent-cyan' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
-                                {{ ev.votingClosed ? 'Chiuso' : 'Aperto' }}
-                              </mat-chip>
-                            </mat-chip-set>
+                            @if (isActive) {
+                              <span class="status-pill status-open shrink-0">
+                                <mat-icon aria-hidden="true">check</mat-icon>
+                                Attivo
+                              </span>
+                            }
+                          </div>
+                          <div class="flex flex-wrap items-center gap-2">
+                            <span
+                              class="status-pill"
+                              [class.status-open]="!ev.votingClosed"
+                              [class.status-neutral]="ev.votingClosed"
+                            >
+                              <mat-icon aria-hidden="true">{{ ev.votingClosed ? 'lock' : 'lock_open' }}</mat-icon>
+                              {{ ev.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
+                            </span>
+                            @if (openedManagerCodes().has(ev.code)) {
+                              <span class="inline-flex items-center gap-1 text-[0.625rem] uppercase tracking-[0.12em] text-text-muted">
+                                <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">tab</mat-icon>
+                                Aperto in un'altra scheda
+                              </span>
+                            }
+                          </div>
+                          <!-- Footer: fixed geometry regardless of card state — full-width primary
+                               over a two-half secondary row; "Rendi attivo" is always rendered
+                               (disabled → "Evento attivo" when this card is the active one). -->
+                          <div class="space-y-2.5">
+                            <button
+                              type="button"
+                              class="btn btn-primary btn-sm w-full !py-2"
+                              matTooltip="Apre la gestione evento in una nuova scheda"
+                              (click)="handleManageEvent(ev.id)"
+                            >
+                              Gestisci
+                              <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px]">open_in_new</mat-icon>
+                            </button>
                             <div class="flex gap-2">
-                              <button type="button" mat-flat-button iconPositionEnd class="flex-1" matTooltip="Apre in una nuova scheda" (click)="handleManageEvent(ev.id)">
-                                Gestisci
-                                <mat-icon>open_in_new</mat-icon>
+                              <button
+                                type="button"
+                                class="btn btn-ghost btn-sm flex-1"
+                                [disabled]="isActive"
+                                (click)="selectEvent(ev.id)"
+                              >
+                                {{ isActive ? 'Evento attivo' : 'Rendi attivo' }}
                               </button>
                               <button
                                 type="button"
-                                mat-icon-button
+                                class="btn btn-ghost btn-sm flex-1"
                                 matTooltip="Archivia evento"
+                                [attr.aria-label]="'Archivia ' + ev.name"
                                 [disabled]="archivingEventId() === ev.id"
                                 (click)="handleArchiveEvent(ev.id)"
                               >
-                                <mat-icon>archive</mat-icon>
+                                <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px]">archive</mat-icon>
+                                Archivia
                               </button>
                             </div>
-                          </mat-card-content>
-                        </mat-card>
+                          </div>
+                        </div>
                       }
                     </div>
                   }
@@ -190,10 +269,9 @@
           }
 
           @if (activeSection() === 'create-events') {
-            <mat-card appearance="outlined" class="!bg-bg-card">
-              <mat-card-content class="space-y-4">
+            <div class="surface-card space-y-4 p-6">
                 <div>
-                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
                   <h2 class="mt-2 text-2xl font-bold text-text-primary">Crea Eventi</h2>
                 </div>
 
@@ -203,10 +281,10 @@
                   </div>
                 } @else {
                   @if (lastCreatedEvent(); as created) {
-                  <div class="space-y-4 rounded-2xl border border-emerald-400/40 bg-emerald-400/5 p-5" data-testid="admin-create-confirmation">
-                    <div class="flex items-center gap-2 text-emerald-300">
-                      <mat-icon>check_circle</mat-icon>
-                      <p class="text-sm font-semibold uppercase tracking-[0.2em]">Evento creato</p>
+                  <div class="surface-panel space-y-4 border-signal-open/40 bg-signal-open/5 p-5" data-testid="admin-create-confirmation">
+                    <div class="flex items-center gap-2 text-signal-open">
+                      <mat-icon aria-hidden="true">check_circle</mat-icon>
+                      <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em]">Evento creato</p>
                     </div>
                     <p class="text-sm text-text-secondary">
                       L'evento <span class="font-semibold text-text-primary">{{ created.name }}</span> è pronto.
@@ -238,8 +316,8 @@
                     </div>
                   </div>
                 } @else {
-                  <form (ngSubmit)="handleCreateEvent()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
-                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
+                  <form (ngSubmit)="handleCreateEvent()" class="surface-panel space-y-3 p-4">
+                    <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
                     <label class="block space-y-1">
                       <span class="text-sm text-text-secondary">Nome evento</span>
                       <input
@@ -341,221 +419,232 @@
                   </form>
                   }
                 }
-              </mat-card-content>
-            </mat-card>
+            </div>
           }
 
           @if (activeSection() === 'edit-events') {
-            <mat-card appearance="outlined" class="!bg-bg-card">
-              <mat-card-content class="space-y-4">
-                <div>
-                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
-                  <h2 class="mt-2 text-2xl font-bold text-text-primary">Modifica Eventi</h2>
-                  <p class="mt-1 text-sm text-text-secondary">Seleziona un evento e modificane nome, pesi, password o stato.</p>
+            <div class="surface-card space-y-5 p-6">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                <h2 class="mt-2 text-2xl font-bold text-text-primary">Modifica Eventi</h2>
+                <p class="mt-1 text-sm text-text-secondary">
+                  Le modifiche agiscono sull'evento scelto in <span class="font-semibold text-text-primary">Azioni rapide su</span> nella barra in alto.
+                </p>
+              </div>
+
+              @if (loadingEvents()) {
+                <div class="flex items-center justify-center py-8">
+                  <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
+                </div>
+              } @else if (selectedEvent(); as ev) {
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="font-display text-sm tabular-nums text-text-secondary">{{ ev.code }}</span>
+                  @if (selectedEventNameParts().prefix) {
+                    <span class="text-sm text-text-secondary">{{ selectedEventNameParts().prefix }}</span>
+                  }
+                  <span class="text-sm font-semibold text-text-primary">{{ selectedEventNameParts().emphasized }}</span>
+                  <span
+                    class="status-pill"
+                    [class.status-open]="!selectedEventVotingClosed()"
+                    [class.status-neutral]="selectedEventVotingClosed()"
+                  >
+                    <mat-icon aria-hidden="true">{{ selectedEventVotingClosed() ? 'lock' : 'lock_open' }}</mat-icon>
+                    {{ selectedEventStatusLabel() }}
+                  </span>
+                  <span class="status-pill status-neutral">
+                    Voto popolare: {{ isPreferenceVoteEvent() ? 'Preferenze' : 'Numerico' }}
+                  </span>
                 </div>
 
-                @if (loadingEvents()) {
-                  <div class="flex items-center justify-center py-8">
-                    <div class="stage-loader" role="status" aria-label="Caricamento"><i></i><i></i><i></i><i></i></div>
-                  </div>
-                } @else {
-                  <div class="space-y-4">
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-event-select w-full max-w-sm">
-                      <mat-label>Evento selezionato</mat-label>
-                      <mat-select [value]="selectedEventId()" (selectionChange)="selectEvent($event.value)" panelClass="theme-pro" data-testid="admin-event-select">
-                        @if (activeEvents().length === 0) {
-                          <mat-option [value]="null" disabled>Nessun evento disponibile</mat-option>
-                        }
-                        @for (ev of activeEvents(); track ev.id) {
-                          <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">{{ ev.code }} - {{ ev.displayName }}</mat-option>
-                        }
-                      </mat-select>
-                    </mat-form-field>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'candidates')">
+                    <mat-icon aria-hidden="true">groups</mat-icon>
+                    Candidati
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-codes')">
+                    <mat-icon aria-hidden="true">qr_code_2</mat-icon>
+                    Codici voto
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-backstage')">
+                    <mat-icon aria-hidden="true">insights</mat-icon>
+                    Backstage
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="handleOpenScore()">
+                    <mat-icon aria-hidden="true">emoji_events</mat-icon>
+                    Apri Classifica
+                  </button>
+                </div>
 
-                    @if (selectedEvent()) {
-                      <mat-chip-set>
-                        <mat-chip [class]="selectedEventVotingClosed() ? '!bg-accent-cyan/15 !text-accent-cyan' : '!bg-emerald-400/15 !text-emerald-200'" disabled>
-                          {{ selectedEventStatusLabel() }}
-                        </mat-chip>
-                        <mat-chip class="!bg-bg-card-hover !text-text-secondary" disabled>
-                          Voto popolare: {{ isPreferenceVoteEvent() ? 'Preferenze' : 'Numerico' }}
-                        </mat-chip>
-                      </mat-chip-set>
+                <!-- Anagrafica -->
+                <form (ngSubmit)="handleRenameSelectedEvent()" class="surface-panel space-y-3 p-4">
+                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">
+                    <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">badge</mat-icon>
+                    Anagrafica
+                  </p>
+                  <label class="block space-y-1">
+                    <span class="text-xs text-text-secondary">Nome evento</span>
+                    <input
+                      type="text"
+                      [ngModel]="selectedEventNameDraft()"
+                      (ngModelChange)="selectedEventNameDraft.set($event)"
+                      name="selectedEventNameDraft"
+                      placeholder="Nuovo nome evento"
+                      class="field-input text-sm"
+                    />
+                  </label>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="submit" [disabled]="updatingSelectedEventName() || !selectedEventNameDirty()" class="btn btn-tinted btn-sm">
+                      {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Salva nome' }}
+                    </button>
+                    @if (savedFlash() === 'name') {
+                      <span class="flex items-center gap-1 text-xs font-semibold text-signal-open">
+                        <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                        Salvato
+                      </span>
                     }
-
-                    <div class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
-                      <h3 class="text-lg font-semibold text-text-primary">Evento corrente</h3>
-                      @if (selectedEvent(); as ev) {
-                        <p class="text-sm text-text-secondary">
-                          {{ ev.code }} -
-                          @if (selectedEventNameParts().prefix) {
-                            <span class="text-text-secondary">{{ selectedEventNameParts().prefix }} </span>
-                          }
-                          <span class="font-semibold text-text-primary">{{ selectedEventNameParts().emphasized }}</span>
-                        </p>
-
-                        <div class="flex flex-wrap gap-2">
-                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'candidates')">
-                            <mat-icon>groups</mat-icon>
-                            Candidati
-                          </button>
-                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-codes')">
-                            <mat-icon>qr_code_2</mat-icon>
-                            Codici voto
-                          </button>
-                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-backstage')">
-                            <mat-icon>insights</mat-icon>
-                            Backstage
-                          </button>
-                          <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="handleOpenScore()">
-                            <mat-icon>emoji_events</mat-icon>
-                            Apri Classifica
-                          </button>
-                        </div>
-
-                        <form (ngSubmit)="handleRenameSelectedEvent()" class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                          <input
-                            type="text"
-                            [ngModel]="selectedEventNameDraft()"
-                            (ngModelChange)="selectedEventNameDraft.set($event)"
-                            name="selectedEventNameDraft"
-                            placeholder="Nuovo nome evento"
-                            class="field-input text-sm"
-                          />
-                          <button
-                            type="submit"
-                            [disabled]="updatingSelectedEventName() || !selectedEventNameDirty()"
-                            class="btn btn-tinted btn-sm"
-                          >
-                            {{ updatingSelectedEventName() ? 'Salvataggio...' : 'Salva' }}
-                          </button>
-                          @if (savedFlash() === 'name') {
-                            <span class="flex items-center gap-1 text-xs font-semibold text-emerald-300">
-                              <mat-icon class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
-                              Salvato
-                            </span>
-                          }
-                        </form>
-
-                        <button
-                          type="button"
-                          mat-stroked-button
-                          [disabled]="archivingEventId() === ev.id"
-                          (click)="handleArchiveEvent(ev.id)"
-                        >
-                          <mat-icon>archive</mat-icon>
-                          {{ archivingEventId() === ev.id ? 'Archiviazione...' : 'Archivia evento' }}
-                        </button>
-
-                        <form (ngSubmit)="handleRotateEventManagerPassword()" class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                          <input
-                            type="password"
-                            [ngModel]="managerPasswordDraft()"
-                            (ngModelChange)="managerPasswordDraft.set($event)"
-                            name="managerPasswordDraft"
-                            placeholder="Nuova password manager evento"
-                            class="field-input text-sm"
-                          />
-                          <button
-                            type="submit"
-                            [disabled]="updatingManagerPassword() || !managerPasswordDirty()"
-                            class="btn btn-tinted btn-sm"
-                          >
-                            {{ updatingManagerPassword() ? 'Salvataggio...' : 'Salva' }}
-                          </button>
-                          @if (savedFlash() === 'managerPassword') {
-                            <span class="flex items-center gap-1 text-xs font-semibold text-emerald-300">
-                              <mat-icon class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
-                              Salvato
-                            </span>
-                          }
-                        </form>
-
-                        <form (ngSubmit)="handleUpdateVotingSettings()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-primary/60 p-3">
-                          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Pesatura giurie</p>
-                          <div class="grid gap-2 sm:grid-cols-2">
-                            <label class="space-y-1">
-                              <span class="text-xs text-text-secondary">Peso Qualificata (%)</span>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                [ngModel]="eventSettingsDraft().weightQualificata"
-                                (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightQualificata: $event })"
-                                name="weightQualificata"
-                                class="field-input text-sm"
-                              />
-                            </label>
-                            <label class="space-y-1">
-                              <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
-                              <input
-                                type="number"
-                                [ngModel]="eventSettingsWeightPopolare()"
-                                name="weightPopolare"
-                                disabled
-                                class="field-input text-sm"
-                              />
-                            </label>
-                          </div>
-                          <p class="text-xs text-text-secondary">
-                            Somma sempre 100: il peso Popolare è calcolato automaticamente per differenza.
-                          </p>
-                          @if (!isPreferenceVoteEvent()) {
-                            <label class="flex items-center gap-2 text-sm text-text-secondary">
-                              <input
-                                type="checkbox"
-                                [ngModel]="eventSettingsDraft().enableTrimmedMean"
-                                (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), enableTrimmedMean: $event })"
-                                name="enableTrimmedMean"
-                              />
-                              Abilita trimmed mean su voti popolari
-                            </label>
-                            <label class="space-y-1">
-                              <span class="text-xs text-text-secondary">Percentuale trimmed mean (%)</span>
-                              <input
-                                type="number"
-                                min="0"
-                                max="49.99"
-                                step="0.1"
-                                [ngModel]="eventSettingsDraft().trimmedMeanPercentage"
-                                (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), trimmedMeanPercentage: $event })"
-                                name="trimmedMeanPercentage"
-                                [disabled]="!eventSettingsDraft().enableTrimmedMean"
-                                class="field-input text-sm"
-                              />
-                            </label>
-                          }
-                          <div class="flex flex-wrap items-center gap-2">
-                            <button
-                              type="submit"
-                              [disabled]="updatingVotingSettings() || !votingSettingsDirty()"
-                              class="btn btn-tinted btn-sm"
-                            >
-                              {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva' }}
-                            </button>
-                            @if (savedFlash() === 'votingSettings') {
-                              <span class="flex items-center gap-1 text-xs font-semibold text-emerald-300">
-                                <mat-icon class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
-                                Salvato
-                              </span>
-                            }
-                          </div>
-                        </form>
-                      } @else {
-                        <p class="text-sm text-text-secondary">Seleziona prima un evento.</p>
-                      }
-                    </div>
+                    <span class="flex-1"></span>
+                    <button type="button" class="btn btn-ghost btn-sm" [disabled]="archivingEventId() === ev.id" (click)="handleArchiveEvent(ev.id)">
+                      <mat-icon aria-hidden="true">archive</mat-icon>
+                      {{ archivingEventId() === ev.id ? 'Archiviazione...' : 'Archivia evento' }}
+                    </button>
                   </div>
-                }
-              </mat-card-content>
-            </mat-card>
+                </form>
+
+                <!-- Sicurezza -->
+                <form (ngSubmit)="handleRotateEventManagerPassword()" class="surface-panel space-y-3 p-4">
+                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">
+                    <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">lock</mat-icon>
+                    Sicurezza
+                  </p>
+                  <p class="text-xs text-text-secondary">
+                    Cambiando la password manager dovrai comunicarla di nuovo al responsabile dell'evento: la sessione attuale resta valida fino alla scadenza.
+                  </p>
+                  <div class="grid gap-2 sm:grid-cols-2">
+                    <label class="space-y-1">
+                      <span class="text-xs text-text-secondary">Nuova password manager</span>
+                      <input
+                        type="password"
+                        [ngModel]="managerPasswordDraft()"
+                        (ngModelChange)="managerPasswordDraft.set($event)"
+                        name="managerPasswordDraft"
+                        placeholder="Almeno 8 caratteri"
+                        class="field-input text-sm"
+                      />
+                    </label>
+                    <label class="space-y-1">
+                      <span class="text-xs text-text-secondary">Conferma password</span>
+                      <input
+                        type="password"
+                        [ngModel]="managerPasswordConfirmDraft()"
+                        (ngModelChange)="managerPasswordConfirmDraft.set($event)"
+                        name="managerPasswordConfirmDraft"
+                        placeholder="Ripeti la password"
+                        class="field-input text-sm"
+                      />
+                    </label>
+                  </div>
+                  @if (managerPasswordMismatch()) {
+                    <p class="text-xs text-signal-danger">La conferma non corrisponde alla nuova password.</p>
+                  }
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button
+                      type="submit"
+                      [disabled]="updatingManagerPassword() || !managerPasswordDirty() || managerPasswordMismatch()"
+                      class="btn btn-tinted btn-sm"
+                    >
+                      {{ updatingManagerPassword() ? 'Salvataggio...' : 'Aggiorna password manager' }}
+                    </button>
+                    @if (savedFlash() === 'managerPassword') {
+                      <span class="flex items-center gap-1 text-xs font-semibold text-signal-open">
+                        <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                        Salvato
+                      </span>
+                    }
+                  </div>
+                </form>
+
+                <!-- Calcolo punteggio -->
+                <form (ngSubmit)="handleUpdateVotingSettings()" class="surface-panel space-y-3 p-4">
+                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">
+                    <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">calculate</mat-icon>
+                    Calcolo punteggio
+                  </p>
+                  <div class="grid gap-2 sm:grid-cols-2">
+                    <label class="space-y-1">
+                      <span class="text-xs text-text-secondary">Peso Qualificata (%)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        [ngModel]="eventSettingsDraft().weightQualificata"
+                        (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightQualificata: $event })"
+                        name="weightQualificata"
+                        class="field-input text-sm"
+                      />
+                    </label>
+                    <label class="space-y-1">
+                      <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
+                      <input
+                        type="number"
+                        [ngModel]="eventSettingsWeightPopolare()"
+                        name="weightPopolare"
+                        disabled
+                        class="field-input text-sm"
+                      />
+                    </label>
+                  </div>
+                  <p class="text-xs text-text-secondary">
+                    Somma sempre 100: il peso Popolare è calcolato automaticamente per differenza.
+                  </p>
+                  @if (!isPreferenceVoteEvent()) {
+                    <label class="flex items-center gap-2 text-sm text-text-secondary">
+                      <input
+                        type="checkbox"
+                        [ngModel]="eventSettingsDraft().enableTrimmedMean"
+                        (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), enableTrimmedMean: $event })"
+                        name="enableTrimmedMean"
+                      />
+                      Abilita trimmed mean su voti popolari
+                    </label>
+                    <label class="space-y-1">
+                      <span class="text-xs text-text-secondary">Percentuale trimmed mean (%)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="49.99"
+                        step="0.1"
+                        [ngModel]="eventSettingsDraft().trimmedMeanPercentage"
+                        (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), trimmedMeanPercentage: $event })"
+                        name="trimmedMeanPercentage"
+                        [disabled]="!eventSettingsDraft().enableTrimmedMean"
+                        class="field-input text-sm"
+                      />
+                    </label>
+                  }
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="submit" [disabled]="updatingVotingSettings() || !votingSettingsDirty()" class="btn btn-tinted btn-sm">
+                      {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva pesi e calcolo' }}
+                    </button>
+                    @if (savedFlash() === 'votingSettings') {
+                      <span class="flex items-center gap-1 text-xs font-semibold text-signal-open">
+                        <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                        Salvato
+                      </span>
+                    }
+                  </div>
+                </form>
+              } @else {
+                <p class="text-sm text-text-secondary">
+                  Nessun evento selezionato. Scegli un evento in <span class="font-semibold text-text-primary">Azioni rapide su</span> nella barra in alto, oppure creane uno nella sezione Crea Eventi.
+                </p>
+              }
+            </div>
           }
 
           @if (activeSection() === 'archived') {
-            <mat-card appearance="outlined" class="!bg-bg-card">
-              <mat-card-content class="space-y-4">
+            <div class="surface-card space-y-4 p-6">
                 <div>
-                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
                   <h2 class="mt-2 text-2xl font-bold text-text-primary">Eventi archiviati</h2>
                   <p class="mt-1 text-sm text-text-secondary">
                     Gli eventi archiviati non compaiono più tra quelli attivi. Puoi ripristinarli o usarli come base per un nuovo evento.
@@ -571,26 +660,25 @@
                 } @else {
                   <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     @for (ev of archivedEvents(); track ev.id) {
-                      <mat-card appearance="outlined" class="!bg-bg-card">
-                        <mat-card-content class="space-y-3">
+                      <div class="surface-card space-y-3 p-4">
                           <div>
-                            <p class="text-xs text-text-secondary">{{ ev.code }}</p>
+                            <p class="font-display text-xs tabular-nums tracking-[0.1em] text-text-secondary">{{ ev.code }}</p>
                             @if (ev.nameParts.prefix) {
-                              <p class="truncate text-[0.7rem] uppercase tracking-[0.18em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
+                              <p class="truncate text-[0.625rem] uppercase tracking-[0.18em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
                             }
                             <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.nameParts.emphasized }}</p>
                             @if (ev.subtitle) {
                               <p class="truncate text-xs text-text-secondary" [title]="ev.subtitle">{{ ev.subtitle }}</p>
                             }
                           </div>
-                          <mat-chip-set>
-                            <mat-chip class="!bg-amber-400/15 !text-amber-200" disabled>Archiviato</mat-chip>
-                          </mat-chip-set>
+                          <span class="status-pill status-warn">
+                            <mat-icon aria-hidden="true">inventory_2</mat-icon>
+                            Archiviato
+                          </span>
                           <div class="flex gap-2">
                             <button
                               type="button"
-                              mat-flat-button
-                              class="flex-1"
+                              class="btn btn-tinted btn-sm flex-1"
                               [disabled]="archivingEventId() === ev.id"
                               (click)="handleUnarchiveEvent(ev.id)"
                             >
@@ -598,37 +686,34 @@
                             </button>
                             <button
                               type="button"
-                              mat-stroked-button
+                              class="btn btn-ghost btn-sm"
                               matTooltip="Crea una copia di questo evento"
                               [disabled]="cloningEventId() === ev.id"
                               (click)="handleCloneEvent(ev.id)"
                             >
-                              <mat-icon>content_copy</mat-icon>
+                              <mat-icon aria-hidden="true">content_copy</mat-icon>
                               {{ cloningEventId() === ev.id ? 'Clonazione...' : 'Clona' }}
                             </button>
                           </div>
-                        </mat-card-content>
-                      </mat-card>
+                      </div>
                     }
                   </div>
                 }
-              </mat-card-content>
-            </mat-card>
+            </div>
           }
 
           @if (activeSection() === 'settings') {
-            <mat-card appearance="outlined" class="!bg-bg-card">
-              <mat-card-content class="space-y-4">
+            <div class="surface-card space-y-4 p-6">
                 <div>
-                  <p class="text-sm uppercase tracking-[0.2em] text-accent-cyan">Sicurezza</p>
+                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza</p>
                   <h2 class="mt-2 text-2xl font-bold text-text-primary">Impostazioni</h2>
                   <p class="mt-1 text-sm text-text-secondary">
                     Gestisci le credenziali di accesso all'area amministrativa.
                   </p>
                 </div>
 
-                <form (ngSubmit)="handleUpdateRootPassword()" class="space-y-3 rounded-2xl border border-border-glass bg-bg-card p-4">
-                  <p class="text-sm font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
+                <form (ngSubmit)="handleUpdateRootPassword()" class="surface-panel space-y-3 p-4">
+                  <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
                   <p class="text-sm text-text-secondary">Aggiorna la password root usata per l'accesso alle aree protette amministrative.</p>
                   <div class="grid gap-3 md:grid-cols-3">
                     <input
@@ -664,8 +749,7 @@
                     {{ updatingRootPassword() ? 'Aggiornamento...' : 'Aggiorna password root' }}
                   </button>
                 </form>
-              </mat-card-content>
-            </mat-card>
+            </div>
           }
         </div>
       </div>
