@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-29T00:00:00.000Z",
+  "title": "Design System: Televoto",
+  "extensions": {
+    "colorMeta": {
+      "accent-stage-gold": {
+        "role": "primary",
+        "displayName": "Oro da Ribalta",
+        "canonical": "#ffb020",
+        "tonalRamp": ["#2a1c04", "#4a3105", "#6d4907", "#94620a", "#c0800f", "#ffb020", "#ffca63", "#ffe4b0"]
+      },
+      "accent-desk-amber": {
+        "role": "primary",
+        "displayName": "Ambra da Tavolo",
+        "canonical": "#b45309",
+        "tonalRamp": ["#2b1402", "#45200a", "#61300f", "#8a4410", "#b45309", "#d97706", "#f0a35a", "#f8d3ab"]
+      },
+      "champagne-victory": {
+        "role": "secondary",
+        "displayName": "Champagne della Vittoria",
+        "canonical": "#f2c86a",
+        "tonalRamp": ["#3a2c0d", "#5a4415", "#7d5f1e", "#a6802a", "#d0a63f", "#f2c86a", "#f7db99", "#fceecb"]
+      },
+      "stage-black": {
+        "role": "neutral",
+        "displayName": "Nero Scena",
+        "canonical": "#09090b",
+        "tonalRamp": ["#09090b", "#141417", "#1c1c20", "#2a2a30", "#3f3f47", "#71717a", "#a1a1aa", "#e4e4e7"]
+      },
+      "ink-primary": {
+        "role": "neutral",
+        "displayName": "Inchiostro",
+        "canonical": "#f4f4f5",
+        "tonalRamp": ["#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#f4f4f5"]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Carta",
+        "canonical": "#fbfbfc",
+        "tonalRamp": ["#16181d", "#2c2f36", "#4a4e57", "#6b6f79", "#9aa0ab", "#cfd3da", "#eef0f3", "#fbfbfc"]
+      },
+      "signal-open": {
+        "role": "tertiary",
+        "displayName": "Segnale Aperto",
+        "canonical": "#3f9366",
+        "tonalRamp": ["#0c231a", "#123726", "#1a4d37", "#276b4c", "#35875f", "#3f9366", "#6fb492", "#a9d3bd"]
+      },
+      "signal-warn": {
+        "role": "tertiary",
+        "displayName": "Segnale Avviso",
+        "canonical": "#c9923f",
+        "tonalRamp": ["#2e1f0a", "#463010", "#5f4216", "#83591d", "#a67328", "#c9923f", "#dcb173", "#eed4ab"]
+      },
+      "signal-danger": {
+        "role": "tertiary",
+        "displayName": "Segnale Pericolo",
+        "canonical": "#df5b48",
+        "tonalRamp": ["#331009", "#4d1810", "#6b2318", "#8f3122", "#b8402f", "#df5b48", "#ec8a7c", "#f5c0b6"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Wordmark dell'evento nell'hero e nel takeover della Classifica. Space Grotesk, MAIUSCOLO, tracking negativo forte." },
+      "headline": { "displayName": "Headline", "purpose": "Titoli delle pagine gate e di sezione, 'Vincitore'. Space Grotesk 600." },
+      "title": { "displayName": "Title", "purpose": "Nome del candidato nella card, titoli di card e pannelli. Inter 700." },
+      "body": { "displayName": "Body", "purpose": "Testo esplicativo, descrizioni, messaggi. Inter 400-500, text-wrap pretty." },
+      "label": { "displayName": "Label / Sopracciglio", "purpose": "L'etichetta da 10px in maiuscoletto spaziato che apre quasi ogni sezione, card e blocco form." },
+      "numeric": { "displayName": "Numeric", "purpose": "Numero di gara, pulsanti punteggio, contatore progresso, count-up del punteggio finale. Space Grotesk tabular-nums." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 1px 2px rgba(8,5,2,0.45), 0 10px 30px -12px rgba(6,4,1,0.7)", "purpose": "Hover di una card cliccabile; superficie .glass a riposo (con inset highlight da 1px in alto)." },
+      { "name": "lift", "value": "0 2px 6px rgba(8,5,2,0.5), 0 20px 48px -16px rgba(0,0,0,0.72)", "purpose": "Hover marcato, card sollevata, elementi che si staccano dal flusso." },
+      { "name": "gold", "value": "0 0 0 1px rgba(255,176,32,0.55), 0 14px 44px -10px rgba(255,176,32,0.24), 0 10px 28px rgba(0,0,0,0.5)", "purpose": "Esclusivo della card selezionata/vincente. L'unico posto in cui l'accento entra in un'ombra." },
+      { "name": "card-studio", "value": "0 1px 2px rgba(18,20,24,0.06), 0 1px 3px rgba(18,20,24,0.04)", "purpose": "Equivalente Studio della shadow 'card' — piu corta e leggera sulla carta." },
+      { "name": "lift-studio", "value": "0 2px 4px rgba(18,20,24,0.06), 0 14px 30px -14px rgba(18,20,24,0.16)", "purpose": "Equivalente Studio della shadow 'lift'." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Ease-out restrained di default per fade/slide e per il winnerGlow." },
+      { "name": "ease-spring", "value": "cubic-bezier(0.34, 1.32, 0.5, 1)", "purpose": "Un filo di overshoot per la tattilita: press dei bottoni, stage-slam del numero di posizione." },
+      { "name": "tap-press", "value": "transform: scale(0.97) (btn) / scale(0.94) (score-btn)", "purpose": "Micro-press allo :active — l'unica esuberanza dei controlli." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "L'unica azione piena d'accento per vista. Oro sul Palco, ink bruno, micro-press tattile.",
+      "html": "<button class=\"ds-btn-primary\">Accedi</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--color-accent-cyan, #ffb020); color: var(--color-on-accent, #1a1206); border: 1px solid transparent; border-radius: var(--radius-lg, 0.75rem); padding: 0.625rem 1rem; font: 600 0.875rem/1.1 Inter, system-ui, sans-serif; white-space: nowrap; cursor: pointer; transition: transform 0.12s ease, filter 0.16s ease; } .ds-btn-primary:hover { filter: brightness(1.08); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-accent-cyan, #ffb020); outline-offset: 2px; }"
+    },
+    {
+      "name": "Tinted Button",
+      "kind": "button",
+      "refersTo": "button-tinted",
+      "description": "Azione d'accento a basso impegno — il default dei form di regia ('Salva').",
+      "html": "<button class=\"ds-btn-tinted\">Salva</button>",
+      "css": ".ds-btn-tinted { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: color-mix(in srgb, var(--color-accent-cyan, #ffb020) 14%, transparent); color: var(--color-accent-cyan, #ffb020); border: 1px solid color-mix(in srgb, var(--color-accent-cyan, #ffb020) 32%, transparent); border-radius: var(--radius-lg, 0.75rem); padding: 0.625rem 1rem; font: 600 0.875rem/1.1 Inter, system-ui, sans-serif; cursor: pointer; transition: transform 0.12s ease, background-color 0.16s ease; } .ds-btn-tinted:hover { background: color-mix(in srgb, var(--color-accent-cyan, #ffb020) 22%, transparent); } .ds-btn-tinted:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondario / annulla. Trasparente con bordo hairline.",
+      "html": "<button class=\"ds-btn-ghost\">Annulla</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: transparent; color: var(--color-text-secondary, #a1a1aa); border: 1px solid var(--color-border-glass, rgba(255,255,255,0.08)); border-radius: var(--radius-lg, 0.75rem); padding: 0.625rem 1rem; font: 600 0.875rem/1.1 Inter, system-ui, sans-serif; cursor: pointer; transition: transform 0.12s ease, background-color 0.16s ease, color 0.16s ease; } .ds-btn-ghost:hover { background: var(--color-bg-card-hover, #1a1a1f); color: var(--color-text-primary, #f4f4f5); } .ds-btn-ghost:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Campo di testo unico del sistema. Focus = anello sottile in accento, nessun glow.",
+      "html": "<input class=\"ds-field-input\" type=\"text\" placeholder=\"Password evento\" />",
+      "css": ".ds-field-input { width: 100%; border-radius: var(--radius-md, 0.625rem); border: 1px solid var(--color-border-glass, rgba(255,255,255,0.08)); background: var(--color-bg-secondary, #0f0f12); padding: 0.5rem 0.75rem; color: var(--color-text-primary, #f4f4f5); font: 400 0.875rem/1.5 Inter, system-ui, sans-serif; outline: none; transition: border-color 0.16s ease, box-shadow 0.16s ease; } .ds-field-input::placeholder { color: var(--color-text-muted, #71717a); } .ds-field-input:focus { border-color: var(--color-accent-cyan, #ffb020); box-shadow: 0 0 0 1px var(--color-accent-cyan, #ffb020); } .ds-field-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Card hairline piatta a riposo, con inset highlight da 1px che cattura la luce di scena.",
+      "html": "<div class=\"ds-surface-card\"><p class=\"ds-eyebrow\">Gestione eventi</p><h3 class=\"ds-card-title\">Evento corrente</h3><p class=\"ds-card-body\">01234 &mdash; GRAN FINALE</p></div>",
+      "css": ".ds-surface-card { background: var(--color-bg-card, #141417); border: 1px solid var(--color-border-glass, rgba(255,255,255,0.08)); border-radius: var(--radius-2xl, 1rem); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 2px rgba(8,5,2,0.45), 0 10px 30px -12px rgba(6,4,1,0.7); padding: 1.5rem; } .ds-surface-card .ds-eyebrow { margin: 0; font: 700 0.625rem/1 Inter, system-ui, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent-cyan, #ffb020); } .ds-surface-card .ds-card-title { margin: 0.5rem 0 0; font: 600 1.25rem/1.2 'Space Grotesk', Inter, sans-serif; letter-spacing: -0.01em; color: var(--color-text-primary, #f4f4f5); } .ds-surface-card .ds-card-body { margin: 0.25rem 0 0; font: 400 0.875rem/1.5 Inter, system-ui, sans-serif; color: var(--color-text-secondary, #a1a1aa); }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "L'unico badge di stato del sistema (televoto aperto/chiuso, conteggi codici, attivo, archiviato). Colore sempre accoppiato a icona o pallino — mai solo-tinta.",
+      "html": "<span class=\"ds-status ds-status-open\"><span class=\"ds-status-dot\"></span>Televoto aperto</span> <span class=\"ds-status ds-status-neutral\"><span class=\"ds-status-dot\"></span>Televoto chiuso</span> <span class=\"ds-status ds-status-danger\"><span class=\"ds-status-dot\"></span>3 revocati</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 0.375rem; border-radius: var(--radius-sm, 0.375rem); border: 1px solid transparent; padding: 0.1875rem 0.5rem; font: 700 0.6875rem/1 Inter, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; } .ds-status-dot { width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: currentColor; } .ds-status-open { background: color-mix(in srgb, var(--color-signal-open, #5fb37f) 15%, transparent); border-color: color-mix(in srgb, var(--color-signal-open, #5fb37f) 32%, transparent); color: var(--color-signal-open, #5fb37f); } .ds-status-neutral { background: var(--color-bg-card-hover, #1a1a1f); border-color: var(--color-border-glass, rgba(255,255,255,0.08)); color: var(--color-text-secondary, #a1a1aa); } .ds-status-danger { background: color-mix(in srgb, var(--color-signal-danger, #df5b48) 14%, transparent); border-color: color-mix(in srgb, var(--color-signal-danger, #df5b48) 28%, transparent); color: var(--color-signal-danger, #df5b48); }"
+    },
+    {
+      "name": "Score Button Row",
+      "kind": "custom",
+      "refersTo": "score-button",
+      "description": "Componente firma: 10 pulsanti quadrati riempiti d'oro a opacita crescente — la riga si legge come un misuratore che si carica verso il 10. Il 7 e selezionato.",
+      "html": "<div class=\"ds-score-row\"><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.06);color:#a1a1aa\">1</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.09);color:#a1a1aa\">2</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.11);color:#a1a1aa\">3</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.14);color:#a1a1aa\">4</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.16);color:#a1a1aa\">5</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.18);color:#ffcf7a\">6</button><button class=\"ds-score-btn ds-score-btn-active\">7</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.23);color:#ffcf7a\">8</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.25);color:#ffcf7a\">9</button><button class=\"ds-score-btn\" style=\"background:rgba(255,176,32,0.27);color:#ffcf7a\">10</button></div>",
+      "css": ".ds-score-row { display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.75rem; } .ds-score-btn { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-xl, 0.875rem); border: 1px solid var(--color-border-glass, rgba(255,255,255,0.08)); font: 600 1.25rem/1 'Space Grotesk', Inter, sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; transition: transform 0.16s cubic-bezier(0.34,1.32,0.5,1), box-shadow 0.16s ease; } .ds-score-btn:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(8,5,2,0.45), 0 10px 30px -12px rgba(6,4,1,0.7); } .ds-score-btn:active { transform: scale(0.94); } .ds-score-btn-active { background: var(--color-accent-cyan, #ffb020); color: var(--color-on-accent, #1a1206); border-color: transparent; box-shadow: 0 0 0 2px var(--color-accent-cyan, #ffb020); }"
+    },
+    {
+      "name": "Stage Loader",
+      "kind": "custom",
+      "refersTo": "stage-loader",
+      "description": "Componente firma: quattro barre d'accento che pulsano come un equalizzatore. Il loader di tutto il sistema — mai spinner circolari.",
+      "html": "<div class=\"ds-stage-loader\" role=\"status\" aria-label=\"Caricamento\"><i></i><i></i><i></i><i></i></div>",
+      "css": ".ds-stage-loader { display: flex; align-items: center; gap: 5px; height: 34px; } .ds-stage-loader > i { width: 4px; height: 100%; border-radius: 2px; background: var(--color-accent-cyan, #ffb020); transform-origin: center; animation: ds-bar-pulse 1s cubic-bezier(0.16,1,0.3,1) infinite; } .ds-stage-loader > i:nth-child(2) { animation-delay: 0.14s; } .ds-stage-loader > i:nth-child(3) { animation-delay: 0.28s; } .ds-stage-loader > i:nth-child(4) { animation-delay: 0.42s; } @keyframes ds-bar-pulse { 0%, 100% { transform: scaleY(0.32); opacity: 0.45; } 50% { transform: scaleY(1); opacity: 1; } }"
+    },
+    {
+      "name": "Section Eyebrow",
+      "kind": "custom",
+      "refersTo": "typography.label",
+      "description": "La firma tipografica del sistema: apre quasi ogni sezione, card e blocco form.",
+      "html": "<p class=\"ds-eyebrow-standalone\">Area protetta</p>",
+      "css": ".ds-eyebrow-standalone { margin: 0; font: 700 0.625rem/1 Inter, system-ui, sans-serif; letter-spacing: 0.28em; text-transform: uppercase; color: var(--color-accent-cyan, #ffb020); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La Regia e il Palco",
+    "overview": "Televoto e una sola produzione televisiva vissuta da due lati del vetro. Il Palco (tema scuro, di default) e cio che va in onda: fondo nero-scena, superfici solide con bordo a filo di lama, un'unica luce d'oro puntata e una tipografia da manifesto per il momento della premiazione. La Regia (tema chiaro 'Studio', .theme-pro su /admin e /manager) e il banco dietro le quinte: carta chiara, ordine, tutto leggibile a colpo d'occhio mentre l'evento corre. Stessi token, stessi componenti, stesso impianto — cambia solo il lato del vetro da cui guardi. Il sistema e cerimoniale quando serve, trattenuto ovunque altro. Sul Palco i momenti chiave (il vincitore, la finale a due, il terzo classificato) sono trattati come rivelazioni. Fuori da quei beat, tutto si fa strumento: un solo pieno d'accento per vista, stati appena percettibili, molto respiro. Il colore non porta informazione da solo, l'accento non e mai decorazione diffusa, e i nomi dei token legacy ('neon', 'glass', 'gradient') non descrivono piu il look — non c'e bagliore elettrico, non c'e vetro, non c'e gradiente sul testo. L'accento — oro #ffb020 sul Palco, ambra #b45309 nello Studio — e l'unica cosa accesa in campo. La sua rarita e il punto.",
+    "keyCharacteristics": [
+      "Due temi, un'anima: 'Palco' scuro broadcast (default), 'Studio' chiaro da regia (.theme-pro), stesso token set ri-puntato.",
+      "Un solo accento riservato per tema, usato con parsimonia; l'effetto viene da contrasto e tipografia.",
+      "Superfici piatte a riposo con bordo hairline; profondita per stratificazione tonale, ombra calda solo come risposta a uno stato.",
+      "Space Grotesk per display e numeri (tabular), Inter per il testo; ogni sezione si apre con un'etichetta-sopracciglio da 10px in maiuscoletto spaziato.",
+      "Grana di pellicola fissa al 4% sul Palco per rompere la piattezza vettoriale.",
+      "Anti-riferimenti confermati: estetica neon/gaming, app di sondaggi consumer, dashboard SaaS generica."
+    ],
+    "rules": [
+      { "name": "La Regola dell'Unica Luce", "body": "L'accento occupa al massimo ~10% di qualunque schermata. Un solo bottone pieno d'accento per vista; tutto il resto e tinted, ghost o testo. Se due elementi accesi competono, uno dei due e sbagliato.", "section": "colors" },
+      { "name": "La Regola Anti-Neon", "body": "I token si chiamano accent-cyan, neon-glow, border-neon per non dover riscrivere ~16 file admin/manager — ma il valore e oro e il look non e mai elettrico. Niente glow al neon, niente cyberpunk, niente fill a gradiente sul testo.", "section": "colors" },
+      { "name": "La Regola del Colore Candidato", "body": "Il colore di un candidato e un accento identitario minimo — barra da 3px a filo sinistro, cifra del numero, riempimento della barra in Classifica, pallino da 44px al 12% di opacita. Mai un wash di sfondo della card.", "section": "colors" },
+      { "name": "La Regola dell'Inchiostro sull'Oro", "body": "Su qualunque superficie piena d'accento il testo usa on-accent (bruno #1a1206 sul Palco, bianco nello Studio), mai un #000 o #fff hard-coded copiato nel file.", "section": "colors" },
+      { "name": "La Regola del Sopracciglio", "body": "Ogni sezione, card o blocco form si apre con un'etichetta da 10px in maiuscoletto, tracking >=0.2em, in ink-muted o nell'accento. E il modo in cui il sistema segna l'inizio di un'unita di contenuto senza una linea o un riquadro.", "section": "typography" },
+      { "name": "La Regola dei Numeri Tabellari", "body": "Qualunque cifra che possa cambiare o essere confrontata — punteggi, conteggi, numeri di gara, risultato finale — e in Space Grotesk tabular-nums. Le colonne di numeri non devono mai ballare.", "section": "typography" },
+      { "name": "La Regola del Maiuscoletto Misurato", "body": "Il MAIUSCOLO e per display, headline ed etichette, sempre con tracking negativo sui display e positivo (>=0.14em) sulle etichette. Mai testo di lettura in maiuscolo.", "section": "typography" },
+      { "name": "La Regola Piatto-di-Default", "body": "Le superfici sono piatte a riposo. Un'ombra e sempre la risposta a qualcosa (hover, selezione, focus, cerimonia) — mai una decorazione di base. Se togli lo stato e l'ombra resta, e di troppo.", "section": "elevation" },
+      { "name": "La Regola dell'Ombra Calda", "body": "Nessuna ombra usa nero puro. Palco: rgba(8,5,2,...). Studio: rgba(18,20,24,...). Il nero a bassa opacita legge grigio-freddo e rompe la scena.", "section": "elevation" },
+      { "name": "La Regola del Raggio Raggruppato", "body": "La scala di raggi si addensa (6/10/12/14/16/20px) invece di saltare da 8 a 24. Fratelli che mescolano rounded-lg e rounded-2xl devono leggere come un sistema.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do aprire ogni sezione/card con l'etichetta-sopracciglio da 10px (maiuscoletto, tracking >=0.2em, ink-muted o accento).",
+      "Do usare un solo bottone pieno d'accento per vista; per tutto il resto .btn-tinted / .btn-ghost.",
+      "Do tenere le superfici piatte a riposo e introdurre l'ombra solo come risposta a hover / selezione / focus / cerimonia.",
+      "Do usare on-accent per il testo su qualunque pieno d'accento, e ombre tinte di caldo (rgba(8,5,2,...) Palco, rgba(18,20,24,...) Studio) — mai #000.",
+      "Do mettere tutte le cifre confrontabili in Space Grotesk tabular-nums.",
+      "Do far entrare le nuove superfici di overlay (dialog, select panel) in .theme-pro via panelClass, altrimenti sul lato regia restano scure.",
+      "Do rispettare la scala di raggi raggruppata (6/10/12/14/16/20) e il bordo hairline da 1px come default.",
+      "Do trattare il colore del candidato come accento minimo (barra 3px, numero, fill) e progettare ogni stato in modo che regga anche in monocromia."
+    ],
+    "donts": [
+      "Don't far somigliare nulla a una dashboard SaaS ('Material blu', card grigie uniformi, grafici e tabelle ovunque), a un'app di sondaggi consumer (pastelli, emoji, tono giocoso) o a un'estetica neon/gaming (glow elettrici, gradienti sul testo) — anche se i token si chiamano neon/glass/gradient.",
+      "Don't usare il colore del candidato come sfondo pieno della card o applicarlo al testo del nome.",
+      "Don't introdurre un secondo colore d'accento: gli alias accent-magenta / accent-violet puntano di proposito all'unico accento.",
+      "Don't usare il champagne victory per elementi interattivi — e riservato al beat del vincitore cosi non sembra cliccabile.",
+      "Don't usare spinner circolari: il loader del sistema e l'equalizzatore .stage-loader.",
+      "Don't aggiungere ombre di base alle card o #000 a bassa opacita.",
+      "Don't mettere testo di lettura in maiuscolo (solo display, headline, etichette).",
+      "Don't rompere prefers-reduced-motion: ogni animate-* e ogni transizione tattile ha gia il suo fallback in fondo a styles.scss."
+    ]
+  }
+}
