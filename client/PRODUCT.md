@@ -53,7 +53,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 - Ciclo di votazione: avvio, chiusura, azzera classifica; stato `votingClosed` esplicito.
 - Voto: intero 1-10 validato lato server; voto unico per `(candidateId, judgeTokenId)`; modalità preferenze con contatore "Preferenze espresse X/N".
 - Classifica finale e `partial-rankings` per la dashboard live; presenter mode.
-- Rotazione password root e password manager per-evento.
+- Rotazione password root (root) e password manager per-evento (root, o self-service dal manager stesso previa password attuale); rinomina evento self-service dal manager, in `/manager` → Impostazioni.
 
 **Vincoli durevoli**
 

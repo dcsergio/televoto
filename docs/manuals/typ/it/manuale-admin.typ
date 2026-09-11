@@ -370,8 +370,11 @@ campo, senza credenziali root).
 
 #nota(title: "Casi d'uso tipici")[
   Utile quando la password del manager di un evento è stata smarrita, condivisa impropriamente,
-  oppure va ruotata a fine evento per motivi di sicurezza. Ricorda di comunicare la nuova
-  password al manager dell'evento tramite un canale sicuro.
+  oppure va ruotata a fine evento per motivi di sicurezza. A differenza del manager, che deve
+  conoscere la password attuale per cambiarla da solo (vedi Guida del Manager, capitolo
+  "Impostazioni"), da qui puoi impostarne una nuova senza conoscere quella vecchia — utile
+  proprio quando il manager l'ha persa. Ricorda di comunicare la nuova password al manager
+  dell'evento tramite un canale sicuro.
 ]
 
 #attenzione(title: "Nota")[

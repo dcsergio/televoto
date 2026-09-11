@@ -12,7 +12,7 @@
   chips: (
     "Area: /manager",
     "Lingua interfaccia: Italiano",
-    "Versione manuale: 1.0",
+    "Versione manuale: 1.1",
     "Accesso con codice evento + password manager",
     "Gestione di un solo evento alla volta",
     "Nessun accesso ad altri eventi",
@@ -35,10 +35,13 @@ informazioni distinte, richieste in due passaggi separati.
   evento"_. Inserisci la password fornita dall'amministratore root e premi *Accedi*. Se la
   password è errata, il campo mostrerà un messaggio di errore e potrai riprovare.
 + *Sei dentro* — Dopo l'accesso corretto si apre la shell dell'evento, con menu laterale (o
-  menu a comparsa su schermi piccoli) e le sezioni *Dashboard*, *Candidati*, *Codici Voto* e
-  *Backstage Votazione*.
+  menu a comparsa su schermi piccoli) e le sezioni *Candidati*, *Codici Voto*, *Backstage
+  Votazione* e *Impostazioni*. La sezione di atterraggio è scelta automaticamente in base allo
+  stato dell'evento (nessun candidato → Candidati; candidati presenti ma televoto chiuso →
+  Codici Voto; televoto aperto → Backstage Votazione), a meno che il link non forzi già una
+  sezione specifica.
 
-`/manager?eventCode=00001&adminSection=dashboard`
+`/manager?eventCode=00001&adminSection=voting-backstage`
 
 #nota(title: "Da sapere")[
   Il codice evento identifica _quale_ evento vuoi gestire; la password manager è specifica di
@@ -52,22 +55,15 @@ informazioni distinte, richieste in due passaggi separati.
   logout) e riporta alla pagina pubblica di voto.
 ]
 
-= Panoramica della Dashboard
+= Panoramica e stato dell'evento
 
-La sezione *Dashboard* è la prima schermata dopo il login e riassume lo stato dell'evento con
-tre riquadri:
+Non esiste una scheda "Dashboard" separata: l'evento viene gestito direttamente dentro le sue
+quattro sezioni operative, con lo stato sempre visibile in due punti fissi dell'interfaccia.
 
-#table(
-  columns: (auto, 1fr),
-  table.header([Riquadro], [Cosa mostra]),
-  [*Candidati*], [Numero totale di candidati registrati per l'evento.],
-  [*Codici giuria emessi*], [Totale dei codici giudice generati, suddiviso in Qualificata e Popolare.],
-  [*Stato voti giuria*], [Conteggio dei codici attivi, finalizzati e revocati.],
-)
-
-Nella barra superiore è sempre visibile un'etichetta di stato: *Televoto aperto* oppure
-*Televoto chiuso*. Da qui, con le apposite icone, puoi anche aprire in una nuova scheda la
-pagina di voto pubblico (icona urna) e la *Classifica* (icona coppa) dell'evento corrente.
+Nella barra superiore trovi il codice e il nome dell'evento corrente e un'etichetta di stato:
+*Televoto aperto* oppure *Televoto chiuso*. Da qui, con le apposite icone, puoi anche aprire in
+una nuova scheda la pagina di voto pubblico (icona urna) e la *Classifica* (icona coppa)
+dell'evento corrente.
 
 #attenzione[
   L'icona *Apri Classifica* è utilizzabile solo a televoto chiuso: se provi ad aprirla mentre
@@ -75,9 +71,19 @@ pagina di voto pubblico (icona urna) e la *Classifica* (icona coppa) dell'evento
   televoto chiuso. Chiudi il televoto per poter continuare."_ — e la pagina non si aprirà.
 ]
 
-Dal riquadro principale della Dashboard puoi anche saltare rapidamente alle altre sezioni
-tramite i pulsanti con le stesse etichette del menu laterale: *Candidati*, *Codici Voto*,
-*Backstage Votazione*.
+Sotto la barra superiore, in ogni sezione, trovi un indicatore a tappe — *Candidati → Codici →
+Televoto → Classifica* — che mostra a colpo d'occhio a che punto è la serata: le tappe già
+completate sono spuntate, quella corrente è evidenziata, le successive restano in attesa.
+Ogni tappa è cliccabile e porta direttamente alla sezione corrispondente (l'ultima, Classifica,
+apre la pagina `/score` con lo stesso avviso "solo a televoto chiuso" descritto sopra).
+
+#nota(title: "Nessun conteggio duplicato")[
+  I numeri che un tempo comparivano in una dashboard separata (candidati registrati, codici
+  emessi, voti raccolti) sono ora visibili solo una volta, direttamente nella sezione a cui
+  appartengono: *Candidati* mostra l'elenco con la numerazione, *Codici Voto* mostra i contatori
+  Attivi/Usati/Revocati, *Backstage Votazione* mostra il "Progresso voti giudici" descritto nel
+  Capitolo 6.
+]
 
 = Gestione candidati
 
@@ -328,6 +334,46 @@ Il punteggio finale di ciascun candidato combina due componenti:
   leggermente dal calcolo definitivo mostrato da questa pagina a televoto chiuso.
 ]
 
+= Impostazioni
+
+Sezione *Impostazioni* del menu laterale — qui gestisci il nome del tuo evento e la password
+con cui vi accedi, senza dover coinvolgere l'amministratore root.
+
+== Rinominare l'evento
+
++ Nel riquadro *Nome evento*, modifica il testo nel campo con il nome corrente.
++ Premi *Salva nome evento* (attivo solo se il testo è cambiato). Una conferma *Salvato*
+  compare accanto al pulsante.
+
+Il nuovo nome è visibile subito nella barra superiore e in ogni punto dell'app che lo mostra
+(pagina di voto, Classifica, area admin).
+
+#nota(title: "Solo il nome")[
+  Da questa sezione puoi cambiare *solo il nome* dell'evento: pesi giuria/pubblico, trimmed
+  mean, codice evento e sottotitolo restano di competenza esclusiva dell'amministratore root
+  (area `/admin`).
+]
+
+== Cambiare la password dell'evento
+
++ Nel riquadro *Password evento*, inserisci la *password evento attuale*, la *nuova password*
+  (minimo 8 caratteri) e ripetila nel campo di conferma.
++ Premi *Aggiorna password evento*. Una conferma *Salvato* compare accanto al pulsante.
+
+#attenzione(title: "Serve la password attuale")[
+  A differenza della rotazione fatta dall'amministratore root (che può impostare una nuova
+  password evento senza conoscere quella vecchia), il cambio password dal manager richiede di
+  digitare correttamente la *password attuale*. Se la password attuale è sbagliata, o se le due
+  nuove password non coincidono, l'operazione viene rifiutata con un messaggio d'errore e nulla
+  viene modificato.
+]
+
+#suggerimento(title: "Password persa?")[
+  Se hai dimenticato del tutto la password evento (e quindi non puoi più autocertificarla per
+  cambiarla da qui), l'unica via è chiedere all'amministratore root di impostartene una nuova
+  dall'area `/admin`.
+]
+
 = Domande frequenti
 
 == Non riesco ad accedere: "Password errata"
@@ -365,6 +411,12 @@ No: `/manager` è volutamente limitato a *un evento alla volta*, identificato da
 inserito in accesso. Per passare a un altro evento serve il suo codice e la sua password
 manager (oppure una sessione amministratore root, che può aprire qualsiasi evento senza
 password aggiuntiva).
+
+== Posso cambiare da solo il nome o la password del mio evento?
+
+Sì, dalla sezione *Impostazioni* (Capitolo 8): puoi rinominare l'evento in qualsiasi momento e
+cambiare la password manager inserendo quella attuale. Se hai dimenticato del tutto la password
+attuale, serve invece l'amministratore root.
 
 #colophon[
   Manuale operativo Televoto per Manager di evento · area applicativa `/manager` · contenuti
