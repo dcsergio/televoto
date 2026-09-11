@@ -91,48 +91,58 @@ Note:
 ## 5.1 Navigazione base
 
 - `/` → pagina votazione
-- `/admin` → pannello amministrazione
-- `/score` → Classifica (accesso protetto da password root)
+- `/admin` → pannello amministrazione root (cross-evento)
+- `/manager` → pannello gestione di un singolo evento
+- `/score` → Classifica (accesso protetto da password root o password manager evento)
 
 Per votazione e Classifica serve un `eventCode` valido (query string o input iniziale).
-Per `/admin` e `/score` è inoltre richiesta la password root.
+Per `/admin` è richiesta la password root; per `/manager` (dopo il codice evento) e per `/score` la password root oppure quella manager dell'evento.
 
-## 5.2 Flusso admin (nuova SPA strutturata)
+## 5.2 Flusso admin (`/admin`, solo root)
 
-La pagina admin è organizzata in una single-page app con menu:
-
-1. **Gestione eventi**
+1. **Dashboard / Gestione eventi**
    - selezione evento corrente,
    - creazione nuovo evento (nome, sottotitolo, codice opzionale),
-   - cambio password root (box “Sicurezza root”),
-   - rinomina evento selezionato,
-   - impostazione/rotazione password manager per evento.
+   - archiviazione/ripristino e clonazione evento,
+   - rinomina evento e impostazione/rotazione password manager per qualsiasi evento.
 
-2. **Gestione candidati** (sull’evento selezionato)
-   - aggiunta candidato (nome, performance, colore),
-   - modifica candidato,
-   - eliminazione candidato (con rinumerazione progressiva).
-   - Accesso protetto da password manager evento.
+2. **Impostazioni**
+   - cambio password root (box “Sicurezza root”).
+
+Dall'evento selezionato, root può aprire `/manager` di quell'evento in una nuova tab senza dover reinserire la password manager (il token root è accettato ovunque sia richiesto un token manager).
+
+La sezione admin corrente è persistita nella query string (`adminSection=dashboard|create-events|edit-events|archived|settings`), quindi i link condivisi possono aprire direttamente la vista desiderata.
+
+## 5.3 Flusso manager (`/manager?eventCode=...`, un solo evento)
+
+Accesso protetto da password manager evento (o password root, con lo stesso bypass di cui sopra).
+
+1. **Candidati**
+   - aggiunta/modifica/eliminazione candidato (nome, performance, colore), con rinumerazione progressiva.
    - Le modifiche sono bloccate quando il televoto è aperto.
 
-3. **Gestione votazione** (sull’evento selezionato)
+2. **Codici Voto**
+   - gestione codici giudice (generazione, validazione, revoca, rigenerazione singola/di massa, QR).
+
+3. **Backstage Votazione**
    - avvio votazione (`Avvia votazione`): azzera voti, rinumera candidati, apre televoto,
-   - chiusura televoto,
-   - azzeramento classifica (danger zone),
-   - gestione codici giudice (generazione, validazione, revoca, QR),
-   - dashboard progresso voti giudici.
-   - Accesso protetto da password manager evento.
+   - chiusura televoto, azzeramento classifica (danger zone),
+   - dashboard progresso voti giudici, apertura Classifica.
 
-La sezione admin corrente è persistita nella query string (`adminSection=events|candidates|voting-codes|voting-backstage`), quindi i link condivisi possono aprire direttamente la vista desiderata.
+4. **Impostazioni**
+   - rinomina il proprio evento,
+   - cambia la propria password manager (richiede la password attuale).
 
-## 5.3 Flusso giudici
+La sezione manager corrente è persistita nella query string (`adminSection=candidates|voting-codes|voting-backstage|settings`).
+
+## 5.4 Flusso giudici
 
 1. Admin genera codici giudice.
 2. Il giudice apre il link/QR ricevuto (contiene `eventCode` + `judgeToken`).
 3. Inserisce/modifica voti (1-10 interi per candidato).
 4. Conferma finale e blocco codice.
 
-## 5.4 Classifica
+## 5.5 Classifica
 
 - Mostra classifica aggregata per evento.
 - Quando il televoto è chiuso, l’area è pensata per consultazione risultati.

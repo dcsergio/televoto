@@ -12,7 +12,7 @@
   chips: (
     "Area: /manager",
     "Interface language: Italian",
-    "Manual version: 1.0",
+    "Manual version: 1.1",
     "Access via event code + manager password",
     "Manage a single event at a time",
     "No access to other events",
@@ -32,7 +32,7 @@ information, requested in two separate steps.
 If there isn't already an event code in the URL, the screen _"Enter the event code"_ appears.
 Type the event's numeric code (1 to 5 digits, e.g. `00001`) and press *Enter*.
 
-`/manager?eventCode=00001&adminSection=dashboard`
+`/manager?eventCode=00001&adminSection=voting-backstage`
 
 == 2. Enter the event's manager password
 
@@ -44,7 +44,10 @@ again.
 == 3. You're in
 
 After a successful login, the event's shell opens, with a side menu (or a pop-up menu on small
-screens) and the sections *Dashboard*, *Candidates*, *Voting Codes*, and *Voting Backstage*.
+screens) and the sections *Candidates*, *Voting Codes*, *Voting Backstage*, and *Settings*. The
+landing section is chosen automatically based on the event's state (no candidates yet →
+Candidates; candidates present but voting closed → Voting Codes; voting open → Voting
+Backstage), unless the link already forces a specific section.
 
 #nota(title: "Good to know")[
   The event code identifies _which_ event you want to manage; the manager password is specific
@@ -58,24 +61,15 @@ screens) and the sections *Dashboard*, *Candidates*, *Voting Codes*, and *Voting
   takes you back to the public voting page.
 ]
 
-= Dashboard overview
+= Overview and event status
 
-The *Dashboard* section is the first screen after login and summarizes the event's status with
-three boxes:
+There's no separate "Dashboard" tab: the event is managed directly inside its four operational
+sections, with status always visible in two fixed spots of the interface.
 
-#table(
-  columns: (auto, 1fr),
-  table.header([Box], [What it shows]),
-  [Candidates], [Total number of candidates registered for the event.],
-  [Judge codes issued],
-  [Total number of judge codes generated, split into Qualified and Public.],
-  [Vote status], [Count of active, finalized, and revoked codes.],
-)
-
-A status label is always visible in the top bar: #pill("Voting open", color: "cyan") or
-#pill("Voting closed", color: "violet"). From here, using the respective icons, you can also
-open the *public voting page* (urn icon) and the *Final Ranking* (trophy icon) for the current
-event in a new tab.
+The top bar always shows the current event's code and name and a status label:
+#pill("Voting open", color: "cyan") or #pill("Voting closed", color: "violet"). From here, using
+the respective icons, you can also open the *public voting page* (urn icon) and the *Final
+Ranking* (trophy icon) for the current event in a new tab.
 
 #attenzione(title: "Warning")[
   The *Open Final Ranking* icon can only be used once voting is closed: if you try to open it
@@ -83,8 +77,18 @@ event in a new tab.
   is closed. Close the voting to continue."_ — and the page will not open.
 ]
 
-From the main Dashboard box you can also jump quickly to the other sections using buttons with
-the same labels as the side menu: *Candidates*, *Voting Codes*, *Voting Backstage*.
+Below the top bar, every section shows a step indicator — *Candidates → Codes → Voting →
+Ranking* — giving an at-a-glance read of where the evening stands: completed steps are checked
+off, the current one is highlighted, and the rest stay pending. Each step is clickable and jumps
+straight to the matching section (the last one, Ranking, opens the `/score` page with the same
+"only when voting is closed" warning described above).
+
+#nota(title: "No duplicated counters")[
+  Numbers that used to live in a separate dashboard (registered candidates, codes issued, votes
+  cast) are now shown only once, right inside the section they belong to: *Candidates* shows the
+  numbered list, *Voting Codes* shows the Active/Used/Revoked counters, and *Voting Backstage*
+  shows the "Judge voting progress" panel covered in Chapter 6.
+]
 
 = Candidate management
 
@@ -324,6 +328,44 @@ Each candidate's final score combines two components:
   definitive calculation shown by the Final Ranking once voting is closed.
 ]
 
+= Settings
+
+*Settings* section in the side menu — manage your event's name and the password you use to
+access it, without having to involve the root administrator.
+
+== Renaming the event
+
++ In the *Event name* box, edit the text in the field with the current name.
++ Press *Save event name* (enabled only once the text has changed). A *Saved* confirmation
+  appears next to the button.
+
+The new name is visible immediately in the top bar and everywhere else it's shown (voting page,
+Final Ranking, admin area).
+
+#nota(title: "Name only")[
+  This section only lets you change the event's *name*. Jury/public weights, trimmed mean, the
+  event code, and the subtitle remain the exclusive responsibility of the root administrator
+  (`/admin` area).
+]
+
+== Changing the event password
+
++ In the *Event password* box, enter the *current event password*, the *new password* (minimum
+  8 characters), and repeat it in the confirmation field.
++ Press *Update event password*. A *Saved* confirmation appears next to the button.
+
+#attenzione(title: "The current password is required")[
+  Unlike the rotation done by the root administrator (who can set a new event password without
+  knowing the old one), changing the password from the manager side requires typing the *current
+  password* correctly. If the current password is wrong, or the two new passwords don't match,
+  the operation is rejected with an error message and nothing is changed.
+]
+
+#suggerimento(title: "Lost password?")[
+  If you've entirely forgotten the event password (and so can't prove it to change it from
+  here), the only way forward is to ask the root administrator to set a new one from `/admin`.
+]
+
 = FAQ
 
 == Can't log in: "Incorrect password"
@@ -360,6 +402,12 @@ ones.
 No: `/manager` is intentionally limited to *one event at a time*, identified by the event code
 entered at login. To switch to another event you need its code and its manager password (or a
 root administrator session, which can open any event without an additional password).
+
+== Can I change my event's name or password myself?
+
+Yes, from the *Settings* section (Chapter 8): you can rename the event at any time and change
+the manager password by entering the current one. If you've entirely forgotten the current
+password, you'll need the root administrator instead.
 
 #colophon[
   Operational Televoto manual for Event Managers · `/manager` application area · content

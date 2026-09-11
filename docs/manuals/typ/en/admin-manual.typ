@@ -354,8 +354,11 @@ credentials).
 
 #nota(title: "Typical use cases")[
   Useful when an event manager's password has been lost, shared improperly, or needs to be
-  rotated at the end of an event for security reasons. Remember to communicate the new password
-  to the event's manager through a secure channel.
+  rotated at the end of an event for security reasons. Unlike the manager, who must know the
+  current password to change it themselves (see the Event Manager Guide, "Settings" chapter),
+  from here you can set a new one without knowing the old one — handy precisely when the manager
+  has lost it. Remember to communicate the new password to the event's manager through a secure
+  channel.
 ]
 
 #attenzione(title: "Note")[

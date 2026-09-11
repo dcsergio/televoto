@@ -35,9 +35,9 @@ Notes:
 - Generated Prisma client: `src/generated/prisma/` (do not edit manually) — this is the only thing left under the repo-root `src/` directory; the former React app there has been fully replaced by `client/`.
 
 ## Backend API Surface
-Routes are split across `server/routes/*.ts` (~31 routes total). Key groups:
-- Auth (`auth.routes.ts`): `POST /api/auth/root/login`, `POST /api/auth/root/password`, `POST /api/auth/event/login`
-- Events (`events.routes.ts`): `GET/POST /api/events`, `GET /api/events/by-code/:eventCode`, `GET/PUT /api/events/:eventId`, `PUT /api/events/:eventId/manager-password`, `GET /api/events/:eventId/voting-progress`, `PUT /api/events/:eventId/voting-state`, `POST /api/events/:eventId/start`, `DELETE /api/events/:eventId/votes`, `PUT /api/events/:eventId/archive-state` (root-only), `POST /api/events/:eventId/clone` (root-only)
+Routes are split across `server/routes/*.ts` (32 routes total). Key groups:
+- Auth (`auth.routes.ts`): `POST /api/auth/root/login`, `POST /api/auth/root/password`, `POST /api/auth/event/login`, `POST /api/auth/event/:eventId/password` (event-manager self-service rotation, requires current password)
+- Events (`events.routes.ts`): `GET/POST /api/events`, `GET /api/events/by-code/:eventCode`, `GET/PUT /api/events/:eventId`, `PUT /api/events/:eventId/manager-password` (root-only reset, no current password needed), `PUT /api/events/:eventId/manager-settings` (event-manager self-service, name only), `GET /api/events/:eventId/voting-progress`, `PUT /api/events/:eventId/voting-state`, `POST /api/events/:eventId/start`, `DELETE /api/events/:eventId/votes`, `PUT /api/events/:eventId/archive-state` (root-only), `POST /api/events/:eventId/clone` (root-only)
 - Voting (`votes.routes.ts`): `POST /api/vote` (judge-token gated, not device-based, rate-limited)
 - Candidates (`candidates.routes.ts`): `GET /api/candidates/:eventId`, `POST /api/candidates`, `PUT /api/candidates/:id`, `DELETE /api/candidates/:id`
 - Judge tokens (`judge-tokens.routes.ts`): `GET/POST /api/events/:eventId/judge-tokens`, `GET /api/events/:eventId/judge-tokens/stream` (SSE), `POST /api/judge-tokens/validate`, `POST /api/judge-tokens/finalize`, `POST /api/judge-tokens/:id/reissue` (lost-judge-code recovery), `POST /api/judge-tokens/:id/revoke`
