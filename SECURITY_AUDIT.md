@@ -8,15 +8,14 @@ Contesto: app Angular + Express/Prisma, deploy su **Vercel** (funzione serverles
 
 ## 🔴 Alta priorità (da risolvere prima del lancio)
 
-### 1. Connection pooling non adeguato a Neon + serverless
-`server/db/prisma.ts` crea un `new Pool({ connectionString: env.databaseUrl })` a livello di modulo, senza limitare `max` (default `pg`: 10), e senza distinguere la connection string **pooled** di Neon (host `-pooler`, via PgBouncer) da quella diretta.
+### 1. Connection pooling — ✅ RISOLTO in parte (2026-09-12), residuano 2 accorgimenti
 
-Su Vercel ogni istanza serverless che si avvia (specie sotto carico, con più istanze concorrenti durante una votazione live) apre il proprio pool di connessioni verso Postgres. Con più istanze attive contemporaneamente si rischia di saturare il limite di connessioni dirette di Neon (basso sui piani free/lower-tier), causando errori proprio nel momento di picco traffico — cioè durante l'evento di voto in diretta, lo scenario peggiore possibile.
+**Aggiornamento:** `.env` è stato aggiornato con la connection string **pooled** di Neon (host con suffisso `-pooler`, via PgBouncer, `sslmode=require&channel_binding=require`). Il rischio principale — esaurimento delle connessioni dirette durante un evento di voto live — è risolto lato runtime.
 
-**Da fare:**
-- Usare come `DATABASE_URL` a runtime la connection string **pooled** di Neon (`...-pooler.../...?sslmode=require`), riservando quella diretta (`PRISMA_CLI_URL`) solo alle migration da CLI.
-- Limitare esplicitamente il pool lato app, es. `new Pool({ connectionString: env.databaseUrl, max: 3 })` — ogni istanza serverless ha bisogno di poche connessioni, non del default di 10.
-- Verificare che la stringa di connessione non venga ricreata ad ogni richiesta ma riutilizzata tra invocazioni "warm" della stessa istanza lambda (comportamento attuale a livello di modulo sembra corretto, va solo verificato in `api/[...path].ts`).
+Restano due accorgimenti minori, verificati su `server/db/prisma.ts` e `prisma.config.ts`:
+
+- **`max` del pool ancora non limitato**: `server/db/prisma.ts:6` crea `new Pool({ connectionString: env.databaseUrl })` senza `max` esplicito (default `pg`: 10). Passando ora per PgBouncer questo è molto meno rischioso di prima, ma ogni istanza serverless ha comunque bisogno solo di poche connessioni: consigliato `new Pool({ connectionString: env.databaseUrl, max: 3 })` per restare ben dentro i limiti anche con molte istanze concorrenti.
+- **`PRISMA_CLI_URL` non impostato**: `.env` non definisce `PRISMA_CLI_URL`, quindi `prisma.config.ts:38` fa fallback su `DATABASE_URL` (ora quello pooled) anche per la CLI di migrazione. Neon raccomanda di usare la connection string **diretta** (non-pooled) per `prisma migrate`/`db:push`, perché PgBouncer in transaction mode può avere problemi con i lock di sessione usati dalle migration. Da aggiungere: `PRISMA_CLI_URL` con l'host Neon *senza* `-pooler`, riservando quello pooled solo al runtime applicativo.
 
 ### 2. Rate limiting non distribuito e IP-keying inaffidabile dietro il proxy di Vercel
 `server/middleware/rate-limit.middleware.ts` usa lo store in-memory di default di `express-rate-limit`, con chiave `req.ip`. Due problemi che si sommano su Vercel:
@@ -81,7 +80,9 @@ Su Vercel ogni istanza serverless che si avvia (specie sotto carico, con più is
 
 ## Checklist rapida pre-lancio
 
-- [ ] Passare a connection string **pooled** di Neon per `DATABASE_URL` runtime + limitare `max` del pool `pg`
+- [x] Passare a connection string **pooled** di Neon per `DATABASE_URL` runtime (fatto 2026-09-12)
+- [ ] Limitare `max` del pool `pg` in `server/db/prisma.ts` (es. `max: 3`)
+- [ ] Impostare `PRISMA_CLI_URL` con la connection string **diretta** (non-pooled) di Neon, per le migration
 - [ ] Aggiungere `app.set("trust proxy", 1)` in `server/index.ts`
 - [ ] Valutare uno store condiviso (Redis/Upstash) per i rate limiter di login e voto se serve resistenza reale a spam/brute-force al lancio
 - [ ] Aggiungere `"engines"` a `package.json` e allineare la versione Node su Vercel
