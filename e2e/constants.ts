@@ -1,5 +1,5 @@
 /**
- * Credentials for the shared dev Supabase database (also used by the live
+ * Credentials for the shared dev database (also used by the live
  * app and the backend teammate's worktree). These are verified-working dev
  * credentials, not secrets - do not point this suite at production.
  *

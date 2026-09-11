@@ -1,0 +1,1 @@
+npx remotion render src/index.ts Main out/televoto-promo.mp4

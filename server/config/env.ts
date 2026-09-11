@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-const databaseUrl = process.env["DATABASE_URL"] ?? process.env["SUPABASE_DATABASE_URL"];
+const databaseUrl = process.env["DATABASE_URL"];
 if (!databaseUrl) {
   throw new Error("Missing DATABASE_URL environment variable");
 }

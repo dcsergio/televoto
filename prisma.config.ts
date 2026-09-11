@@ -35,13 +35,7 @@ export default defineConfig({
   },
   datasource: {
     url: withSchema(
-      firstNonEmpty(
-        process.env["PRISMA_CLI_URL"],
-        process.env["DIRECT_DATABASE_URL"],
-        process.env["SUPABASE_DIRECT_URL"],
-        process.env["DATABASE_URL"],
-        process.env["SUPABASE_DATABASE_URL"]
-      )
+      firstNonEmpty(process.env["PRISMA_CLI_URL"], process.env["DATABASE_URL"])
     ),
   },
 });

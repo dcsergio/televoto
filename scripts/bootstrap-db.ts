@@ -2,7 +2,7 @@ import "dotenv/config";
 import crypto from "node:crypto";
 import { Pool } from "pg";
 
-const databaseUrl = process.env["SUPABASE_DATABASE_URL"] ?? process.env["DATABASE_URL"];
+const databaseUrl = process.env["DATABASE_URL"];
 
 if (!databaseUrl) {
   throw new Error("Missing DATABASE_URL environment variable");
