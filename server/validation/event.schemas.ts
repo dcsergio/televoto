@@ -82,6 +82,19 @@ export const setManagerPasswordSchema = z.object({
   password: passwordField("Password manager evento non valida (minimo 8 caratteri)"),
 });
 
+// Scoped down to just `name` (unlike the root-only full update) so an event
+// manager posting extra fields (weights, trimmed-mean settings) can't touch them.
+export const updateEventNameSchema = z
+  .object({ name: z.unknown() })
+  .transform((body, ctx) => {
+    const name = normalizeEventName(body.name);
+    if (!name) {
+      ctx.addIssue({ code: "custom", message: "Il nome evento è obbligatorio" });
+      return z.NEVER;
+    }
+    return { name };
+  });
+
 export const votingStateSchema = z.object({
   votingClosed: z.boolean({ error: "Stato votazione non valido" }),
 });

@@ -1,6 +1,6 @@
-export type EventManagerSection = 'candidates' | 'voting-codes' | 'voting-backstage';
+export type EventManagerSection = 'candidates' | 'voting-codes' | 'voting-backstage' | 'settings';
 
-const EVENT_MANAGER_SECTIONS: EventManagerSection[] = ['candidates', 'voting-codes', 'voting-backstage'];
+const EVENT_MANAGER_SECTIONS: EventManagerSection[] = ['candidates', 'voting-codes', 'voting-backstage', 'settings'];
 
 /** Section the manager lands on by default: the live operations hub. */
 export const DEFAULT_EVENT_MANAGER_SECTION: EventManagerSection = 'voting-backstage';
@@ -16,6 +16,7 @@ export const EVENT_MANAGER_SECTION_NAV: EventManagerSectionMeta[] = [
   { section: 'candidates', label: 'Candidati', icon: 'groups' },
   { section: 'voting-codes', label: 'Codici Voto', icon: 'qr_code_2' },
   { section: 'voting-backstage', label: 'Backstage Votazione', icon: 'insights' },
+  { section: 'settings', label: 'Impostazioni', icon: 'settings' },
 ];
 
 export function isEventManagerSection(value: string | null): value is EventManagerSection {
