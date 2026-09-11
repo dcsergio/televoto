@@ -4,7 +4,7 @@
 Il progetto Televoto è una app full-stack con Angular frontend (in `client/`) e Express backend. Vercel supporta entrambi in un singolo deployment usando Serverless Functions.
 
 **Cambiamenti necessari:**
-1. Database PostgreSQL su Supabase (hosting cloud)
+1. Database PostgreSQL su Neon (hosting cloud)
 2. Configurare Prisma per PostgreSQL
 3. Vercel auto-configura il build
 4. Deploy su Vercel
@@ -13,22 +13,22 @@ Il progetto Televoto è una app full-stack con Angular frontend (in `client/`) e
 
 ## 📋 STEP 1: Preparazione locale (5 min)
 
-### 1.1 Verifica di avere Supabase Project
-Vai a **https://app.supabase.com** e crea un progetto se non lo hai già.
+### 1.1 Verifica di avere un progetto Neon
+Vai a **https://console.neon.tech** e crea un progetto se non lo hai già.
 
 ### 1.2 Ottieni la connection string
-1. Nel dashboard Supabase, seleziona il tuo project
-2. Vai a **Settings** → **Database**
-3. Copia la **Connection String** (formato `postgresql://...`)
+1. Nel dashboard Neon, seleziona il tuo project
+2. Vai a **Connection Details** (nella dashboard principale del progetto)
+3. Copia la **Connection String** (formato `postgresql://...`), assicurandoti che includa `?sslmode=require`
 4. Salva in un file sicuro
 
 ---
 
 ## 📝 STEP 2: Configura ambiente locale (5 min)
 
-### 2.1 Crea `.env` con Supabase URL
+### 2.1 Crea `.env` con la URL Neon
 ```bash
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.cowzpxxpvizcxamyizhg.supabase.co:5432/postgres"
+DATABASE_URL="postgresql://user:password@ep-xxxx.region.aws.neon.tech/dbname?sslmode=require&channel_binding=require"
 ```
 
 ### 2.2 Installa dipendenze
@@ -62,7 +62,7 @@ Dovrebbe completare senza errori.
 
 ```bash
 git add .
-git commit -m "Migrate to PostgreSQL Supabase"
+git commit -m "Migrate to PostgreSQL Neon"
 git push origin main
 ```
 
@@ -83,7 +83,7 @@ Nella schermata **"Configure Project"**, aggiungi:
 
 | Nome | Valore |
 |------|--------|
-| `DATABASE_URL` | `postgresql://postgres:[PASSWORD]@db.cowzpxxpvizcxamyizhg.supabase.co:5432/postgres` |
+| `DATABASE_URL` | `postgresql://user:password@ep-xxxx.region.aws.neon.tech/dbname?sslmode=require&channel_binding=require` |
 
 ### 5.4 Seleziona framework e directory
 - **Framework Preset**: Other (rilevamento generico — `vercel.json` imposta già `buildCommand`/`outputDirectory` espliciti per la build Angular)
@@ -128,10 +128,10 @@ Dovrebbe tornare JSON con gli eventi.
 ## ⚡ Troubleshooting
 
 ### Errore: "Cannot access database"
-✅ **Soluzione:** Verifica che `DATABASE_URL` sia impostato in Environment Variables su Vercel. Deve contenere il password corretto.
+✅ **Soluzione:** Verifica che `DATABASE_URL` sia impostato in Environment Variables su Vercel. Deve contenere la password corretta e `?sslmode=require`.
 
 ### Errore: "connection refused"
-✅ **Soluzione:** Supabase potrebbe avere IP whitelist. Disabilita in Settings → Database → Networking → Disable SSL requirement (o aggiungi IP Vercel)
+✅ **Soluzione:** Verifica su Neon che il progetto/compute non sia sospeso (auto-suspend su piano free, si riattiva alla prima query ma può richiedere qualche secondo). Assicurati inoltre di usare l'endpoint corretto (pooled `-pooler` vs diretto) per il contesto serverless di Vercel.
 
 ### API ritorna 404
 ✅ **Soluzione:** Controlla che il `server/index.ts` stia in ascolto sulla porta giusta e che gli endpoint siano corretti.
@@ -162,7 +162,7 @@ Dovrebbe tornare JSON con gli eventi.
 
 1. **Monitor**: Accedi a Vercel Analytics
 2. **Auto-deploy**: GitHub → Vercel si sincronizza automaticamente
-3. **Database**: Usa Supabase dashboard per gestire il DB
+3. **Database**: Usa la dashboard Neon per gestire il DB
 4. **Secrets**: Tieni i password al sicuro in Vercel Environment Variables
 
 ---
@@ -170,7 +170,7 @@ Dovrebbe tornare JSON con gli eventi.
 ## 💡 Note importanti
 
 - ❌ SQLite locale NON funziona su Vercel (filesystem temporaneo)
-- ✅ PostgreSQL Supabase è perfetto per questo progetto
+- ✅ PostgreSQL su Neon è perfetto per questo progetto
 - ✅ Frontend + Backend deployarsi insieme su Vercel
 - ✅ Ogni push a `main` triggerizza auto-deploy
-- ✅ Supabase è scalabile e affidabile
+- ✅ Neon è scalabile e affidabile (serverless, autoscaling storage/compute)

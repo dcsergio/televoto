@@ -71,7 +71,7 @@
 
         <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           @if (activeEvents().length > 0) {
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-toolbar-event min-w-0 max-w-[13rem] sm:max-w-xs">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="admin-toolbar-event min-w-0 max-w-sm sm:max-w-md">
               <mat-label>Azioni rapide su</mat-label>
               <mat-select
                 [value]="selectedEventId()"
@@ -80,7 +80,7 @@
                 data-testid="admin-event-select"
               >
                 @for (ev of activeEvents(); track ev.id) {
-                  <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code">
+                  <mat-option [value]="ev.id" [attr.data-testid]="'admin-event-option-' + ev.code" class="whitespace-nowrap">
                     {{ ev.code }} — {{ ev.displayName }}
                   </mat-option>
                 }

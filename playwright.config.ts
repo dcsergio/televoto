@@ -3,8 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright e2e config. Runs against the real dev stack (`npm run dev`):
  * Angular dev server on :8080 proxying /api to Express on :3001 (see
- * client/proxy.conf.json). Tests exercise the shared Supabase dev database
- * used by the live app - see e2e/README-ish notes in each spec for the
+ * client/proxy.conf.json). Tests exercise the shared dev database used by
+ * the live app - see e2e/README-ish notes in each spec for the
  * constraints that keeps this safe (no destructive resets).
  */
 export default defineConfig({

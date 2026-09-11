@@ -31,13 +31,11 @@ npm install
 3. Crea il file `.env` partendo da [.env.example](C:/Users/sergi/workspace_js/televoto/.env.example).
 
 Variabili principali:
-- `SUPABASE_DIRECT_URL`: URL diretta DB (porta 5432), usata per migration Prisma.
-- `SUPABASE_DATABASE_URL`: URL pooled (porta 6543), usata a runtime dal server.
-- `PRISMA_CLI_URL` (opzionale): override per i comandi Prisma CLI.
+- `DATABASE_URL`: connection string del database PostgreSQL, usata sia a runtime dal server sia da Prisma CLI per le migration.
+- `PRISMA_CLI_URL` (opzionale): override della URL usata dai comandi Prisma CLI, se deve differire da `DATABASE_URL`.
 - `ADMIN_AUTH_SECRET`: segreto usato dal backend per firmare i token di sessione admin/manager.
 - `ROOT_ADMIN_PASSWORD`: password root iniziale usata solo se la tabella credenziali root è vuota.
 
-> Il server legge `DATABASE_URL` oppure `SUPABASE_DATABASE_URL`.  
 > Prisma CLI usa la priorità configurata in [prisma.config.ts](C:/Users/sergi/workspace_js/televoto/prisma.config.ts).
 
 4. Esegui le migration:

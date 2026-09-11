@@ -8,7 +8,7 @@
 - [ ] Prisma schema aggiornato per PostgreSQL
 - [ ] `package.json` build scripts corretti
 - [ ] Test locale: `npm run build` passa
-- [ ] Supabase connection string ottenuta
+- [ ] Neon connection string ottenuta
 
 ---
 
@@ -16,10 +16,10 @@
 
 | Cosa | Dove | Come |
 |------|------|------|
-| **Supabase Account** | https://supabase.com | Signup gratuito |
+| **Neon Account** | https://neon.tech | Signup gratuito |
 | **GitHub Account** | https://github.com | Verificato |
 | **Vercel Account** | https://vercel.com | Login con GitHub |
-| **Database URL** | Supabase Dashboard | Settings → Database → Connection String |
+| **Database URL** | Neon Dashboard | Project → Connection String |
 
 ---
 
@@ -47,7 +47,7 @@ Dashboard → Add New → Project → Select GitHub Repo (televoto)
 Nella sezione **Environment Variables**, aggiungi:
 
 ```
-DATABASE_URL = postgresql://postgres:[PASSWORD]@db.cowzpxxpvizcxamyizhg.supabase.co:5432/postgres
+DATABASE_URL = postgresql://user:password@ep-xxxx.region.aws.neon.tech/dbname?sslmode=require&channel_binding=require
 ```
 
 ✅ Assicurati che sia impostato come **Production**
@@ -92,22 +92,24 @@ Risposta attesa:
 ✅ Soluzione: 
 1. Vai su Vercel → Settings → Environment Variables
 2. Verifica DATABASE_URL sia corretto
-3. Controlla il password di Supabase
+3. Controlla la password nella connection string Neon
 4. Trigger rebuild: click "Redeploy"
 ```
 
 ### ❌ "Connessione rifiutata"
 ```
 ✅ Soluzione:
-1. Su Supabase → Settings → Database → Networking
-2. Disabilita "Enforce SSL" temporaneamente, oppure
-3. Aggiungi IP di Vercel a whitelist
+1. Su Neon → Project → Settings, verifica che il progetto non sia sospeso (auto-suspend su piano free)
+2. Verifica che la connection string includa `sslmode=require`
+3. Se usi l'endpoint pooled (`-pooler`), assicurati di puntarci nel DATABASE_URL a runtime
 ```
 
 ### ❌ Frontend si carica ma API è lento
 ```
 ✅ Soluzione: I serverless functions hanno cold start (1-2s iniziali)
-Aspetta o upgrade Vercel Pro
+Aspetta o upgrade Vercel Pro. Nota: anche Neon ha un cold start proprio
+quando il compute è sospeso per inattività (piano free) - la prima
+query dopo un periodo di inattività può richiedere qualche secondo.
 ```
 
 ---
@@ -132,16 +134,16 @@ git push origin main
 | Servizio | URL |
 |----------|-----|
 | Vercel Dashboard | https://vercel.com/dashboard |
-| Supabase Console | https://app.supabase.com |
+| Neon Console | https://console.neon.tech |
 | GitHub Repo | https://github.com/YOUR_USER/televoto |
 | App Live | https://your-project.vercel.app |
 | Environment Vars | https://vercel.com/projects/YOUR_PROJECT/settings/environment-variables |
-| Supabase DB Settings | https://app.supabase.com → Settings → Database |
+| Neon DB Settings | https://console.neon.tech → Project → Settings → Connection Details |
 
 ---
 
 ## 📞 Supporto
 
 - **Vercel Docs**: https://vercel.com/docs
-- **Supabase Docs**: https://supabase.com/docs
+- **Neon Docs**: https://neon.tech/docs
 - **Prisma Docs**: https://www.prisma.io/docs
