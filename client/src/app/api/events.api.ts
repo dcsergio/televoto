@@ -77,6 +77,14 @@ export class EventsApi {
       );
   }
 
+  updateEventNameAsManager(eventId: string, name: string, authToken: string): Observable<AdminEventSummary> {
+    return this.http
+      .put<AdminEventSummary>(`${BASE}/events/${eventId}/manager-settings`, { name }, withAuth(authToken))
+      .pipe(
+        catchError((err) => throwError(() => toApiError(err, "Errore nell'aggiornamento nome evento"))),
+      );
+  }
+
   updateEventManagerPassword(
     eventId: string,
     password: string,

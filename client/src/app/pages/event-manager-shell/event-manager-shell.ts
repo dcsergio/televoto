@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,9 +11,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { map } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
+import { AuthApi } from '../../api/auth.api';
+import { EventsApi } from '../../api/events.api';
 import { EventCodeGateComponent } from '../../components/event-code-gate/event-code-gate';
 import { ProtectedPageGateComponent } from '../../components/protected-page-gate/protected-page-gate';
 import { EventCandidatesManagerComponent } from '../../components/event-candidates-manager/event-candidates-manager';
@@ -20,6 +23,7 @@ import { EventLifecycleControlsComponent, VotingStateChange } from '../../compon
 import { JudgeCodeManagerComponent } from '../../components/judge-code-manager/judge-code-manager';
 import { VotingProgressDashboardComponent } from '../../components/voting-progress-dashboard/voting-progress-dashboard';
 import { ShellToolbarActionsComponent } from '../../components/shell-toolbar-actions/shell-toolbar-actions';
+import { ToastService } from '../../shared/toast.service';
 import { openScoreGuarded } from '../../shared/open-score.util';
 import { buildPageTitle } from '../../shared/page-title.util';
 import {
@@ -35,6 +39,7 @@ import {
   selector: 'app-event-manager-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    FormsModule,
     EventCodeGateComponent,
     ProtectedPageGateComponent,
     EventCandidatesManagerComponent,
@@ -57,8 +62,11 @@ export class EventManagerShellComponent {
   private readonly router = inject(Router);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly dialog = inject(MatDialog);
+  private readonly authApi = inject(AuthApi);
+  private readonly eventsApi = inject(EventsApi);
   protected readonly authState = inject(AuthStateService);
   protected readonly votingState = inject(VotingStateService);
+  protected readonly toast = inject(ToastService);
   private readonly title = inject(Title);
 
   protected readonly passwordError = signal('');
@@ -96,6 +104,20 @@ export class EventManagerShellComponent {
   protected readonly activeToken = computed(() => this.authState.rootAuthToken() ?? this.authState.eventManagerAuthToken());
   protected readonly isAuthenticated = computed(() => this.activeToken() !== null);
 
+  protected readonly eventNameDraft = signal('');
+  protected readonly updatingEventName = signal(false);
+  protected readonly eventPasswordDraft = signal({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  protected readonly updatingEventPassword = signal(false);
+
+  /** Which settings block just saved — drives the inline "Salvato" confirmation. */
+  protected readonly savedFlash = signal<'name' | 'password' | null>(null);
+
+  protected readonly eventNameDirty = computed(() => {
+    const ev = this.event();
+    const draft = this.eventNameDraft().trim();
+    return !!ev && draft.length > 0 && draft !== ev.name;
+  });
+
   constructor() {
     effect(() => {
       this.sidenavOpened.set(!this.isHandset());
@@ -123,6 +145,17 @@ export class EventManagerShellComponent {
         this.handleSectionChange(section);
       }
     });
+
+    effect(() => {
+      this.eventNameDraft.set(this.event()?.name ?? '');
+    });
+  }
+
+  private flashSaved(key: 'name' | 'password'): void {
+    this.savedFlash.set(key);
+    setTimeout(() => {
+      if (this.savedFlash() === key) this.savedFlash.set(null);
+    }, 2500);
   }
 
   protected toggleSidenav(): void {
@@ -215,5 +248,57 @@ export class EventManagerShellComponent {
     this.votingState.event.update((prev) =>
       prev ? { ...prev, votingClosed: change.votingClosed, candidates: change.candidates ?? prev.candidates } : prev,
     );
+  }
+
+  protected async handleUpdateEventName(): Promise<void> {
+    const ev = this.event();
+    const token = this.activeToken();
+    if (!ev || !token) return;
+    const trimmedName = this.eventNameDraft().trim();
+    if (!trimmedName) {
+      this.toast.error("Il nome evento è obbligatorio");
+      return;
+    }
+    if (trimmedName === ev.name) {
+      return;
+    }
+    this.updatingEventName.set(true);
+    try {
+      const updated = await firstValueFrom(this.eventsApi.updateEventNameAsManager(ev.id, trimmedName, token));
+      this.votingState.event.update((prev) => (prev ? { ...prev, name: updated.name } : prev));
+      this.eventNameDraft.set(updated.name);
+      this.flashSaved('name');
+      this.toast.success('Nome evento aggiornato');
+    } catch (err) {
+      this.toast.error(err instanceof Error ? err.message : 'Errore');
+    } finally {
+      this.updatingEventName.set(false);
+    }
+  }
+
+  protected async handleUpdateEventPassword(): Promise<void> {
+    const ev = this.event();
+    const token = this.activeToken();
+    if (!ev || !token) return;
+    const { currentPassword, newPassword, confirmPassword } = this.eventPasswordDraft();
+    if (currentPassword.length < 8 || newPassword.length < 8) {
+      this.toast.error('Le password evento devono avere almeno 8 caratteri.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      this.toast.error('La conferma della nuova password non corrisponde.');
+      return;
+    }
+    this.updatingEventPassword.set(true);
+    try {
+      await firstValueFrom(this.authApi.changeEventManagerPassword(ev.id, token, currentPassword, newPassword));
+      this.eventPasswordDraft.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      this.flashSaved('password');
+      this.toast.success('Password evento aggiornata');
+    } catch (err) {
+      this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento password evento");
+    } finally {
+      this.updatingEventPassword.set(false);
+    }
   }
 }

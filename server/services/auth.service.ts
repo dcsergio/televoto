@@ -8,7 +8,10 @@ import {
   findRootCredential,
   updateRootCredentialPassword,
 } from "../repositories/root-credential.repository.js";
-import { findEventManagerCredential } from "../repositories/event-manager-credential.repository.js";
+import {
+  findEventManagerCredential,
+  upsertEventManagerCredential,
+} from "../repositories/event-manager-credential.repository.js";
 
 export async function ensureRootCredentialExists() {
   const existing = await findRootCredential();
@@ -66,4 +69,21 @@ export async function eventManagerLogin(
 
   const { token, role, expiresAt } = issueToken("event_manager", eventId);
   return { token, role, eventId, expiresAt };
+}
+
+export async function changeEventManagerPassword(
+  eventId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const credential = await findEventManagerCredential(eventId);
+  if (!credential) {
+    throw new AppError(503, "Credenziale evento non configurata.");
+  }
+
+  if (!verifyPassword(currentPassword, credential)) {
+    throw new AppError(401, "Password evento corrente errata");
+  }
+
+  await upsertEventManagerCredential(eventId, createPasswordRecord(newPassword));
 }

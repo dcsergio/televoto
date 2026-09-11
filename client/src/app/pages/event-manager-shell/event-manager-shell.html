@@ -184,6 +184,88 @@
               <app-voting-progress-dashboard [eventId]="event()!.id" [votingClosed]="event()!.votingClosed" [authToken]="activeToken()!" />
             </div>
           }
+
+          @if (activeSection() === 'settings') {
+            <div class="surface-card space-y-4 p-6">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Evento</p>
+                <h2 class="mt-2 text-2xl font-bold text-text-primary">Impostazioni</h2>
+                <p class="mt-1 text-sm text-text-secondary">
+                  Gestisci il nome e le credenziali di accesso di questo evento.
+                </p>
+              </div>
+
+              <form (ngSubmit)="handleUpdateEventName()" class="surface-panel space-y-3 p-4">
+                <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Nome evento</p>
+                <p class="text-sm text-text-secondary">Aggiorna il nome visualizzato di questo evento.</p>
+                <div class="grid gap-3 md:grid-cols-3">
+                  <input
+                    type="text"
+                    [ngModel]="eventNameDraft()"
+                    (ngModelChange)="eventNameDraft.set($event)"
+                    name="eventName"
+                    placeholder="Nome evento"
+                    class="field-input text-sm md:col-span-2"
+                  />
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    [disabled]="updatingEventName() || !eventNameDirty()"
+                    class="btn btn-tinted btn-sm"
+                  >
+                    {{ updatingEventName() ? 'Salvataggio...' : 'Salva nome evento' }}
+                  </button>
+                  @if (savedFlash() === 'name') {
+                    <span class="text-xs font-semibold text-emerald-500">Salvato</span>
+                  }
+                </div>
+              </form>
+
+              <form (ngSubmit)="handleUpdateEventPassword()" class="surface-panel space-y-3 p-4">
+                <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Password evento</p>
+                <p class="text-sm text-text-secondary">Aggiorna la password usata per accedere alla gestione di questo evento.</p>
+                <div class="grid gap-3 md:grid-cols-3">
+                  <input
+                    type="password"
+                    [ngModel]="eventPasswordDraft().currentPassword"
+                    (ngModelChange)="eventPasswordDraft.set({ ...eventPasswordDraft(), currentPassword: $event })"
+                    name="eventCurrentPassword"
+                    placeholder="Password evento attuale"
+                    class="field-input text-sm"
+                  />
+                  <input
+                    type="password"
+                    [ngModel]="eventPasswordDraft().newPassword"
+                    (ngModelChange)="eventPasswordDraft.set({ ...eventPasswordDraft(), newPassword: $event })"
+                    name="eventNewPassword"
+                    placeholder="Nuova password evento"
+                    class="field-input text-sm"
+                  />
+                  <input
+                    type="password"
+                    [ngModel]="eventPasswordDraft().confirmPassword"
+                    (ngModelChange)="eventPasswordDraft.set({ ...eventPasswordDraft(), confirmPassword: $event })"
+                    name="eventConfirmPassword"
+                    placeholder="Conferma nuova password evento"
+                    class="field-input text-sm"
+                  />
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    [disabled]="updatingEventPassword()"
+                    class="btn btn-tinted btn-sm"
+                  >
+                    {{ updatingEventPassword() ? 'Aggiornamento...' : 'Aggiorna password evento' }}
+                  </button>
+                  @if (savedFlash() === 'password') {
+                    <span class="text-xs font-semibold text-emerald-500">Salvato</span>
+                  }
+                </div>
+              </form>
+            </div>
+          }
         </div>
       </div>
     </mat-sidenav-content>

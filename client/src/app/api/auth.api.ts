@@ -46,4 +46,21 @@ export class AuthApi {
         catchError((err) => throwError(() => toApiError(err, 'Autenticazione manager evento fallita'))),
       );
   }
+
+  changeEventManagerPassword(
+    eventId: string,
+    authToken: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<{ ok: boolean }> {
+    return this.http
+      .post<{ ok: boolean }>(
+        `${BASE}/auth/event/${eventId}/password`,
+        { currentPassword, newPassword },
+        withAuth(authToken),
+      )
+      .pipe(
+        catchError((err) => throwError(() => toApiError(err, 'Aggiornamento password evento non riuscito'))),
+      );
+  }
 }

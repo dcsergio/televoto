@@ -6,6 +6,7 @@ import {
   cloneEventSchema,
   createEventSchema,
   setManagerPasswordSchema,
+  updateEventNameSchema,
   votingStateSchema,
 } from "../validation/event.schemas.js";
 import { normalizeEventCode } from "../lib/normalize.js";
@@ -79,6 +80,15 @@ eventsRouter.put("/api/events/:eventId/manager-password", async (req, res) => {
   const { password } = parseBody(setManagerPasswordSchema, req.body);
   await eventService.setEventManagerPassword(eventId, password);
   res.json({ ok: true });
+});
+
+eventsRouter.put("/api/events/:eventId/manager-settings", async (req, res) => {
+  const { eventId } = req.params;
+  if (!requireEventManagerAuth(req, res, eventId)) return;
+
+  const { name } = parseBody(updateEventNameSchema, req.body);
+  const updatedEvent = await eventService.updateEvent(eventId, { name });
+  res.json(updatedEvent);
 });
 
 eventsRouter.get("/api/events/:eventId/voting-progress", async (req, res) => {
