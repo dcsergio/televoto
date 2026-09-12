@@ -102,13 +102,6 @@ export class AdminShellComponent {
   protected readonly eventNameSeparator = EVENT_NAME_SEPARATOR;
   protected readonly pluralize = pluralize;
 
-  /**
-   * Event codes whose `/manager` workspace was opened from this tab this session.
-   * The real tab state isn't observable, so this is a best-effort "già aperto
-   * altrove" hint on the dashboard cards, cleared on logout.
-   */
-  protected readonly openedManagerCodes = signal<ReadonlySet<string>>(new Set());
-
   protected readonly selectedEvent = computed(
     () => this.events().find((event) => event.id === this.selectedEventId()) ?? null,
   );
@@ -340,11 +333,9 @@ export class AdminShellComponent {
   }
 
   /**
-   * Opens the dedicated single-event workspace (candidati, codici voto, backstage). Root's session
-   * in this tab is reused there, no extra password prompt — this relies on the browser copying
-   * sessionStorage into the new tab, which only happens when an opener relationship exists, so this
-   * link intentionally omits `noopener`/`noreferrer` (target is same-origin, so reverse-tabnabbing
-   * via `window.opener` is not a concern here).
+   * Opens the dedicated single-event workspace (candidati, codici voto, backstage) in this
+   * same tab. Root's session carries over automatically (same `AuthStateService`/`sessionStorage`,
+   * no navigation away from the app), so `/manager` needs no extra password prompt.
    */
   protected handleManageEvent(eventId: string): void {
     this.selectEvent(eventId);
@@ -354,17 +345,17 @@ export class AdminShellComponent {
   }
 
   /**
-   * Opens the single-event workspace (`/manager`) in a new tab, optionally deep-linking
-   * to one of its sections (`candidates` | `voting-codes` | `voting-backstage`, see
-   * `event-manager-shell.util.ts`). Same opener/sessionStorage rationale as above — no `noopener`.
+   * Navigates to the single-event workspace (`/manager`) in this same tab, optionally
+   * deep-linking to one of its sections (`candidates` | `voting-codes` | `voting-backstage`,
+   * see `event-manager-shell.util.ts`).
    */
   protected openManager(
     eventCode: string,
     section?: 'candidates' | 'voting-codes' | 'voting-backstage',
   ): void {
-    const sectionParam = section ? `&adminSection=${section}` : '';
-    window.open(`/manager?eventCode=${encodeURIComponent(eventCode)}${sectionParam}`, '_blank');
-    this.openedManagerCodes.update((prev) => new Set(prev).add(eventCode));
+    this.router.navigate(['/manager'], {
+      queryParams: { eventCode, ...(section ? { adminSection: section } : {}) },
+    });
   }
 
   protected async copyEventCode(code: string): Promise<void> {
@@ -398,7 +389,6 @@ export class AdminShellComponent {
     this.selectedEventId.set(null);
     this.eventsError.set(null);
     this.lastCreatedEvent.set(null);
-    this.openedManagerCodes.set(new Set());
   }
 
   protected async handleLoginSubmit(password: string): Promise<void> {

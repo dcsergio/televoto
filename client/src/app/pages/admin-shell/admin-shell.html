@@ -218,27 +218,19 @@
                               <mat-icon aria-hidden="true">{{ ev.votingClosed ? 'lock' : 'lock_open' }}</mat-icon>
                               {{ ev.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
                             </span>
-                            @if (openedManagerCodes().has(ev.code)) {
-                              <span class="inline-flex items-center gap-1 text-[0.625rem] uppercase tracking-[0.12em] text-text-muted">
-                                <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">tab</mat-icon>
-                                Aperto in un'altra scheda
-                              </span>
-                            }
                           </div>
                           <!-- Footer: fixed geometry regardless of card state — full-width primary
                                over a two-half secondary row; "Rendi attivo" is always rendered
                                (disabled → "Evento attivo" when this card is the active one).
-                               mt-auto pins it to the bottom so it lines up across cards even when
-                               one has more content above it (e.g. "Aperto in un'altra scheda"). -->
+                               mt-auto pins it to the bottom so it lines up across cards. -->
                           <div class="mt-auto space-y-2.5">
                             <button
                               type="button"
                               class="btn btn-primary btn-sm w-full !py-2"
-                              matTooltip="Apre la gestione evento in una nuova scheda"
                               (click)="handleManageEvent(ev.id)"
                             >
                               Gestisci
-                              <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px]">open_in_new</mat-icon>
+                              <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px]">arrow_forward</mat-icon>
                             </button>
                             <div class="flex gap-2">
                               <button
@@ -304,11 +296,11 @@
                       </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                      <button type="button" mat-flat-button matTooltip="Apre in una nuova scheda" (click)="openManager(created.code, 'candidates')">
+                      <button type="button" mat-flat-button (click)="openManager(created.code, 'candidates')">
                         <mat-icon>groups</mat-icon>
                         Aggiungi candidati
                       </button>
-                      <button type="button" mat-stroked-button matTooltip="Apre in una nuova scheda" (click)="openManager(created.code)">
+                      <button type="button" mat-stroked-button (click)="openManager(created.code)">
                         <mat-icon>tune</mat-icon>
                         Vai alla gestione evento
                       </button>
@@ -460,15 +452,15 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
-                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'candidates')">
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openManager(ev.code, 'candidates')">
                     <mat-icon aria-hidden="true">groups</mat-icon>
                     Candidati
                   </button>
-                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-codes')">
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openManager(ev.code, 'voting-codes')">
                     <mat-icon aria-hidden="true">qr_code_2</mat-icon>
                     Codici voto
                   </button>
-                  <button type="button" class="btn btn-ghost btn-sm" matTooltip="Apre in una nuova scheda" (click)="openManager(ev.code, 'voting-backstage')">
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openManager(ev.code, 'voting-backstage')">
                     <mat-icon aria-hidden="true">insights</mat-icon>
                     Backstage
                   </button>
