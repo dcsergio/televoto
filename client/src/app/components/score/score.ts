@@ -246,7 +246,7 @@ export class ScoreComponent {
   }
 
   protected handleLoginCancel(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/vote']);
   }
 
   protected async handleRevealNext(): Promise<void> {

@@ -345,7 +345,7 @@ Final Ranking, admin area).
 #nota(title: "Name only")[
   This section only lets you change the event's *name*. Jury/public weights, trimmed mean, the
   event code, and the subtitle remain the exclusive responsibility of the root administrator
-  (`/admin` area).
+  (Admin area, at `/`).
 ]
 
 == Changing the event password
@@ -363,7 +363,8 @@ Final Ranking, admin area).
 
 #suggerimento(title: "Lost password?")[
   If you've entirely forgotten the event password (and so can't prove it to change it from
-  here), the only way forward is to ask the root administrator to set a new one from `/admin`.
+  here), the only way forward is to ask the root administrator to set a new one from the Admin
+  area (`/`).
 ]
 
 = FAQ

@@ -90,15 +90,15 @@ Note:
 
 ## 5.1 Navigazione base
 
-- `/` → pagina votazione
-- `/admin` → pannello amministrazione root (cross-evento)
+- `/` → pannello amministrazione root (cross-evento)
+- `/vote` → pagina votazione
 - `/manager` → pannello gestione di un singolo evento
 - `/score` → Classifica (accesso protetto da password root o password manager evento)
 
 Per votazione e Classifica serve un `eventCode` valido (query string o input iniziale).
-Per `/admin` è richiesta la password root; per `/manager` (dopo il codice evento) e per `/score` la password root oppure quella manager dell'evento.
+Per `/` è richiesta la password root; per `/manager` (dopo il codice evento) e per `/score` la password root oppure quella manager dell'evento.
 
-## 5.2 Flusso admin (`/admin`, solo root)
+## 5.2 Flusso admin (`/`, solo root)
 
 1. **Dashboard / Gestione eventi**
    - selezione evento corrente,

@@ -5,12 +5,12 @@
 #cover(
   badge: "Operational documentation",
   icon: "🛡️",
-  eyebrow: "Televoto · /admin area",
+  eyebrow: "Televoto · Admin area (/)",
   title: "Root Administrator Manual",
   subtitle: "Operational guide to cross-event management on the Televoto platform.",
   meta: [
     *Audience:* administrators with access to the global root password. \
-    *Scope:* the `/admin` panel — overview dashboard, creating and editing events, event
+    *Scope:* the Admin panel, at `/` — overview dashboard, creating and editing events, event
     archiving and cloning, scoring weights, security settings. \
     *Document version:* 1.2 · August 2026
   ],
@@ -29,7 +29,7 @@ Televoto uses a two-tier authentication model, independent of one another:
   columns: (auto, 1fr, 1fr),
   table.header([Level], [Scope], [Credential]),
   [*Root*],
-  [Global: access to `/admin`, management of all events, general security],
+  [Global: access to the Admin area (`/`), management of all events, general security],
   [One shared root password],
   [*Event Manager*],
   [Single event: access to `/manager`, candidates, judge codes, starting/closing voting],
@@ -43,7 +43,7 @@ Televoto uses a two-tier authentication model, independent of one another:
   root still has to enter that specific event's manager password.
 ]
 
-The `/admin` area is designed exclusively for *cross-event* operations: creating and editing
+The Admin area (`/`) is designed exclusively for *cross-event* operations: creating and editing
 the event registry, archiving and cloning events, scoring weights, password security. It does
 not manage candidates, judge codes, or starting/closing voting for a single event: for those
 operations you need to reach the dedicated `/manager` area for that event (see Chapter 9).
@@ -58,12 +58,12 @@ operations you need to reach the dedicated `/manager` area for that event (see C
 = Accessing the Admin area (root login)
 #chapter-subtitle[How to authenticate with the root password.]
 
-+ Open your browser and navigate to `/admin` on the application's domain.
++ Open your browser and navigate to the root of the application's domain (`/`).
 + If there isn't already a valid root session, a protected login screen appears with the
   message: _"Enter the root password to access this section."_
 + Type the *root password* into the dedicated field and submit the form.
 + If the password is incorrect, the form shows an error message and lets you try again.
-+ You can cancel the login: you'll be taken back to the public voting page (`/`).
++ You can cancel the login: you'll be taken back to the public voting page (`/vote`).
 
 #nota(title: "Session")[
   Authentication produces a signed token valid for *12 hours*. The token is stored in the
@@ -335,7 +335,7 @@ areas. The form lives in the *Settings* section (previously it was at the bottom
 #attenzione(title: "Impact")[
   Changing the root password doesn't automatically invalidate sessions already open on other
   browsers/devices (tokens remain valid until their 12-hour expiry), but any new login to
-  `/admin` will require the new password. Communicate the change to all root administrators
+  the Admin area (`/`) will require the new password. Communicate the change to all root administrators
   before performing it.
 ]
 
@@ -374,8 +374,8 @@ credentials).
 
 The `/manager` area handles the operations specific to a single event: candidates, judge
 codes, starting/closing voting, and real-time monitoring. It cannot be reached from the Admin
-area to edit registry data or weights (those remain here in `/admin`), but it's the entry
-point for the day-to-day operational management of the event.
+area to edit registry data or weights (those remain here, in the Admin area at `/`), but it's
+the entry point for the day-to-day operational management of the event.
 
 + Locate the event in the Dashboard's "All events" grid (or select it in *Edit Events*).
 + Press the *"Manage" / "Manage event"* button.
@@ -402,7 +402,7 @@ point for the day-to-day operational management of the event.
   table.header([Button], [Action]),
   [Refresh events], [Reloads the event list from the server.],
   [Open public voting page],
-  [Opens the public voting page (`/?eventCode=...`) for the event selected in *Edit Events* in
+  [Opens the public voting page (`/vote?eventCode=...`) for the event selected in *Edit Events* in
   a new tab.],
   [Open Final Ranking],
   [Opens `/score?eventCode=...` for the event selected in *Edit Events*. If the event's voting
@@ -424,7 +424,7 @@ point for the day-to-day operational management of the event.
 
 == "Root session not available" while loading events
 
-The root token is missing or has expired (12-hour duration). Log in again from `/admin`.
+The root token is missing or has expired (12-hour duration). Log in again from the Admin area (`/`).
 
 == Can't create the event: "Event code must contain 1 to 5 digits"
 
@@ -442,7 +442,7 @@ It is hidden on purpose for events in *Preferences* voting mode: in that mode th
 average is a share of preferences and the trimmed mean does not apply. The checkbox only
 appears for *Numeric* events.
 
-== I can't find where to manage candidates or judge codes from /admin
+== I can't find where to manage candidates or judge codes from the Admin area
 
 That's expected: those operations belong exclusively to the `/manager` area of the individual
 event (see Chapter 9). The Admin area is intentionally limited to cross-event management.

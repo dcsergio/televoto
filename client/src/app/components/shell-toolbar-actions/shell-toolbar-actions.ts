@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 /**
- * The public-view / logout action buttons shared by the `/admin` and `/manager`
+ * The public-view / logout action buttons shared by the admin (`/`) and `/manager`
  * toolbars. Both shells rendered their own near-identical copy of these three
  * buttons and drifted (the manager copy had an icon-only "Esci" with no caption
  * and non-working tooltips because the shell never imported `MatTooltipModule`).

@@ -3,7 +3,7 @@ import { EVENT_CODE } from './constants';
 
 test.describe('Public voting page smoke test', () => {
   test('loads the demo event and shows the candidate voting screen', async ({ page }) => {
-    await page.goto(`/?eventCode=${EVENT_CODE}`);
+    await page.goto(`/vote?eventCode=${EVENT_CODE}`);
 
     await expect(page.getByRole('heading', { level: 1, name: 'Televoto', exact: true })).toBeVisible();
     await expect(page.getByText('Evento non trovato per il codice inserito.')).toHaveCount(0);
@@ -11,7 +11,7 @@ test.describe('Public voting page smoke test', () => {
   });
 
   test('rejects an unknown event code with an error message', async ({ page }) => {
-    await page.goto('/?eventCode=99999');
+    await page.goto('/vote?eventCode=99999');
     // The backend returns 404 "Evento non trovato" for an unknown code,
     // surfaced by VotingStateService as eventLoadError -> "Errore API: ..."
     // (also mirrored in a toast, hence the exact match on the page copy).
@@ -19,7 +19,7 @@ test.describe('Public voting page smoke test', () => {
   });
 
   test('prompts for an event code when none is provided', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/vote');
     await expect(page.getByRole('heading', { name: 'Inserisci il codice evento' })).toBeVisible();
   });
 });

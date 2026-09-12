@@ -455,6 +455,14 @@ p {
   display: none;
 }
 
+/* The trigger stays compact to fit the toolbar, but the opened panel sizes
+   to its longest option (via [panelWidth]="null" on the mat-select) so a
+   long event name/code isn't clipped — just capped so it can't overflow
+   small viewports. */
+.admin-toolbar-event-panel {
+  max-width: min(90vw, 32rem);
+}
+
 /* ──────────────────────────────────────────────────────────────
    Shared component primitives. Before this, every hand-rolled
    button/card/input re-declared the same ~8 utilities inline (and

@@ -41,7 +41,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 - Classifica proiettata su schermo grande durante la premiazione.
 - Ciclo evento: creazione → candidati → generazione codici → **avvio votazione** (reset distruttivo: rinumera candidati, azzera voti, riapre il televoto) → chiusura televoto → apertura Classifica. "Azzera classifica" è il reset leggero (solo voti + riattiva i token). La Classifica non si apre finché il televoto è aperto.
 - Contesto multi-evento: un admin gestisce più eventi in parallelo; eventi archiviabili e clonabili (candidati + pesi, senza voti né codici).
-- Accesso all'evento via `?eventCode=`; `/manager` e `/score` richiedono prima il codice evento, poi la password.
+- Accesso all'evento via `?eventCode=`; `/manager` e `/score` richiedono prima il codice evento, poi la password. Il voto pubblico è su `/vote`.
 
 ## Capabilities and Constraints
 
@@ -59,7 +59,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 
 - **Lingua italiana** su tutta la UI e i messaggi di errore del server. Nessuna internazionalizzazione prevista. (Vincolo confermato dall'utente.)
 - **Stack frontend fisso: Angular + Angular Material.** Nessun cambio di framework o libreria di componenti. (Vincolo confermato dall'utente.) Backend Express + Prisma + PostgreSQL; monorepo npm workspace con `client` come membro.
-- **Solo 4 rotte flat**: `/` (voto), `/admin`, `/manager`, `/score`. Vincolo hard del backend (fallback SPA senza wildcard); aggiungere una rotta richiede modifiche coordinate in `app.routes.ts`, `server/index.ts` e `vercel.json`.
+- **Solo 4 rotte flat**: `/` (admin), `/vote` (voto), `/manager`, `/score`. Vincolo hard del backend (fallback SPA senza wildcard); aggiungere una rotta richiede modifiche coordinate in `app.routes.ts`, `server/index.ts` e `vercel.json`.
 - Nessun sistema di account utente: due livelli di auth a password (root globale in `RootCredential`; una password per evento in `EventManagerCredential`). Token bearer firmati HMAC, TTL 12h, nessuna sessione server-side; password in PBKDF2 hash+salt.
 - Persistenza client solo in `sessionStorage` (token root/manager); si svuota alla chiusura del tab.
 - Nessun fingerprinting del dispositivo per il pubblico: l'identità del votante è il token, non il device.
@@ -69,7 +69,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 
 **Terminologia**
 
-- "Classifica" = pagina/vista dei risultati (`/score`). "Televoto" = la finestra di voto aperta/chiusa, e il nome del prodotto. "Qualificata" = giuria tecnica pesata; "Popolare" = pubblico. "Manager" = responsabile di un singolo evento; "Root/Admin" = super-utente cross-evento. "Codice evento" (`eventCode`), "Codice giudice" (`judgeToken`).
+- "Classifica" = pagina/vista dei risultati (`/score`). "Televoto" = la finestra di voto aperta/chiusa (`/vote`), e il nome del prodotto. "Qualificata" = giuria tecnica pesata; "Popolare" = pubblico. "Manager" = responsabile di un singolo evento; "Root/Admin" = super-utente cross-evento, ora sulla root (`/`). "Codice evento" (`eventCode`), "Codice giudice" (`judgeToken`).
 
 **Esplicitamente indeciso**
 
@@ -79,7 +79,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 
 - **Nome "Televoto"** — in uso ovunque (wordmark testuale "Televoto" + barretta accent, favicon SVG). L'utente **non** lo ha marcato come vincolo fisso: riconsiderabile in fase di new-work, ma è l'identità incumbent.
 - **Lingua italiana** — vincolante (vedi sopra).
-- **Sistema a due temi incumbent** — "Palco" (scuro, linguaggio broadcast/premiazione, superfici solide con bordo hairline, un solo accent oro `#ffb020`, per il pubblico su `/` e `/score`) e "Studio" (chiaro, workspace professionale, accent ambra `#b45309`, per `/admin` e `/manager`, via classe host `.theme-pro`). Font: Space Grotesk (display/numeri), Inter (testo). L'utente **non** ha bloccato esplicitamente nome e temi: sono incumbent e trattabili come evidenza, non come contratto.
+- **Sistema a due temi incumbent** — "Palco" (scuro, linguaggio broadcast/premiazione, superfici solide con bordo hairline, un solo accent oro `#ffb020`, per il pubblico su `/vote` e `/score`) e "Studio" (chiaro, workspace professionale, accent ambra `#b45309`, per `/` e `/manager`, via classe host `.theme-pro`). Font: Space Grotesk (display/numeri), Inter (testo). L'utente **non** ha bloccato esplicitamente nome e temi: sono incumbent e trattabili come evidenza, non come contratto.
 - Dettagli di theming e token in `client/CLAUDE.md` e nel blocco `@theme` di `client/src/styles.scss` (nomi dei token legacy "Neon Dark").
 
 ## Evidence on Hand

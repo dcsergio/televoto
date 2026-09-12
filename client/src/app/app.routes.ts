@@ -5,8 +5,8 @@ import { EventManagerShellComponent } from './pages/event-manager-shell/event-ma
 import { ScoreComponent } from './components/score/score';
 
 export const routes: Routes = [
-  { path: '', component: VotingShellComponent },
-  { path: 'admin', component: AdminShellComponent },
+  { path: '', component: AdminShellComponent },
+  { path: 'vote', component: VotingShellComponent },
   { path: 'manager', component: EventManagerShellComponent },
   { path: 'score', component: ScoreComponent },
   { path: '**', redirectTo: '' },
