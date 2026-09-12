@@ -97,8 +97,8 @@ operational management of each.
 == Full list
 
 Below the number cards, a grid of cards lists every *non-archived* event with its code, name,
-subtitle (if present), Voting open/closed status, a *"Manage"* button (opens the event's
-`/manager` area in a new tab), and an *"Archive event"* icon for each. If any events are
+subtitle (if present), Voting open/closed status, a *"Manage"* button (loads the event's
+`/manager` area in the same tab), and an *"Archive event"* icon for each. If any events are
 archived, a quick link with their count appears above the grid, pointing to the *Archived*
 section (see Chapter 4).
 
@@ -379,7 +379,7 @@ the entry point for the day-to-day operational management of the event.
 
 + Locate the event in the Dashboard's "All events" grid (or select it in *Edit Events*).
 + Press the *"Manage" / "Manage event"* button.
-+ A new browser tab opens at `/manager?eventCode=<code>`.
++ The same browser tab loads `/manager?eventCode=<code>`, replacing the Admin area.
 
 #nota(title: "No additional password required")[
   Being authenticated as root, access to `/manager` for any event happens *without* having to
@@ -392,6 +392,12 @@ the entry point for the day-to-day operational management of the event.
   an active root session, that event's specific manager password is still required. Use the
   *"Open Final Ranking"* button in the toolbar to reach it quickly (it acts on the event
   selected in *Edit Events*), and keep the event's manager password on hand.
+]
+
+#nota(title: "Returning to the Admin area")[
+  Being authenticated as root, a *"&larr; Admin area"* link appears at the top of `/manager`,
+  taking you back to the Dashboard in the same tab (alternatively, use the browser's back
+  button).
 ]
 
 = Other cross-event operations

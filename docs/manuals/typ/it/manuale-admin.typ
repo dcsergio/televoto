@@ -99,7 +99,7 @@ eventi, con un accesso rapido alla gestione operativa di ciascuno.
 
 Sotto le card numeriche, una griglia di schede riepiloga tutti gli eventi *non archiviati* con
 codice, nome, sottotitolo (se presente), stato televoto Aperto/Chiuso, un pulsante *"Gestisci"*
-(apre in una nuova scheda l'area `/manager` dell'evento) e un'icona *"Archivia evento"* per
+(carica l'area `/manager` dell'evento nella stessa scheda) e un'icona *"Archivia evento"* per
 ciascuno. Se esistono eventi archiviati, sopra la griglia compare un collegamento rapido con il
 relativo conteggio verso la sezione *Archiviati* (vedi Capitolo 4).
 
@@ -396,7 +396,8 @@ Admin su `/`), ma è il punto di ingresso per la gestione operativa del giorno d
 + Individua l'evento nella griglia "Tutti gli eventi" della *Dashboard* (oppure selezionalo in
   *Modifica Eventi*).
 + Premi il pulsante *"Gestisci"* / *"Gestisci evento"*.
-+ Si apre una nuova scheda del browser all'indirizzo `/manager?eventCode=<codice>`.
++ La stessa scheda del browser carica l'indirizzo `/manager?eventCode=<codice>`, sostituendo
+  l'area Admin.
 
 #nota(title: "Nessuna password aggiuntiva richiesta")[
   Essendo autenticato come root, l'accesso a `/manager` per qualsiasi evento avviene *senza*
@@ -409,6 +410,11 @@ Admin su `/`), ma è il punto di ingresso per la gestione operativa del giorno d
   sessione root attiva, è comunque richiesta la password manager specifica dell'evento. Usa il
   pulsante *"Apri Classifica"* in toolbar per raggiungerla rapidamente (agisce sull'evento
   selezionato in *Modifica Eventi*) e tieni a portata di mano la password manager dell'evento.
+]
+
+#nota(title: "Tornare all'area Admin")[
+  Essendo autenticato come root, in cima a `/manager` compare il link *"&larr; Area admin"*, che
+  riporta alla Dashboard nella stessa scheda (in alternativa, il pulsante "indietro" del browser).
 ]
 
 = Altre operazioni cross-evento
