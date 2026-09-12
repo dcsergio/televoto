@@ -189,7 +189,7 @@
                       @for (ev of activeEvents(); track ev.id) {
                         @let isActive = ev.id === selectedEventId();
                         <div
-                          class="surface-card space-y-3 p-4 transition"
+                          class="surface-card flex h-full flex-col gap-3 p-4 transition"
                           [class.border-border-neon]="isActive"
                           [class.bg-bg-card-selected]="isActive"
                           [attr.aria-current]="isActive ? 'true' : null"
@@ -226,8 +226,10 @@
                           </div>
                           <!-- Footer: fixed geometry regardless of card state — full-width primary
                                over a two-half secondary row; "Rendi attivo" is always rendered
-                               (disabled → "Evento attivo" when this card is the active one). -->
-                          <div class="space-y-2.5">
+                               (disabled → "Evento attivo" when this card is the active one).
+                               mt-auto pins it to the bottom so it lines up across cards even when
+                               one has more content above it (e.g. "Aperto in un'altra scheda"). -->
+                          <div class="mt-auto space-y-2.5">
                             <button
                               type="button"
                               class="btn btn-primary btn-sm w-full !py-2"
