@@ -76,7 +76,8 @@
               <mat-select
                 [value]="selectedEventId()"
                 (selectionChange)="selectEvent($event.value)"
-                panelClass="theme-pro"
+                panelClass="theme-pro admin-toolbar-event-panel"
+                [panelWidth]="null"
                 data-testid="admin-event-select"
               >
                 @for (ev of activeEvents(); track ev.id) {

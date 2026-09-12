@@ -35,8 +35,8 @@ test.describe('Admin sidenav navigation', () => {
 
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Candidati per evento selezionato' })).toBeVisible();
-    // Still served from the flat /admin route, never a nested path.
-    expect(new URL(page.url()).pathname).toBe('/admin');
+    // Still served from the flat root route, never a nested path.
+    expect(new URL(page.url()).pathname).toBe('/');
   });
 
   test('toolbar quick actions are present for the selected event', async ({ page }) => {

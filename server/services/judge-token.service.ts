@@ -164,7 +164,7 @@ export async function issueJudgeTokens(input: IssueJudgeTokensInput) {
   return generated.map((code) => ({
     ...code,
     status: getJudgeTokenStatus(code),
-    url: `${baseUrl}/?${new URLSearchParams({ eventCode: event.code, judgeToken: code.token }).toString()}`,
+    url: `${baseUrl}/vote?${new URLSearchParams({ eventCode: event.code, judgeToken: code.token }).toString()}`,
   }));
 }
 
@@ -227,7 +227,7 @@ export async function reissueJudgeToken(input: ReissueJudgeTokenInput) {
     revokedAt: record.revokedAt,
     status: getJudgeTokenStatus(record),
     token: rawToken,
-    url: `${baseUrl}/?${new URLSearchParams({ eventCode: event.code, judgeToken: rawToken }).toString()}`,
+    url: `${baseUrl}/vote?${new URLSearchParams({ eventCode: event.code, judgeToken: rawToken }).toString()}`,
   };
 }
 
@@ -294,7 +294,7 @@ export async function reissueAllJudgeTokens(input: ReissueAllJudgeTokensInput) {
     revokedAt: record.revokedAt,
     status: getJudgeTokenStatus(record),
     token: rawToken,
-    url: `${baseUrl}/?${new URLSearchParams({ eventCode: event.code, judgeToken: rawToken }).toString()}`,
+    url: `${baseUrl}/vote?${new URLSearchParams({ eventCode: event.code, judgeToken: rawToken }).toString()}`,
   }));
 }
 

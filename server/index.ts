@@ -53,7 +53,7 @@ if (shouldServeClient && fs.existsSync(clientIndexPath)) {
   };
 
   app.get("/", sendClientApp);
-  app.get("/admin", sendClientApp);
+  app.get("/vote", sendClientApp);
   app.get("/manager", sendClientApp);
   app.get("/score", sendClientApp);
 }

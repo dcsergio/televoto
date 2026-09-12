@@ -4,12 +4,12 @@
 
 #cover(
   badge: "Documentazione operativa",
-  eyebrow: "Televoto · Area /admin",
+  eyebrow: "Televoto · Area Admin (/)",
   title: "Manuale dell'Amministratore Root",
   subtitle: "Guida operativa alla gestione cross-evento della piattaforma Televoto",
   meta: [
     *Destinatari:* amministratori con accesso alla password root globale. \
-    *Ambito:* pannello `/admin` — dashboard generale, creazione e modifica eventi, archiviazione
+    *Ambito:* pannello Admin, all'indirizzo `/` — dashboard generale, creazione e modifica eventi, archiviazione
     e clonazione eventi, pesi di scoring, impostazioni di sicurezza. \
     *Versione documento:* 1.2 · Agosto 2026
   ],
@@ -28,7 +28,7 @@ Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra l
   columns: (auto, 1fr, 1fr),
   table.header([Livello], [Ambito], [Credenziale]),
   [*Root*],
-  [Globale: accesso a `/admin`, gestione di tutti gli eventi, sicurezza generale],
+  [Globale: accesso all'area Admin (`/`), gestione di tutti gli eventi, sicurezza generale],
   [Un'unica password root, condivisa],
   [*Event Manager*],
   [Singolo evento: accesso a `/manager`, candidati, codici giuria, avvio/chiusura del televoto],
@@ -42,7 +42,7 @@ Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra l
   anche il root deve inserire la password manager dell'evento specifico.
 ]
 
-L'area `/admin` è pensata esclusivamente per operazioni *cross-evento*: creazione e modifica
+L'area Admin (`/`) è pensata esclusivamente per operazioni *cross-evento*: creazione e modifica
 dell'anagrafica degli eventi, archiviazione e clonazione, pesi di scoring, sicurezza delle
 password. Non gestisce candidati, codici giuria o l'avvio/chiusura della votazione di un
 singolo evento: per queste operazioni occorre raggiungere l'area dedicata `/manager`
@@ -59,12 +59,12 @@ dell'evento (vedi Capitolo 9).
 = Accesso all'area Admin (login root)
 #chapter-subtitle[Come autenticarsi con la password root.]
 
-+ Apri il browser e naviga a `/admin` sul dominio dell'applicazione.
++ Apri il browser e naviga alla radice del dominio dell'applicazione (`/`).
 + Se non è già presente una sessione root valida, viene mostrata una schermata di accesso
   protetta con il messaggio: _"Inserisci la password root per accedere a questa sezione."_
 + Digita la *password root* nel campo dedicato e conferma l'invio del modulo.
 + In caso di password errata, il modulo mostra un messaggio di errore e permette di riprovare.
-+ È possibile annullare l'accesso: l'utente viene riportato alla pagina pubblica di voto (`/`).
++ È possibile annullare l'accesso: l'utente viene riportato alla pagina pubblica di voto (`/vote`).
 
 #nota(title: "Sessione")[
   L'autenticazione produce un token firmato con validità di *12 ore*. Il token viene conservato
@@ -99,7 +99,7 @@ eventi, con un accesso rapido alla gestione operativa di ciascuno.
 
 Sotto le card numeriche, una griglia di schede riepiloga tutti gli eventi *non archiviati* con
 codice, nome, sottotitolo (se presente), stato televoto Aperto/Chiuso, un pulsante *"Gestisci"*
-(apre l'area `/manager` dell'evento in una nuova scheda) e un'icona *"Archivia evento"* per
+(apre in una nuova scheda l'area `/manager` dell'evento) e un'icona *"Archivia evento"* per
 ciascuno. Se esistono eventi archiviati, sopra la griglia compare un collegamento rapido con il
 relativo conteggio verso la sezione *Archiviati* (vedi Capitolo 4).
 
@@ -348,7 +348,7 @@ fondo alla sezione "Eventi").
 #attenzione(title: "Impatto")[
   Cambiare la password root non invalida automaticamente le sessioni già aperte in altri
   browser/dispositivi (i token restano validi fino alla scadenza delle 12 ore), ma qualunque
-  nuovo accesso a `/admin` richiederà la nuova password. Comunica il cambiamento a tutti gli
+  nuovo accesso all'area Admin (`/`) richiederà la nuova password. Comunica il cambiamento a tutti gli
   amministratori root prima di eseguirlo.
 ]
 
@@ -390,8 +390,8 @@ campo, senza credenziali root).
 
 L'area `/manager` gestisce le operazioni specifiche di un singolo evento: candidati, codici
 giuria, avvio/chiusura della votazione e monitoraggio in tempo reale. Non è raggiungibile
-dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano qui in
-`/admin`), ma è il punto di ingresso per la gestione operativa del giorno dell'evento.
+dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano qui, nell'area
+Admin su `/`), ma è il punto di ingresso per la gestione operativa del giorno dell'evento.
 
 + Individua l'evento nella griglia "Tutti gli eventi" della *Dashboard* (oppure selezionalo in
   *Modifica Eventi*).
@@ -419,7 +419,7 @@ dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano q
   table.header([Pulsante], [Azione]),
   [Aggiorna eventi], [Ricarica l'elenco eventi dal server.],
   [Apri pagina voto pubblico],
-  [Apre in una nuova scheda la pagina pubblica di voto (`/?eventCode=...`) per l'evento
+  [Apre in una nuova scheda la pagina pubblica di voto (`/vote?eventCode=...`) per l'evento
   selezionato in *Modifica Eventi*.],
   [Apri Classifica],
   [Apre `/score?eventCode=...` per l'evento selezionato in *Modifica Eventi*. Se il televoto
@@ -441,8 +441,8 @@ dall'area Admin per la modifica dei dati anagrafici o dei pesi (quelli restano q
 
 == "Sessione root non disponibile" durante il caricamento eventi
 
-Il token root non è presente o è scaduto (durata 12 ore). Esegui nuovamente il login da
-`/admin`.
+Il token root non è presente o è scaduto (durata 12 ore). Esegui nuovamente il login dall'area
+Admin (`/`).
 
 == Non riesco a creare l'evento: "Il codice evento deve contenere da 1 a 5 cifre"
 
@@ -460,7 +460,7 @@ complemento a 100 del Peso Qualificata.
 media popolare è una quota di preferenze e la trimmed mean non si applica. La casella compare
 solo per gli eventi *Numerici*.
 
-== Non trovo dove gestire i candidati o i codici giuria da /admin
+== Non trovo dove gestire i candidati o i codici giuria dall'area Admin
 
 Non è previsto: quelle operazioni appartengono esclusivamente all'area `/manager` del singolo
 evento (vedi Capitolo 9). L'area Admin resta volutamente limitata alla gestione cross-evento.

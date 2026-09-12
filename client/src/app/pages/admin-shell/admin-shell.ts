@@ -330,7 +330,7 @@ export class AdminShellComponent {
   protected handleOpenPublicVoting(): void {
     const ev = this.selectedEvent();
     if (!ev) return;
-    window.open(`/?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+    window.open(`/vote?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
   protected handleOpenScore(): void {
@@ -412,7 +412,7 @@ export class AdminShellComponent {
 
   protected handleLoginCancel(): void {
     this.passwordError.set('');
-    this.router.navigate(['/']);
+    this.router.navigate(['/vote']);
   }
 
   protected handleSectionChange(section: AdminSection): void {

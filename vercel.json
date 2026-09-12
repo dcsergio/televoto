@@ -15,7 +15,7 @@
       "destination": "/api/[...path]"
     },
     {
-      "source": "/admin",
+      "source": "/vote",
       "destination": "/"
     },
     {

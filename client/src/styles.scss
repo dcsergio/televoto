@@ -447,12 +447,20 @@ p {
   padding-bottom: 0;
 }
 .admin-toolbar-event .mat-mdc-form-field-infix {
-  min-height: 40px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  min-height: 24px !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
 }
 .admin-toolbar-event .mat-mdc-form-field-subscript-wrapper {
   display: none;
+}
+
+/* The trigger stays compact to fit the toolbar, but the opened panel sizes
+   to its longest option (via [panelWidth]="null" on the mat-select) so a
+   long event name/code isn't clipped — just capped so it can't overflow
+   small viewports. */
+.admin-toolbar-event-panel {
+  max-width: min(90vw, 32rem);
 }
 
 /* ──────────────────────────────────────────────────────────────

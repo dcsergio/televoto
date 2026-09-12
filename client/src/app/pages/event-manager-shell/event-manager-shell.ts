@@ -216,11 +216,11 @@ export class EventManagerShellComponent {
 
   protected handleLoginCancel(): void {
     this.passwordError.set('');
-    this.router.navigate(['/']);
+    this.router.navigate(['/vote']);
   }
 
   protected handleBackToAdmin(): void {
-    this.router.navigate(['/admin']);
+    this.router.navigate(['/']);
     if (this.isHandset()) {
       this.sidenavOpened.set(false);
     }
@@ -229,13 +229,13 @@ export class EventManagerShellComponent {
   protected handleLogout(): void {
     this.authState.logoutRoot();
     this.authState.logoutEventManager();
-    this.router.navigate(['/']);
+    this.router.navigate(['/vote']);
   }
 
   protected handleOpenPublicVoting(): void {
     const ev = this.event();
     if (!ev) return;
-    window.open(`/?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
+    window.open(`/vote?eventCode=${encodeURIComponent(ev.code)}`, '_blank', 'noopener,noreferrer');
   }
 
   protected handleOpenScore(): void {

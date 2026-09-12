@@ -351,7 +351,7 @@ Il nuovo nome è visibile subito nella barra superiore e in ogni punto dell'app 
 #nota(title: "Solo il nome")[
   Da questa sezione puoi cambiare *solo il nome* dell'evento: pesi giuria/pubblico, trimmed
   mean, codice evento e sottotitolo restano di competenza esclusiva dell'amministratore root
-  (area `/admin`).
+  (area Admin, su `/`).
 ]
 
 == Cambiare la password dell'evento
@@ -371,7 +371,7 @@ Il nuovo nome è visibile subito nella barra superiore e in ogni punto dell'app 
 #suggerimento(title: "Password persa?")[
   Se hai dimenticato del tutto la password evento (e quindi non puoi più autocertificarla per
   cambiarla da qui), l'unica via è chiedere all'amministratore root di impostartene una nuova
-  dall'area `/admin`.
+  dall'area Admin (`/`).
 ]
 
 = Domande frequenti
