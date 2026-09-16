@@ -1,5 +1,5 @@
 /**
- * Genera i PDF dei manuali Televoto a partire dai sorgenti HTML/CSS in
+ * Genera i PDF dei manuali Voto Subito a partire dai sorgenti HTML/CSS in
  * `docs/manuals/src/<locale>/<id>.html`, usando Chromium via Playwright
  * (`page.pdf()`).
  *
@@ -165,7 +165,7 @@ async function main() {
             displayHeaderFooter: true,
             headerTemplate: "<span></span>",
             footerTemplate:
-              '<div style="font-size:9px;width:100%;text-align:center;color:#888;">Televoto — <span class="pageNumber"></span>/<span class="totalPages"></span></div>',
+              '<div style="font-size:9px;width:100%;text-align:center;color:#888;">Voto Subito — <span class="pageNumber"></span>/<span class="totalPages"></span></div>',
           });
         } finally {
           await page.close();

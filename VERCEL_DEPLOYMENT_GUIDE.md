@@ -1,7 +1,7 @@
-# Guida Deployment Televoto su Vercel
+# Guida Deployment Voto Subito su Vercel
 
 ## 🎯 Panoramica
-Il progetto Televoto è una app full-stack con Angular frontend (in `client/`) e Express backend. Vercel supporta entrambi in un singolo deployment usando Serverless Functions.
+Il progetto Voto Subito è una app full-stack con Angular frontend (in `client/`) e Express backend. Vercel supporta entrambi in un singolo deployment usando Serverless Functions.
 
 **Cambiamenti necessari:**
 1. Database PostgreSQL su Neon (hosting cloud)

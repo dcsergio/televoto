@@ -92,7 +92,7 @@ export class EventManagerShellComponent {
   protected readonly event = this.votingState.event;
   protected readonly loading = this.votingState.loading;
 
-  /** Slim «Candidati → Codici → Televoto → Classifica» orientation stepper in the shell header. */
+  /** Slim «Candidati → Codici → Votazione → Classifica» orientation stepper in the shell header. */
   protected readonly lifecycleSteps = computed(() =>
     buildLifecycleSteps({
       candidateCount: this.event()?.candidates?.length ?? 0,

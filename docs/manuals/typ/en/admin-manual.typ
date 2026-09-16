@@ -1,13 +1,13 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Root Administrator Manual · Televoto", lang: "en")
+#show: manual.with(title: "Root Administrator Manual · Voto Subito", lang: "en")
 
 #cover(
   badge: "Operational documentation",
   icon: "🛡️",
-  eyebrow: "Televoto · Admin area (/)",
+  eyebrow: "Voto Subito · Admin area (/)",
   title: "Root Administrator Manual",
-  subtitle: "Operational guide to cross-event management on the Televoto platform.",
+  subtitle: "Operational guide to cross-event management on the Voto Subito platform.",
   meta: [
     *Audience:* administrators with access to the global root password. \
     *Scope:* the Admin panel, at `/` — overview dashboard, creating and editing events, event
@@ -23,7 +23,7 @@
   How root authentication works and what distinguishes the Admin area from the Manager area.
 ]
 
-Televoto uses a two-tier authentication model, independent of one another:
+Voto Subito uses a two-tier authentication model, independent of one another:
 
 #table(
   columns: (auto, 1fr, 1fr),
@@ -464,4 +464,4 @@ it in the *Archived* section of the side menu, where you can unarchive or clone 
 Check that you communicated the new password correctly (minimum 8 characters) and that the
 manager is using the correct event code in the URL `/manager?eventCode=...`.
 
-#colophon[Televoto · Root Administrator Manual · Internal document]
+#colophon[Voto Subito · Root Administrator Manual · Internal document]

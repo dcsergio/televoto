@@ -585,7 +585,7 @@ p {
   }
 
   /* ── Status pill ──────────────────────────────────────────────
-     The one badge for "televoto aperto / chiuso", token lifecycle
+     The one badge for "votazione aperta / chiusa", token lifecycle
      counts, and any other operational state. Colour is always
      paired with the leading icon/dot the call site provides, so a
      state is never signalled by hue alone. */
@@ -789,7 +789,7 @@ input[type="color"]::-moz-color-swatch {
   color: var(--color-text-primary);
 }
 
-/* The admin status chips ("Televoto aperto", "Archiviato", …) are rendered
+/* The admin status chips ("Votazione aperta", "Archiviato", …) are rendered
    with `disabled` purely to make them static, non-interactive badges. MDC
    greys a disabled chip's label to 38% of the surface ink — near-invisible
    on the light Studio paper — and that rule sits on the label span, so the

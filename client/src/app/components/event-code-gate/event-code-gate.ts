@@ -20,7 +20,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
             Inserisci il codice
           </h2>
           <p class="mt-3 max-w-[48ch] text-sm text-text-secondary text-pretty">
-            Per accedere al televoto o alla classifica devi indicare un codice evento valido.
+            Per accedere alla votazione o alla classifica devi indicare un codice evento valido.
           </p>
           <form class="mt-6 flex flex-col gap-3 sm:flex-row" (ngSubmit)="handleSubmit()">
             <input
@@ -48,7 +48,7 @@ export class EventCodeGateComponent {
   /** Pre-fills the input so a user can correct a single wrong digit. */
   readonly initialCode = input<string>('');
   /**
-   * Renders the shared Televoto header above the card for context. Off by
+   * Renders the shared Voto Subito header above the card for context. Off by
    * default so the shared `/manager` and `/score` gates stay unchanged; only
    * the public voting entry (`/`) opts in.
    */

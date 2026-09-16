@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Televoto: web app for running live voting events (public/judge voting, admin panel, final rankings — the "Classifica" page). Frontend Angular + Angular Material (in `client/`); backend Express + Prisma (repo root); database PostgreSQL. UI text and server error messages are primarily **Italian** — keep new strings consistent with that.
+Voto Subito (formerly "Televoto" — see the note under Prisma below on where the old name still lives internally): web app for running live voting events (public/judge voting, admin panel, final rankings — the "Classifica" page). Frontend Angular + Angular Material (in `client/`); backend Express + Prisma (repo root); database PostgreSQL. UI text and server error messages are primarily **Italian** — keep new strings consistent with that.
 
 The repo is an npm workspace: the root `package.json` owns the Express/Prisma backend and declares `client` as a workspace member for the Angular frontend. One `npm install` at the root installs both.
 
@@ -92,7 +92,7 @@ The same Express app (`server/index.ts`) runs two ways:
 Do not fork logic between these two entry points — `api/[...path].ts` should stay a thin adapter.
 
 ### Prisma
-- All application tables live in a dedicated PostgreSQL schema **`televoto`** (not `public`), and both table and column names are **snake_case** in the DB (`CandidateTemplate` → `candidate_template`, `votingClosed` → `voting_closed`). Prisma models/fields keep their camelCase names — the mapping is via `@@map`/`@map` in `prisma/schema.prisma` — so application code is unaffected. The schema name comes from `DATABASE_SCHEMA` (default `televoto`): the server/seed pass it to the `PrismaPg` adapter (`{ schema }`), and `prisma.config.ts` appends it as `?schema=` for the Prisma CLI.
+- All application tables live in a dedicated PostgreSQL schema **`televoto`** (not `public`), and both table and column names are **snake_case** in the DB (`CandidateTemplate` → `candidate_template`, `votingClosed` → `voting_closed`). Prisma models/fields keep their camelCase names — the mapping is via `@@map`/`@map` in `prisma/schema.prisma` — so application code is unaffected. The schema name comes from `DATABASE_SCHEMA` (default `televoto`): the server/seed pass it to the `PrismaPg` adapter (`{ schema }`), and `prisma.config.ts` appends it as `?schema=` for the Prisma CLI. **This is intentionally left as `televoto`** post-rebrand (app is now branded "Voto Subito") — it's the live production Neon schema/owner name; renaming it means a coordinated migration against production, not a text change, so it wasn't done as part of the rebrand and shouldn't be assumed to track the app name.
 - Generated client lives in `src/generated/prisma/` (custom `output` in `prisma/schema.prisma`) — never hand-edit; regenerate with `npx prisma generate` (also runs automatically via `prebuild`). This is the only thing left under the repo-root `src/` directory — the former React app that used to live there has been fully replaced by `client/`.
 - After schema changes, use `npm run db:migrate` (not just `db:push`) to preserve migration history, unless intentionally prototyping.
 - `prisma.config.ts` picks the CLI datasource URL from, in order: `PRISMA_CLI_URL` → `DATABASE_URL`.

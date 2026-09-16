@@ -111,7 +111,7 @@ export class AdminShellComponent {
   });
   protected readonly selectedEventVotingClosed = computed(() => this.selectedEvent()?.votingClosed ?? true);
   protected readonly selectedEventStatusLabel = computed(() =>
-    this.selectedEventVotingClosed() ? 'Televoto chiuso' : 'Televoto aperto',
+    this.selectedEventVotingClosed() ? 'Votazione chiusa' : 'Votazione aperta',
   );
   protected readonly selectedEventPopularVoteMode = computed(() => this.selectedEvent()?.popularVoteMode ?? 'NUMERIC');
   protected readonly isPreferenceVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'PREFERENCE');

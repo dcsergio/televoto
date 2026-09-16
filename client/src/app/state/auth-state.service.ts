@@ -2,8 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthApi } from '../api/auth.api';
 
-const ROOT_TOKEN_KEY = 'televoto.rootAuthToken';
-const EVENT_MANAGER_TOKEN_KEY = 'televoto.eventManagerAuthToken';
+const ROOT_TOKEN_KEY = 'votosubito.rootAuthToken';
+const EVENT_MANAGER_TOKEN_KEY = 'votosubito.eventManagerAuthToken';
 
 function readSessionToken(key: string): string | null {
   try {

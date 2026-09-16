@@ -1,6 +1,6 @@
 import { splitEventNameForDisplay } from './event-name-display.util';
 
-const APP_NAME = 'Televoto';
+const APP_NAME = 'Voto Subito';
 
 /** Collapses an event name ("Prefisso // Titolo") to a single line for the browser tab. */
 function flattenEventName(name: string | null | undefined): string {
@@ -11,7 +11,7 @@ function flattenEventName(name: string | null | undefined): string {
 
 /**
  * Builds the `<title>` for a page as "Sezione · [codice] Nome Evento", falling
- * back to "Sezione · Televoto" when no event is loaded. Keeps the operator's
+ * back to "Sezione · Voto Subito" when no event is loaded. Keeps the operator's
  * browser tabs distinguishable when several events' admin/manager/score/voto
  * tabs are open side by side during a live evening.
  */
