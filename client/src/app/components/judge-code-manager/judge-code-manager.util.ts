@@ -14,7 +14,7 @@ export {
  * invalidates every other distributed link). Cleared when the tab closes, same
  * lifetime as the auth tokens.
  */
-const FRESH_CODES_KEY_PREFIX = 'televoto:fresh-codes:';
+const FRESH_CODES_KEY_PREFIX = 'voto-subito:fresh-codes:';
 
 export function freshCodesStorageKey(eventId: string): string {
   return `${FRESH_CODES_KEY_PREFIX}${eventId}`;

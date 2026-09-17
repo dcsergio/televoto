@@ -2,17 +2,17 @@
 <html lang="it">
   <head>
     <meta charset="utf-8" />
-    <title>Manuale dell'Amministratore Root | Televoto</title>
+    <title>Manuale dell'Amministratore Root | Voto Subito</title>
     <link rel="stylesheet" href="../shared/manual.css" />
   </head>
   <body>
     <!-- Copertina -->
     <section class="cover">
       <span class="cover-badge">Documentazione operativa</span>
-      <p class="cover-eyebrow">Televoto · Area /admin</p>
+      <p class="cover-eyebrow">Voto Subito · Area /admin</p>
       <h1 class="cover-title">Manuale dell'Amministratore Root</h1>
       <p class="cover-subtitle">
-        Guida operativa alla gestione cross-evento della piattaforma Televoto
+        Guida operativa alla gestione cross-evento della piattaforma Voto Subito
       </p>
       <p class="cover-meta">
         <strong>Destinatari:</strong> amministratori con accesso alla password root globale.<br />
@@ -82,7 +82,7 @@
           Come funziona l'autenticazione root e cosa distingue l'area Admin dall'area Manager.
         </p>
 
-        <p>Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra loro:</p>
+        <p>Voto Subito utilizza un modello di autenticazione a due livelli, indipendenti tra loro:</p>
 
         <table>
           <thead>
@@ -105,7 +105,7 @@
               <td><strong>Event Manager</strong></td>
               <td>
                 Singolo evento: accesso a <code>/manager</code>, candidati, codici giuria,
-                avvio/chiusura del televoto
+                avvio/chiusura della votazione
               </td>
               <td>Una password dedicata per ciascun evento</td>
             </tr>
@@ -207,11 +207,11 @@
               <td>Eventi non archiviati (esclude quelli con flag "Attivo" disattivato)</td>
             </tr>
             <tr>
-              <td>Televoto aperto</td>
+              <td>Votazione aperta</td>
               <td>Eventi con votazione attualmente aperta</td>
             </tr>
             <tr>
-              <td>Televoto chiuso</td>
+              <td>Votazione chiusa</td>
               <td>Eventi con votazione chiusa</td>
             </tr>
           </tbody>
@@ -225,7 +225,7 @@
           determina la card di dettaglio mostrata in Dashboard, con:
         </p>
         <ul>
-          <li>Stato: <strong>Attivo</strong> / Non attivo, <strong>Televoto aperto</strong> / chiuso;</li>
+          <li>Stato: <strong>Attivo</strong> / Non attivo, <strong>Votazione aperta</strong> / chiusa;</li>
           <li>
             Pulsante <strong>"Gestisci evento"</strong>, che apre l'area <code>/manager</code>
             dell'evento in una nuova scheda.
@@ -236,7 +236,7 @@
         <p>
           Sotto la card di dettaglio, una griglia di schede riepiloga tutti gli eventi
           <strong>non archiviati</strong> con codice, nome, sottotitolo (se presente), stato
-          televoto Aperto/Chiuso, un pulsante <strong>"Gestisci"</strong> e un'icona
+          votazione Aperta/Chiusa, un pulsante <strong>"Gestisci"</strong> e un'icona
           <strong>"Archivia evento"</strong> per ciascuno. Se esistono eventi archiviati, sopra
           la griglia compare un collegamento rapido con il relativo conteggio verso la sezione
           <strong>Archiviati</strong> (vedi Capitolo 4).
@@ -263,7 +263,7 @@
         <p>
           Un evento archiviato viene escluso dal selettore <strong>"Evento selezionato"</strong>
           in toolbar, dalla griglia "Tutti gli eventi" in Dashboard e dai conteggi "Eventi
-          attivi"/"Televoto aperto"/"Televoto chiuso": resta comunque interamente conservato (con
+          attivi"/"Votazione aperta"/"Votazione chiusa": resta comunque interamente conservato (con
           i suoi candidati, credenziali e impostazioni) e raggiungibile dalla sezione
           <strong>Archiviati</strong> del menu laterale.
         </p>
@@ -302,7 +302,7 @@
           </li>
           <li>
             L'evento torna immediatamente disponibile nel selettore in toolbar e nelle liste
-            attive di Dashboard/Eventi, con lo stato di televoto invariato rispetto a prima
+            attive di Dashboard/Eventi, con lo stato di votazione invariato rispetto a prima
             dell'archiviazione.
           </li>
         </ol>
@@ -336,8 +336,8 @@
 
         <p>
           Il nuovo evento riceve un <strong>codice evento generato automaticamente</strong> (mai
-          quello dell'evento di origine), nasce <strong>non archiviato</strong> ma con il
-          <strong>televoto già chiuso</strong>: prima di aprirlo al pubblico occorre generare i
+          quello dell'evento di origine), nasce <strong>non archiviato</strong> ma con la
+          <strong>votazione già chiusa</strong>: prima di aprirlo al pubblico occorre generare i
           nuovi codici giudice/pubblico dall'area <code>/manager</code> del nuovo evento.
         </p>
 
@@ -684,9 +684,9 @@
             <tr>
               <td>Apri Classifica</td>
               <td>
-                Apre <code>/score?eventCode=...</code> per l'evento selezionato. Se il televoto
-                dell'evento è ancora aperto, il sistema mostra un avviso ("La Classifica è
-                accessibile solo a televoto chiuso") e blocca l'apertura finché la votazione non
+                Apre <code>/score?eventCode=...</code> per l'evento selezionato. Se la votazione
+                dell'evento è ancora aperta, il sistema mostra un avviso ("La Classifica è
+                accessibile solo a votazione chiusa") e blocca l'apertura finché la votazione non
                 viene chiusa da <code>/manager</code>.
               </td>
             </tr>
@@ -764,7 +764,7 @@
             font-size: 9.5pt;
           "
         >
-          Televoto · Manuale Amministratore Root · Documento interno
+          Voto Subito · Manuale Amministratore Root · Documento interno
         </p>
       </section>
     </div>

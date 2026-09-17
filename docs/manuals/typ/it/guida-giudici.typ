@@ -1,6 +1,6 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Come votare — Guida rapida | Televoto", lang: "it")
+#show: manual.with(title: "Come votare — Guida rapida | Voto Subito", lang: "it")
 
 #grid(
   columns: (1fr, auto),
@@ -14,7 +14,7 @@
     fill: tv.cyan-dark,
     radius: 999pt,
     inset: (x: 1em, y: 0.45em),
-    text(9pt, weight: 700, fill: white, tracking: 0.06em)[📱 TELEVOTO],
+    text(9pt, weight: 700, fill: white, tracking: 0.06em)[📱 VOTO SUBITO],
   ),
 )
 
@@ -52,7 +52,7 @@
     un contatore "Preferenze espresse X/N". In entrambi i casi il voto non è modificabile dopo
     l'invio e una barra mostra cosa manca.
     #v(0.5em)
-    *La pagina si aggiorna da sola: se il televoto chiude, il voto si blocca.*
+    *La pagina si aggiorna da sola: se la votazione chiude, il voto si blocca.*
   ],
   card(icon: "✅", title: "6. Conferma definitiva")[
     Quando hai finito, premi *"Conferma definitiva"*: il codice si blocca e il voto è ufficiale.
@@ -62,7 +62,7 @@
 )
 
 #attenzione[
-  Se il televoto risulta chiuso non è più possibile votare — riprova più tardi o contatta lo
+  Se la votazione risulta chiusa non è più possibile votare — riprova più tardi o contatta lo
   staff.
 ]
 
@@ -73,4 +73,4 @@
   pagina), senza assegnare punteggi.
 ]
 
-#align(right, text(9.5pt, fill: tv.ink-faint)[TELEVOTO · Guida per giudici e pubblico])
+#align(right, text(9.5pt, fill: tv.ink-faint)[VOTO SUBITO · Guida per giudici e pubblico])

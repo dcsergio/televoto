@@ -1,4 +1,4 @@
-# AI Agent Instructions for Televoto
+# AI Agent Instructions for Voto Subito
 
 ## Scope
 This file contains only project-specific guidance for AI coding agents.

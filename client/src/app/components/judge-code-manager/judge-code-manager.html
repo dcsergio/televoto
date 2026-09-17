@@ -10,7 +10,7 @@
         <h2 class="mt-2 text-2xl font-bold text-text-primary">Codici di voto</h2>
         <p class="mt-2 max-w-2xl text-sm text-text-secondary">
           Genera i codici, consegnali tramite QR, validali o revocali. L'elenco si aggiorna in tempo reale.
-          Giuria: {{ qualifiedTokens().length }} &middot; Televoto: {{ popularTokens().length }}.
+          Giuria: {{ qualifiedTokens().length }} &middot; Pubblico: {{ popularTokens().length }}.
         </p>
       </div>
       @if (hasStatusPills()) {
@@ -79,7 +79,7 @@
             class="field-input"
           >
             <option value="QUALIFICATA">Giuria</option>
-            <option value="POPOLARE">Pubblico (Televoto)</option>
+            <option value="POPOLARE">Pubblico</option>
           </select>
         </label>
       </div>
@@ -98,7 +98,7 @@
             (ngModelChange)="updateGeneratorForm({ baseUrl: $event })"
             name="baseUrl"
             class="field-input"
-            placeholder="https://televoto.example.com"
+            placeholder="https://voto-subito.example.com"
           />
           <span class="block text-xs text-text-secondary">
             Predefinito: l'indirizzo di questo sito. Cambialo solo se i QR devono puntare a un dominio diverso.

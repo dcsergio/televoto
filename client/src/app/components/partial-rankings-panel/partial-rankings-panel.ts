@@ -72,7 +72,7 @@ export class PartialRankingsPanelComponent {
         note: `Media su ${eligible} ${pluralize(eligible, 'giurato eleggibile', 'giurati eleggibili')} — le mancate votazioni contano come astensione.`,
       },
       {
-        title: 'Televoto',
+        title: 'Pubblico',
         entries: r.popular,
         scoreLabel: 'Media',
         scoreKey: 'avgPopolare',

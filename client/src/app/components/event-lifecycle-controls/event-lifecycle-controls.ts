@@ -14,7 +14,7 @@ export interface VotingStateChange {
 }
 
 /**
- * Start voting / close televoto / reset ranking controls for a single event.
+ * Start voting / close voting / reset ranking controls for a single event.
  * Input/output-driven (no app-level state injected) so it can be hosted by
  * both the root admin and event-manager-only shells, matching
  * JudgeCodeManagerComponent/VotingProgressDashboardComponent.
@@ -40,13 +40,13 @@ export class EventLifecycleControlsComponent {
   readonly votingStateChange = output<VotingStateChange>();
 
   protected readonly error = signal<string | null>(null);
-  protected readonly primaryActionLabel = computed(() => (this.votingClosed() ? 'Avvia votazione' : 'Chiudi televoto'));
+  protected readonly primaryActionLabel = computed(() => (this.votingClosed() ? 'Avvia votazione' : 'Chiudi votazione'));
 
   protected confirmPrimaryAction(): void {
     if (this.votingClosed()) {
       this.confirmStartVoting();
     } else {
-      this.confirmCloseTelevote();
+      this.confirmCloseVoting();
     }
   }
 
@@ -72,7 +72,7 @@ export class EventLifecycleControlsComponent {
       data: {
         title: 'Avvia votazione',
         message:
-          'Tutti i voti già espressi saranno cancellati definitivamente e i candidati verranno rinumerati progressivamente. Il televoto verrà riaperto.',
+          'Tutti i voti già espressi saranno cancellati definitivamente e i candidati verranno rinumerati progressivamente. La votazione verrà riaperta.',
         detail: this.eventName() ? `Evento: ${this.eventName()}` : undefined,
         confirmLabel: 'Sì, azzera e avvia',
         confirmVariant: 'danger',
@@ -94,27 +94,27 @@ export class EventLifecycleControlsComponent {
     }
   }
 
-  private confirmCloseTelevote(): void {
+  private confirmCloseVoting(): void {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Chiudi televoto',
-        message: 'Vuoi chiudere il televoto? I voti non saranno più accettati e le modifiche torneranno disponibili.',
+        title: 'Chiudi votazione',
+        message: 'Vuoi chiudere la votazione? I voti non saranno più accettati e le modifiche torneranno disponibili.',
         confirmLabel: 'Chiudi',
       },
     });
     ref.afterClosed().subscribe((confirmed) => {
-      if (confirmed) void this.closeTelevote();
+      if (confirmed) void this.closeVoting();
     });
   }
 
-  private async closeTelevote(): Promise<void> {
+  private async closeVoting(): Promise<void> {
     try {
       const result = await firstValueFrom(this.eventsApi.updateEventVotingState(this.eventId(), true, this.authToken()));
       this.votingStateChange.emit({ votingClosed: result.votingClosed });
       this.error.set(null);
-      this.toast.success('Televoto chiuso');
+      this.toast.success('Votazione chiusa');
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Errore nella chiusura del televoto');
+      this.error.set(err instanceof Error ? err.message : 'Errore nella chiusura della votazione');
     }
   }
 
