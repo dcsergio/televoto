@@ -1,4 +1,4 @@
-# 🚀 Checklist Deployment Vercel - Televoto
+# 🚀 Checklist Deployment Vercel - Voto Subito
 
 ## ✅ Prima di deployare
 
@@ -63,7 +63,7 @@ Click **"Deploy"** e aspetta...
 ```
 https://your-project.vercel.app
 ```
-Dovrebbe mostrare l'app Televoto
+Dovrebbe mostrare l'app Voto Subito
 
 ### Test API (da terminale)
 ```bash

@@ -1,4 +1,4 @@
-# Televoto
+# Voto Subito
 
 Applicazione web per gestire eventi di voto con:
 - area voto pubblico/giudici,
@@ -119,14 +119,14 @@ Accesso protetto da password manager evento (o password root, con lo stesso bypa
 
 1. **Candidati**
    - aggiunta/modifica/eliminazione candidato (nome, performance, colore), con rinumerazione progressiva.
-   - Le modifiche sono bloccate quando il televoto è aperto.
+   - Le modifiche sono bloccate quando la votazione è aperta.
 
 2. **Codici Voto**
    - gestione codici giudice (generazione, validazione, revoca, rigenerazione singola/di massa, QR).
 
 3. **Backstage Votazione**
-   - avvio votazione (`Avvia votazione`): azzera voti, rinumera candidati, apre televoto,
-   - chiusura televoto, azzeramento classifica (danger zone),
+   - avvio votazione (`Avvia votazione`): azzera voti, rinumera candidati, apre la votazione,
+   - chiusura votazione, azzeramento classifica (danger zone),
    - dashboard progresso voti giudici, apertura Classifica.
 
 4. **Impostazioni**
@@ -145,7 +145,7 @@ La sezione manager corrente è persistita nella query string (`adminSection=cand
 ## 5.5 Classifica
 
 - Mostra classifica aggregata per evento.
-- Quando il televoto è chiuso, l’area è pensata per consultazione risultati.
+- Quando la votazione è chiusa, l’area è pensata per consultazione risultati.
 
 ---
 

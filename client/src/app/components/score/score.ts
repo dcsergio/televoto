@@ -57,7 +57,7 @@ export class ScoreComponent {
   protected readonly revealedIndices = signal<number[]>([]);
   protected readonly showFinalistsStage = signal(false);
   protected readonly showWinner = signal(false);
-  protected readonly closingTelevote = signal(false);
+  protected readonly closingVoting = signal(false);
   protected readonly presenterMode = signal(false);
 
   protected readonly getMedalEmoji = getMedalEmoji;
@@ -317,15 +317,15 @@ export class ScoreComponent {
     }
   }
 
-  protected async handleCloseTelevote(): Promise<void> {
+  protected async handleCloseVoting(): Promise<void> {
     const token = this.activeToken();
-    if (this.event()?.votingClosed || this.closingTelevote() || !token) return;
+    if (this.event()?.votingClosed || this.closingVoting() || !token) return;
 
-    this.closingTelevote.set(true);
+    this.closingVoting.set(true);
     try {
       await this.votingState.closeVoting(token);
     } finally {
-      this.closingTelevote.set(false);
+      this.closingVoting.set(false);
     }
   }
 

@@ -9,7 +9,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         <span class="h-4 w-1 rounded-full bg-accent-cyan"></span>
         <div>
           <h1 class="neon-text text-base font-bold tracking-[0.14em] uppercase leading-none text-text-primary">
-            Televoto
+            Voto Subito
           </h1>
           <p class="text-[10px] tracking-[0.22em] uppercase text-text-muted leading-none mt-1">
             Vota. Partecipa. Fai la differenza.

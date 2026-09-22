@@ -1,4 +1,4 @@
-# Audit di sicurezza — Televoto (2026-09-12)
+# Audit di sicurezza — Voto Subito (2026-09-12)
 
 Contesto: app Angular + Express/Prisma, deploy su **Vercel** (funzione serverless `api/[...path].ts` + build statica Angular), database **PostgreSQL su Neon**. Obiettivo: valutare se l'app è pronta per un utilizzo in produzione reale (mercato pubblico), non solo per un uso interno/demo.
 

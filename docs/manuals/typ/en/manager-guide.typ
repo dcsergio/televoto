@@ -1,10 +1,10 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Event Manager Guide · Televoto", lang: "en")
+#show: manual.with(title: "Event Manager Guide · Voto Subito", lang: "en")
 
 #cover(
   eyebrow: "Operational manual · for event managers",
-  title: "Televoto — Event Manager Guide",
+  title: "Voto Subito — Event Manager Guide",
   subtitle: [
     How to manage a single event in `/manager`: candidates, judge codes, starting/closing
     voting, and the final ranking.
@@ -411,6 +411,6 @@ the manager password by entering the current one. If you've entirely forgotten t
 password, you'll need the root administrator instead.
 
 #colophon[
-  Operational Televoto manual for Event Managers · `/manager` application area · content
+  Operational Voto Subito manual for Event Managers · `/manager` application area · content
   aligned with the current interface.
 ]

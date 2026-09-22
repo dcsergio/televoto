@@ -19,7 +19,7 @@ web
 
 ## Product Purpose
 
-Gestire in diretta la votazione di un evento dal vivo: raccogliere i voti di giuria e pubblico durante le esibizioni, chiudere il televoto al momento giusto e rivelare la Classifica finale con una cerimonia in stile broadcast. Il successo è un evento condotto senza intoppi dalla regia, un risultato numericamente credibile e una premiazione d'effetto sullo schermo grande.
+Gestire in diretta la votazione di un evento dal vivo: raccogliere i voti di giuria e pubblico durante le esibizioni, chiudere la votazione al momento giusto e rivelare la Classifica finale con una cerimonia in stile broadcast. Il successo è un evento condotto senza intoppi dalla regia, un risultato numericamente credibile e una premiazione d'effetto sullo schermo grande.
 
 ## Positioning
 
@@ -39,7 +39,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 - Pubblico in sala in penombra, vota dal telefono su rete mobile, in finestre di tempo brevi tra le esibizioni.
 - Giudici votano dal proprio dispositivo tramite link/QR con `eventCode` + `judgeToken` (16 caratteri, inseriti/mostrati in 4×4 segmenti).
 - Classifica proiettata su schermo grande durante la premiazione.
-- Ciclo evento: creazione → candidati → generazione codici → **avvio votazione** (reset distruttivo: rinumera candidati, azzera voti, riapre il televoto) → chiusura televoto → apertura Classifica. "Azzera classifica" è il reset leggero (solo voti + riattiva i token). La Classifica non si apre finché il televoto è aperto.
+- Ciclo evento: creazione → candidati → generazione codici → **avvio votazione** (reset distruttivo: rinumera candidati, azzera voti, riapre la votazione) → chiusura votazione → apertura Classifica. "Azzera classifica" è il reset leggero (solo voti + riattiva i token). La Classifica non si apre finché la votazione è aperta.
 - Contesto multi-evento: un admin gestisce più eventi in parallelo; eventi archiviabili e clonabili (candidati + pesi, senza voti né codici).
 - Accesso all'evento via `?eventCode=`; `/manager` e `/score` richiedono prima il codice evento, poi la password. Il voto pubblico è su `/vote`.
 
@@ -48,7 +48,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 **Funzionalità confermata**
 
 - Gestione eventi (crea, rinomina, sottotitolo, pesi giurie, trimmed mean, archivia, disarchivia, clona).
-- Gestione candidati (nome, performance/sottotitolo, colore identitario, rinumerazione contigua alla cancellazione); modifiche bloccate a televoto aperto.
+- Gestione candidati (nome, performance/sottotitolo, colore identitario, rinumerazione contigua alla cancellazione); modifiche bloccate a votazione aperta.
 - Gestione codici giudice: generazione singola e in blocco, tipo QUALIFICATA/POPOLARE, revoca, QR, rigenerazione singola e "Rigenera tutti i codici", validazione lato votante.
 - Ciclo di votazione: avvio, chiusura, azzera classifica; stato `votingClosed` esplicito.
 - Voto: intero 1-10 validato lato server; voto unico per `(candidateId, judgeTokenId)`; modalità preferenze con contatore "Preferenze espresse X/N".
@@ -69,7 +69,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 
 **Terminologia**
 
-- "Classifica" = pagina/vista dei risultati (`/score`). "Televoto" = la finestra di voto aperta/chiusa (`/vote`), e il nome del prodotto. "Qualificata" = giuria tecnica pesata; "Popolare" = pubblico. "Manager" = responsabile di un singolo evento; "Root/Admin" = super-utente cross-evento, ora sulla root (`/`). "Codice evento" (`eventCode`), "Codice giudice" (`judgeToken`).
+- "Classifica" = pagina/vista dei risultati (`/score`). "Votazione" = la finestra di voto aperta/chiusa (`/vote`). "Voto Subito" = il nome del prodotto. "Qualificata" = giuria tecnica pesata; "Popolare" = pubblico. "Manager" = responsabile di un singolo evento; "Root/Admin" = super-utente cross-evento, ora sulla root (`/`). "Codice evento" (`eventCode`), "Codice giudice" (`judgeToken`).
 
 **Esplicitamente indeciso**
 
@@ -77,7 +77,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 
 ## Brand Commitments
 
-- **Nome "Televoto"** — in uso ovunque (wordmark testuale "Televoto" + barretta accent, favicon SVG). L'utente **non** lo ha marcato come vincolo fisso: riconsiderabile in fase di new-work, ma è l'identità incumbent.
+- **Nome "Voto Subito"** — rebrand deciso e applicato in tutta l'app, README e manuali (in uso ovunque: wordmark testuale "Voto Subito" + barretta accent, favicon SVG). Il vecchio nome "Televoto" resta solo nello schema/owner del DB Postgres di produzione (`DATABASE_SCHEMA=televoto`) e nel repository GitHub `dcsergio/televoto`, entrambi lasciati invariati deliberatamente perché rinominarli è un'operazione infrastrutturale live, non un rebrand testuale.
 - **Lingua italiana** — vincolante (vedi sopra).
 - **Sistema a due temi incumbent** — "Palco" (scuro, linguaggio broadcast/premiazione, superfici solide con bordo hairline, un solo accent oro `#ffb020`, per il pubblico su `/vote` e `/score`) e "Studio" (chiaro, workspace professionale, accent ambra `#b45309`, per `/` e `/manager`, via classe host `.theme-pro`). Font: Space Grotesk (display/numeri), Inter (testo). L'utente **non** ha bloccato esplicitamente nome e temi: sono incumbent e trattabili come evidenza, non come contratto.
 - Dettagli di theming e token in `client/CLAUDE.md` e nel blocco `@theme` di `client/src/styles.scss` (nomi dei token legacy "Neon Dark").
@@ -91,7 +91,7 @@ Meccaniche di calcolo che un semplice sondaggio non replica:
 
 ## Product Principles
 
-1. **L'evento dal vivo non aspetta.** Ogni azione di regia deve essere rapida, con stato sempre leggibile (televoto aperto/chiuso, avanzamento voti) e reversibile dove il modello lo consente; le azioni distruttive (avvio votazione, azzera classifica) sono dichiarate come tali.
+1. **L'evento dal vivo non aspetta.** Ogni azione di regia deve essere rapida, con stato sempre leggibile (votazione aperta/chiusa, avanzamento voti) e reversibile dove il modello lo consente; le azioni distruttive (avvio votazione, azzera classifica) sono dichiarate come tali.
 2. **Il pubblico vota in condizioni ostili.** Buio, fretta, rete mobile: il percorso di voto deve essere a prova di errore, ad alto contrasto e comprensibile a colpo d'occhio, indipendente dal colore.
 3. **Il risultato deve essere credibile.** Le regole di calcolo (pesi, asimmetria delle astensioni, trimmed mean, esclusione a zero voti) sono esplicite e coerenti tra dashboard parziale e Classifica finale.
 4. **La premiazione è spettacolo.** La Classifica in presenter mode è progettata per lo schermo grande e per costruire tensione e sorpresa, non come una semplice tabella.

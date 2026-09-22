@@ -1,6 +1,6 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "How to vote — Quick guide · Televoto", lang: "en")
+#show: manual.with(title: "How to vote — Quick guide · Voto Subito", lang: "en")
 
 #grid(
   columns: (1fr, auto),
@@ -10,7 +10,7 @@
     v(0.2em)
     text(25pt, weight: 700, fill: tv.ink)[How to vote — Quick guide]
   },
-  pill("📱 TELEVOTO", color: "violet"),
+  pill("📱 VOTO SUBITO", color: "violet"),
 )
 
 #v(0.6em)
@@ -69,4 +69,4 @@
   candidates (up to the maximum shown at the top of the page), with no scores.
 ]
 
-#align(right, text(9pt, fill: tv.ink-faint)[TELEVOTO · Guide for judges and the public])
+#align(right, text(9pt, fill: tv.ink-faint)[VOTO SUBITO · Guide for judges and the public])

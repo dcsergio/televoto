@@ -9,9 +9,9 @@
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div>
         <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Classifica parziale</p>
-        <h2 class="text-xl font-semibold text-text-primary">Giuria, Televoto e Ponderata</h2>
+        <h2 class="text-xl font-semibold text-text-primary">Giuria, Pubblico e Ponderata</h2>
         <p class="mt-1 text-xs text-text-secondary">
-          Pesi: Giuria {{ r.weights.qualificata }}% &middot; Televoto {{ r.weights.popolare }}%
+          Pesi: Giuria {{ r.weights.qualificata }}% &middot; Pubblico {{ r.weights.popolare }}%
         </p>
         @if (r.event.enableTrimmedMean && r.event.popularVoteMode === 'NUMERIC') {
           <p class="mt-1 text-xs text-text-secondary">

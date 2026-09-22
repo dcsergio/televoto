@@ -1,12 +1,12 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Manuale dell'Amministratore Root — Televoto", lang: "it")
+#show: manual.with(title: "Manuale dell'Amministratore Root — Voto Subito", lang: "it")
 
 #cover(
   badge: "Documentazione operativa",
-  eyebrow: "Televoto · Area Admin (/)",
+  eyebrow: "Voto Subito · Area Admin (/)",
   title: "Manuale dell'Amministratore Root",
-  subtitle: "Guida operativa alla gestione cross-evento della piattaforma Televoto",
+  subtitle: "Guida operativa alla gestione cross-evento della piattaforma Voto Subito",
   meta: [
     *Destinatari:* amministratori con accesso alla password root globale. \
     *Ambito:* pannello Admin, all'indirizzo `/` — dashboard generale, creazione e modifica eventi, archiviazione
@@ -22,7 +22,7 @@
   Come funziona l'autenticazione root e cosa distingue l'area Admin dall'area Manager.
 ]
 
-Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra loro:
+Voto Subito utilizza un modello di autenticazione a due livelli, indipendenti tra loro:
 
 #table(
   columns: (auto, 1fr, 1fr),
@@ -31,7 +31,7 @@ Televoto utilizza un modello di autenticazione a due livelli, indipendenti tra l
   [Globale: accesso all'area Admin (`/`), gestione di tutti gli eventi, sicurezza generale],
   [Un'unica password root, condivisa],
   [*Event Manager*],
-  [Singolo evento: accesso a `/manager`, candidati, codici giuria, avvio/chiusura del televoto],
+  [Singolo evento: accesso a `/manager`, candidati, codici giuria, avvio/chiusura della votazione],
   [Una password dedicata per ciascun evento],
 )
 
@@ -91,14 +91,14 @@ eventi, con un accesso rapido alla gestione operativa di ciascuno.
   table.header([Indicatore], [Significato]),
   [Eventi totali], [Numero complessivo di eventi presenti a sistema],
   [Eventi attivi], [Eventi non archiviati (esclude quelli con flag "Attivo" disattivato)],
-  [Televoto aperto], [Eventi con votazione attualmente aperta],
-  [Televoto chiuso], [Eventi con votazione chiusa],
+  [Votazione aperta], [Eventi con votazione attualmente aperta],
+  [Votazione chiusa], [Eventi con votazione chiusa],
 )
 
 == Elenco completo eventi
 
 Sotto le card numeriche, una griglia di schede riepiloga tutti gli eventi *non archiviati* con
-codice, nome, sottotitolo (se presente), stato televoto Aperto/Chiuso, un pulsante *"Gestisci"*
+codice, nome, sottotitolo (se presente), stato votazione Aperta/Chiusa, un pulsante *"Gestisci"*
 (carica l'area `/manager` dell'evento nella stessa scheda) e un'icona *"Archivia evento"* per
 ciascuno. Se esistono eventi archiviati, sopra la griglia compare un collegamento rapido con il
 relativo conteggio verso la sezione *Archiviati* (vedi Capitolo 4).
@@ -124,7 +124,7 @@ relativo conteggio verso la sezione *Archiviati* (vedi Capitolo 4).
 ]
 
 Un evento archiviato viene escluso dalla griglia "Tutti gli eventi" in Dashboard, dal selettore
-evento in *Modifica Eventi* e dai conteggi "Eventi attivi"/"Televoto aperto"/"Televoto chiuso":
+evento in *Modifica Eventi* e dai conteggi "Eventi attivi"/"Votazione aperta"/"Votazione chiusa":
 resta comunque interamente conservato (con i suoi candidati, credenziali e impostazioni) e
 raggiungibile dalla sezione *Archiviati* del menu laterale.
 
@@ -151,7 +151,7 @@ Archiviati.
 + Individua la scheda dell'evento nella griglia.
 + Premi *"Disarchivia"* (mostra "Ripristino..." durante l'operazione).
 + L'evento torna immediatamente disponibile nel selettore di *Modifica Eventi* e nelle liste
-  attive di Dashboard, con lo stato di televoto invariato rispetto a prima dell'archiviazione.
+  attive di Dashboard, con lo stato di votazione invariato rispetto a prima dell'archiviazione.
 
 == 4.3 Clonare un evento archiviato
 
@@ -191,7 +191,7 @@ Confermando con *"Clona"* il nuovo evento viene creato e la sezione passa automa
   modale), voti registrati, codici giudice/pubblico già generati, storico progressi],
 )
 
-Il nuovo evento nasce *non archiviato* ma con il *televoto già chiuso*: prima di aprirlo al
+Il nuovo evento nasce *non archiviato* ma con la *votazione già chiusa*: prima di aprirlo al
 pubblico occorre generare i nuovi codici giudice/pubblico dall'area `/manager` del nuovo
 evento.
 
@@ -264,8 +264,8 @@ La sezione *Modifica Eventi* raccoglie tutto ciò che riguarda un singolo evento
 In cima trovi il *selettore a tendina "Evento selezionato"* (codice + nome, solo eventi non
 archiviati): la scelta fatta qui determina l'evento su cui agiscono sia i moduli di questa
 sezione sia le scorciatoie *"Apri pagina voto pubblico"* e *"Apri Classifica"* della toolbar.
-Accanto al selettore, due etichette mostrano lo stato corrente dell'evento (*Televoto
-aperto/chiuso* e *Voto popolare: Numerico/Preferenze*).
+Accanto al selettore, due etichette mostrano lo stato corrente dell'evento (*Votazione
+aperta/chiusa* e *Voto popolare: Numerico/Preferenze*).
 
 Sotto il selettore, il riquadro *"Evento corrente"* mostra i moduli operativi per l'evento
 scelto.
@@ -428,9 +428,9 @@ Admin su `/`), ma è il punto di ingresso per la gestione operativa del giorno d
   [Apre in una nuova scheda la pagina pubblica di voto (`/vote?eventCode=...`) per l'evento
   selezionato in *Modifica Eventi*.],
   [Apri Classifica],
-  [Apre `/score?eventCode=...` per l'evento selezionato in *Modifica Eventi*. Se il televoto
-  dell'evento è ancora aperto, il sistema mostra un avviso ("La Classifica è accessibile solo a
-  televoto chiuso") e blocca l'apertura finché la votazione non viene chiusa da `/manager`.],
+  [Apre `/score?eventCode=...` per l'evento selezionato in *Modifica Eventi*. Se la votazione
+  dell'evento è ancora aperta, il sistema mostra un avviso ("La Classifica è accessibile solo a
+  votazione chiusa") e blocca l'apertura finché la votazione non viene chiusa da `/manager`.],
   [Esci (logout)],
   [Termina sia la sessione root sia un'eventuale sessione manager attiva nello stesso browser,
   riportando alla schermata di login.],
@@ -482,4 +482,4 @@ l'evento nella sezione *Archiviati* del menu laterale, da cui puoi disarchiviarl
 Verifica di aver comunicato correttamente la nuova password (minimo 8 caratteri) e che il
 manager stia usando il codice evento corretto nell'URL `/manager?eventCode=...`.
 
-#colophon[Televoto · Manuale Amministratore Root · Documento interno]
+#colophon[Voto Subito · Manuale Amministratore Root · Documento interno]

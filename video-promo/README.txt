@@ -1,1 +1,1 @@
-npx remotion render src/index.ts Main out/votosubito-promo.mp4
+npx remotion render src/index.ts Main out/voto-subito-promo.mp4

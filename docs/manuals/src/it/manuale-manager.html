@@ -2,17 +2,17 @@
 <html lang="it">
   <head>
     <meta charset="utf-8" />
-    <title>Guida del Manager di Evento | Televoto</title>
+    <title>Guida del Manager di Evento | Voto Subito</title>
     <link rel="stylesheet" href="../shared/manual.css" />
   </head>
   <body>
     <!-- Copertina -->
     <section class="cover">
       <p class="cover-eyebrow">Manuale operativo · Ad uso dei manager evento</p>
-      <h1 class="cover-title">Televoto<br />Guida del Manager di Evento</h1>
+      <h1 class="cover-title">Voto Subito<br />Guida del Manager di Evento</h1>
       <p class="cover-subtitle">
         Come gestire un singolo evento in <code>/manager</code>: candidati, codici giudice,
-        avvio/chiusura del televoto e classifica finale.
+        avvio/chiusura della votazione e classifica finale.
       </p>
       <div class="chip-row">
         <span class="chip">Area: /manager</span>
@@ -51,7 +51,7 @@
           <span class="toc-entry-page">Generazione, QR, revoca, rigenerazione</span>
         </li>
         <li class="toc-entry">
-          <span class="toc-entry-title">05 · Ciclo di vita del televoto</span>
+          <span class="toc-entry-title">05 · Ciclo di vita della votazione</span>
           <span class="toc-entry-fill"></span>
           <span class="toc-entry-page">Avvia votazione, chiudi, azzera</span>
         </li>
@@ -163,7 +163,7 @@
 
         <p>
           Nella barra superiore è sempre visibile un'etichetta di stato:
-          <strong>Televoto aperto</strong> oppure <strong>Televoto chiuso</strong>. Da qui, con
+          <strong>Votazione aperta</strong> oppure <strong>Votazione chiusa</strong>. Da qui, con
           le apposite icone, puoi anche aprire in una nuova scheda la pagina di voto pubblico
           (icona urna) e la <strong>Classifica</strong> (icona coppa) dell'evento corrente.
         </p>
@@ -171,9 +171,9 @@
         <div class="callout callout--warning">
           <span class="callout-title">Attenzione</span>
           <p>
-            L'icona <strong>Apri Classifica</strong> è utilizzabile solo a televoto chiuso: se
-            provi ad aprirla mentre il televoto è ancora aperto, comparirà un avviso — <em>"La
-            Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter
+            L'icona <strong>Apri Classifica</strong> è utilizzabile solo a votazione chiusa: se
+            provi ad aprirla mentre la votazione è ancora aperta, comparirà un avviso — <em>"La
+            Classifica è accessibile solo a votazione chiusa. Chiudi la votazione per poter
             continuare."</em> — e la pagina non si aprirà.
           </p>
         </div>
@@ -226,10 +226,10 @@
           <span class="callout-title">Vincolo importante — modifiche bloccate a voto aperto</span>
           <p>
             Aggiunta, modifica ed eliminazione dei candidati sono possibili
-            <strong>solo quando il televoto è chiuso</strong>. Con televoto aperto tutti i
-            controlli sono disattivati e compare il messaggio <em>"Modifiche bloccate finché il
-            televoto è aperto."</em> Per intervenire sui candidati devi prima chiudere il
-            televoto (vedi Capitolo 5).
+            <strong>solo quando la votazione è chiusa</strong>. Con votazione aperta tutti i
+            controlli sono disattivati e compare il messaggio <em>"Modifiche bloccate finché la
+            votazione è aperta."</em> Per intervenire sui candidati devi prima chiudere la
+            votazione (vedi Capitolo 5).
           </p>
         </div>
 
@@ -247,7 +247,7 @@
           <span class="callout-title">Stato evento visibile in cima</span>
           <p>
             In alto alla sezione Candidati trovi sempre un riquadro con lo
-            <strong>Stato evento</strong> corrente (Televoto aperto/chiuso) e la relativa
+            <strong>Stato evento</strong> corrente (Votazione aperta/chiusa) e la relativa
             spiegazione, così sai subito se puoi operare o meno.
           </p>
         </div>
@@ -366,12 +366,12 @@
 
       <!-- 5 -->
       <section class="chapter page-break">
-        <h2 class="chapter-title">Ciclo di vita del televoto</h2>
+        <h2 class="chapter-title">Ciclo di vita della votazione</h2>
 
         <p>
           Sezione <strong>Backstage Votazione</strong> del menu laterale, blocco "Operazioni
-          amministrative" — qui si controllano avvio, chiusura e reset del televoto. Lo stato
-          corrente (<strong>Televoto aperto</strong>/<strong>chiuso</strong>) è sempre visibile
+          amministrative" — qui si controllano avvio, chiusura e reset della votazione. Lo stato
+          corrente (<strong>Votazione aperta</strong>/<strong>chiusa</strong>) è sempre visibile
           nell'etichetta colorata della barra superiore (verde = aperto, rosso = chiuso), quindi
           non viene ripetuto in questo blocco.
         </p>
@@ -386,17 +386,17 @@
           </thead>
           <tbody>
             <tr>
-              <td>Avviare l'evento / chiudere il televoto</td>
+              <td>Avviare l'evento / chiudere la votazione</td>
               <td>
                 Un unico pulsante che cambia in base allo stato: mostra
-                <strong>Avvia votazione</strong> quando il televoto è chiuso, oppure
-                <strong>Chiudi televoto</strong> quando è aperto.
+                <strong>Avvia votazione</strong> quando la votazione è chiusa, oppure
+                <strong>Chiudi votazione</strong> quando è aperta.
               </td>
               <td>
                 <strong>Avvia votazione</strong>: rinumera progressivamente i candidati, azzera tutti
                 i voti, riporta allo stato <strong>Attivo</strong> tutti i codici giudice non
-                revocati (anche quelli già "Usato") e riapre il televoto. <strong>Chiudi
-                televoto</strong>: i voti non vengono più accettati; le modifiche ai candidati
+                revocati (anche quelli già "Usato") e riapre la votazione. <strong>Chiudi
+                votazione</strong>: i voti non vengono più accettati; le modifiche ai candidati
                 tornano disponibili.
               </td>
             </tr>
@@ -427,8 +427,8 @@
         <ul>
           <li><strong>Avvia votazione</strong> → conferma con il pulsante <strong>Avvia</strong>.</li>
           <li>
-            <strong>Chiudi televoto</strong> → conferma con il pulsante <strong>Chiudi</strong>
-            (messaggio: "Vuoi chiudere il televoto? I voti non saranno più accettati e le
+            <strong>Chiudi votazione</strong> → conferma con il pulsante <strong>Chiudi</strong>
+            (messaggio: "Vuoi chiudere la votazione? I voti non saranno più accettati e le
             modifiche torneranno disponibili.").
           </li>
           <li>
@@ -442,7 +442,7 @@
         <p>
           Il riquadro mostra anche il codice e nome evento e include un accesso rapido al
           pulsante <strong>Apri Classifica</strong> (con lo stesso avviso già visto: bloccato
-          finché il televoto resta aperto).
+          finché la votazione resta aperta).
         </p>
       </section>
 
@@ -505,7 +505,7 @@
           <span class="callout-title">Utile durante l'evento dal vivo</span>
           <p>
             Questa dashboard è pensata per essere tenuta aperta "in backstage" durante la
-            serata, per capire in ogni momento se si può procedere a chiudere il televoto o se
+            serata, per capire in ogni momento se si può procedere a chiudere la votazione o se
             conviene aspettare ancora qualche giudice.
           </p>
         </div>
@@ -523,12 +523,12 @@
         </p>
 
         <div class="callout callout--warning">
-          <span class="callout-title">Accessibile solo a televoto chiuso</span>
+          <span class="callout-title">Accessibile solo a votazione chiusa</span>
           <p>
-            Se il televoto è ancora aperto, l'accesso alla Classifica è
-            <strong>bloccato</strong>: comparirà l'avviso <em>"Televoto ancora aperto — La
-            Classifica è accessibile solo a televoto chiuso. Chiudi il televoto per poter
-            continuare."</em> Devi prima chiudere il televoto (Capitolo 5) per poter consultare
+            Se la votazione è ancora aperta, l'accesso alla Classifica è
+            <strong>bloccato</strong>: comparirà l'avviso <em>"Votazione ancora aperta — La
+            Classifica è accessibile solo a votazione chiusa. Chiudi la votazione per poter
+            continuare."</em> Devi prima chiudere la votazione (Capitolo 5) per poter consultare
             la classifica.
           </p>
         </div>
@@ -581,7 +581,7 @@
             Nel Backstage Votazione è disponibile anche una vista di
             <strong>classifica parziale</strong>, utile per seguire l'andamento mentre il voto è
             ancora aperto: è una stima "live" e può differire leggermente dal calcolo definitivo
-            mostrato da questa pagina a televoto chiuso.
+            mostrato da questa pagina a votazione chiusa.
           </p>
         </div>
       </section>
@@ -599,8 +599,8 @@
 
         <h3>Non riesco a modificare/eliminare un candidato</h3>
         <p>
-          I controlli sono disattivati mentre il <strong>televoto è aperto</strong>. Vai in
-          <strong>Backstage Votazione</strong> e usa <strong>Chiudi televoto</strong>, poi torna
+          I controlli sono disattivati mentre la <strong>votazione è aperta</strong>. Vai in
+          <strong>Backstage Votazione</strong> e usa <strong>Chiudi votazione</strong>, poi torna
           in <strong>Candidati</strong>.
         </p>
 
@@ -613,9 +613,9 @@
 
         <h3>La Classifica non si apre</h3>
         <p>
-          Controlla lo stato in alto alla pagina: se mostra <strong>Televoto aperto</strong>,
-          devi prima chiuderlo da <strong>Backstage Votazione</strong> →
-          <strong>Chiudi televoto</strong>.
+          Controlla lo stato in alto alla pagina: se mostra <strong>Votazione aperta</strong>,
+          devi prima chiuderla da <strong>Backstage Votazione</strong> →
+          <strong>Chiudi votazione</strong>.
         </p>
 
         <h3>Ho premuto "Avvia votazione" per errore</h3>
@@ -644,7 +644,7 @@
             font-size: 9.5pt;
           "
         >
-          Manuale operativo Televoto per Manager di evento · area applicativa <code>/manager</code>
+          Manuale operativo Voto Subito per Manager di evento · area applicativa <code>/manager</code>
           · contenuti allineati all'interfaccia corrente dell'applicazione.
         </p>
       </section>

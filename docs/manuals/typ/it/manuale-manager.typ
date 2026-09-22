@@ -1,13 +1,13 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Guida del Manager di Evento — Televoto", lang: "it")
+#show: manual.with(title: "Guida del Manager di Evento — Voto Subito", lang: "it")
 
 #cover(
   eyebrow: "Manuale operativo · Ad uso dei manager evento",
-  title: "Televoto — Guida del Manager di Evento",
+  title: "Voto Subito — Guida del Manager di Evento",
   subtitle: [
-    Come gestire un singolo evento in `/manager`: candidati, codici giudice, avvio/chiusura del
-    televoto e classifica finale.
+    Come gestire un singolo evento in `/manager`: candidati, codici giudice, avvio/chiusura della
+    votazione e classifica finale.
   ],
   chips: (
     "Area: /manager",
@@ -37,8 +37,8 @@ informazioni distinte, richieste in due passaggi separati.
 + *Sei dentro* — Dopo l'accesso corretto si apre la shell dell'evento, con menu laterale (o
   menu a comparsa su schermi piccoli) e le sezioni *Candidati*, *Codici Voto*, *Backstage
   Votazione* e *Impostazioni*. La sezione di atterraggio è scelta automaticamente in base allo
-  stato dell'evento (nessun candidato → Candidati; candidati presenti ma televoto chiuso →
-  Codici Voto; televoto aperto → Backstage Votazione), a meno che il link non forzi già una
+  stato dell'evento (nessun candidato → Candidati; candidati presenti ma votazione chiusa →
+  Codici Voto; votazione aperta → Backstage Votazione), a meno che il link non forzi già una
   sezione specifica.
 
 `/manager?eventCode=00001&adminSection=voting-backstage`
@@ -61,21 +61,21 @@ Non esiste una scheda "Dashboard" separata: l'evento viene gestito direttamente 
 quattro sezioni operative, con lo stato sempre visibile in due punti fissi dell'interfaccia.
 
 Nella barra superiore trovi il codice e il nome dell'evento corrente e un'etichetta di stato:
-*Televoto aperto* oppure *Televoto chiuso*. Da qui, con le apposite icone, puoi anche aprire in
+*Votazione aperta* oppure *Votazione chiusa*. Da qui, con le apposite icone, puoi anche aprire in
 una nuova scheda la pagina di voto pubblico (icona urna) e la *Classifica* (icona coppa)
 dell'evento corrente.
 
 #attenzione[
-  L'icona *Apri Classifica* è utilizzabile solo a televoto chiuso: se provi ad aprirla mentre
-  il televoto è ancora aperto, comparirà un avviso — _"La Classifica è accessibile solo a
-  televoto chiuso. Chiudi il televoto per poter continuare."_ — e la pagina non si aprirà.
+  L'icona *Apri Classifica* è utilizzabile solo a votazione chiusa: se provi ad aprirla mentre
+  la votazione è ancora aperta, comparirà un avviso — _"La Classifica è accessibile solo a
+  votazione chiusa. Chiudi la votazione per poter continuare."_ — e la pagina non si aprirà.
 ]
 
 Sotto la barra superiore, in ogni sezione, trovi un indicatore a tappe — *Candidati → Codici →
-Televoto → Classifica* — che mostra a colpo d'occhio a che punto è la serata: le tappe già
+Votazione → Classifica* — che mostra a colpo d'occhio a che punto è la serata: le tappe già
 completate sono spuntate, quella corrente è evidenziata, le successive restano in attesa.
 Ogni tappa è cliccabile e porta direttamente alla sezione corrispondente (l'ultima, Classifica,
-apre la pagina `/score` con lo stesso avviso "solo a televoto chiuso" descritto sopra).
+apre la pagina `/score` con lo stesso avviso "solo a votazione chiusa" descritto sopra).
 
 #nota(title: "Nessun conteggio duplicato")[
   I numeri che un tempo comparivano in una dashboard separata (candidati registrati, codici
@@ -108,10 +108,10 @@ Ogni candidato nell'elenco ha i pulsanti *Modifica* ed *Elimina*. "Modifica" apr
 inline con i campi Nome, Performance e Colore, con pulsanti *Salva* e *Annulla*.
 
 #attenzione(title: "Vincolo importante — modifiche bloccate a voto aperto")[
-  Aggiunta, modifica ed eliminazione dei candidati sono possibili *solo quando il televoto è
-  chiuso*. Con televoto aperto tutti i controlli sono disattivati e compare il messaggio
-  _"Modifiche bloccate finché il televoto è aperto."_ Per intervenire sui candidati devi prima
-  chiudere il televoto (vedi Capitolo 5).
+  Aggiunta, modifica ed eliminazione dei candidati sono possibili *solo quando la votazione è
+  chiusa*. Con votazione aperta tutti i controlli sono disattivati e compare il messaggio
+  _"Modifiche bloccate finché la votazione è aperta."_ Per intervenire sui candidati devi prima
+  chiudere la votazione (vedi Capitolo 5).
 ]
 
 #nota(title: "Rinumerazione automatica")[
@@ -122,7 +122,7 @@ inline con i campi Nome, Performance e Colore, con pulsanti *Salva* e *Annulla*.
 
 #nota(title: "Stato evento visibile in cima")[
   In alto alla sezione Candidati trovi sempre un riquadro con lo *Stato evento* corrente
-  (Televoto aperto/chiuso) e la relativa spiegazione, così sai subito se puoi operare o meno.
+  (Votazione aperta/chiusa) e la relativa spiegazione, così sai subito se puoi operare o meno.
 ]
 
 = Codici giudice
@@ -186,22 +186,22 @@ conserva solo un'impronta (hash) e un'anteprima parziale, non più il valore com
   ricaricare la pagina.
 ]
 
-= Ciclo di vita del televoto
+= Ciclo di vita della votazione
 
 Sezione *Backstage Votazione* del menu laterale, blocco "Operazioni amministrative" — qui si
-controllano avvio, chiusura e reset del televoto. Lo stato corrente (*Televoto aperto* oppure
-*Televoto chiuso*) è sempre visibile nell'etichetta colorata della barra superiore (verde =
+controllano avvio, chiusura e reset della votazione. Lo stato corrente (*Votazione aperta* oppure
+*Votazione chiusa*) è sempre visibile nell'etichetta colorata della barra superiore (verde =
 aperto, rosso = chiuso), quindi non viene ripetuto in questo blocco.
 
 #table(
   columns: (auto, 1fr, 1fr),
   table.header([Azione], [Etichetta pulsante], [Effetto]),
-  [Avviare l'evento / chiudere il televoto],
-  [Un unico pulsante che cambia in base allo stato: mostra *Avvia votazione* quando il televoto
-  è chiuso, oppure *Chiudi televoto* quando è aperto.],
+  [Avviare l'evento / chiudere la votazione],
+  [Un unico pulsante che cambia in base allo stato: mostra *Avvia votazione* quando la votazione
+  è chiusa, oppure *Chiudi votazione* quando è aperta.],
   [*Avvia votazione*: rinumera progressivamente i candidati, azzera tutti i voti, riporta allo
-  stato *Attivo* tutti i codici giudice non revocati (anche quelli già "Usato") e riapre il
-  televoto. *Chiudi televoto*: i voti non vengono più accettati; le modifiche ai candidati
+  stato *Attivo* tutti i codici giudice non revocati (anche quelli già "Usato") e riapre la
+  votazione. *Chiudi votazione*: i voti non vengono più accettati; le modifiche ai candidati
   tornano disponibili.],
   [Azzerare la classifica],
   [*Azzera classifica* (nella "Danger zone")],
@@ -223,14 +223,14 @@ aperto, rosso = chiuso), quindi non viene ripetuto in questo blocco.
 Ogni azione richiede una conferma esplicita in un riquadro di dialogo prima di essere eseguita:
 
 - *Avvia votazione* → conferma con il pulsante *Avvia*.
-- *Chiudi televoto* → conferma con il pulsante *Chiudi* (messaggio: "Vuoi chiudere il televoto?
+- *Chiudi votazione* → conferma con il pulsante *Chiudi* (messaggio: "Vuoi chiudere la votazione?
   I voti non saranno più accettati e le modifiche torneranno disponibili.").
 - *Azzera classifica* → conferma con il pulsante *Azzera* (messaggio: "Vuoi azzerare tutti i
   voti e ricominciare da capo? I codici giudice non revocati torneranno attivi (lo stesso
   codice resta valido).").
 
 Il riquadro mostra anche il codice e nome evento e include un accesso rapido al pulsante *Apri
-Classifica* (con lo stesso avviso già visto: bloccato finché il televoto resta aperto).
+Classifica* (con lo stesso avviso già visto: bloccato finché la votazione resta aperta).
 
 = Monitoraggio in tempo reale
 
@@ -272,7 +272,7 @@ Più in basso trovi il dettaglio operativo utile a chiudere gli ultimi voti manc
 
 #suggerimento(title: "Utile durante l'evento dal vivo")[
   Questa dashboard è pensata per essere tenuta aperta "in backstage" durante la serata, per
-  capire in ogni momento se si può procedere a chiudere il televoto o se conviene aspettare
+  capire in ogni momento se si può procedere a chiudere la votazione o se conviene aspettare
   ancora qualche giudice.
 ]
 
@@ -282,10 +282,10 @@ Questa pagina mostra la classifica finale dei candidati. È raggiungibile dall'i
 presente nella barra dell'evento (Dashboard) o dal pulsante *Apri Classifica* nel Backstage
 Votazione, e si apre in una nuova scheda del browser.
 
-#attenzione(title: "Accessibile solo a televoto chiuso")[
-  Se il televoto è ancora aperto, l'accesso alla Classifica è *bloccato*: comparirà l'avviso
-  _"Televoto ancora aperto — La Classifica è accessibile solo a televoto chiuso. Chiudi il
-  televoto per poter continuare."_ Devi prima chiudere il televoto (Capitolo 5) per poter
+#attenzione(title: "Accessibile solo a votazione chiusa")[
+  Se la votazione è ancora aperta, l'accesso alla Classifica è *bloccato*: comparirà l'avviso
+  _"Votazione ancora aperta — La Classifica è accessibile solo a votazione chiusa. Chiudi la
+  votazione per poter continuare."_ Devi prima chiudere la votazione (Capitolo 5) per poter
   consultare la classifica.
 ]
 
@@ -331,7 +331,7 @@ Il punteggio finale di ciascun candidato combina due componenti:
 #nota(title: "Classifica in corso vs classifica finale")[
   Nel Backstage Votazione è disponibile anche una vista di *classifica parziale*, utile per
   seguire l'andamento mentre il voto è ancora aperto: è una stima "live" e può differire
-  leggermente dal calcolo definitivo mostrato da questa pagina a televoto chiuso.
+  leggermente dal calcolo definitivo mostrato da questa pagina a votazione chiusa.
 ]
 
 = Impostazioni
@@ -384,8 +384,8 @@ o di rigenerarla.
 
 == Non riesco a modificare/eliminare un candidato
 
-I controlli sono disattivati mentre il *televoto è aperto*. Vai in *Backstage Votazione* e usa
-*Chiudi televoto*, poi torna in *Candidati*.
+I controlli sono disattivati mentre la *votazione è aperta*. Vai in *Backstage Votazione* e usa
+*Chiudi votazione*, poi torna in *Candidati*.
 
 == Un giudice ha smarrito il proprio codice
 
@@ -395,8 +395,8 @@ il vecchio codice smette di funzionare.
 
 == La Classifica non si apre
 
-Controlla lo stato in alto alla pagina: se mostra *Televoto aperto*, devi prima chiuderlo da
-*Backstage Votazione* → *Chiudi televoto*.
+Controlla lo stato in alto alla pagina: se mostra *Votazione aperta*, devi prima chiuderla da
+*Backstage Votazione* → *Chiudi votazione*.
 
 == Ho premuto "Avvia votazione" per errore
 
@@ -419,6 +419,6 @@ cambiare la password manager inserendo quella attuale. Se hai dimenticato del tu
 attuale, serve invece l'amministratore root.
 
 #colophon[
-  Manuale operativo Televoto per Manager di evento · area applicativa `/manager` · contenuti
+  Manuale operativo Voto Subito per Manager di evento · area applicativa `/manager` · contenuti
   allineati all'interfaccia corrente dell'applicazione.
 ]

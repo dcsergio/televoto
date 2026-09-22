@@ -48,8 +48,8 @@ export class EventCandidatesManagerComponent {
 
   protected readonly candidateColorPalette = CANDIDATE_COLOR_PALETTE;
   protected readonly modificationsLocked = computed(() => !this.votingClosed());
-  protected readonly modificationLockMessage = 'Disponibile solo a televoto chiuso';
-  protected readonly currentStatus = computed(() => (this.votingClosed() ? 'Televoto chiuso' : 'Televoto aperto'));
+  protected readonly modificationLockMessage = 'Disponibile solo a votazione chiusa';
+  protected readonly currentStatus = computed(() => (this.votingClosed() ? 'Votazione chiusa' : 'Votazione aperta'));
 
   private lastKey: string | null = null;
 
