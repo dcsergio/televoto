@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts Main out/televoto-promo.mp4",
-    "still": "remotion still src/index.ts Main out/televoto-promo-still.png"
+    "render": "remotion render src/index.ts Main out/votosubito-promo.mp4",
+    "still": "remotion still src/index.ts Main out/votosubito-promo-still.png"
   },
   "dependencies": {
     "@remotion/google-fonts": "4.0.523",

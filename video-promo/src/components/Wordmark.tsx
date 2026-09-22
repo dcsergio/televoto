@@ -30,7 +30,7 @@ export const Wordmark: React.FC<{ size?: number; delay?: number }> = ({
           color: theme.textPrimary,
         }}
       >
-        TELE<span style={{ color: theme.accentGold }}>VOTO</span>
+        VOTO<span style={{ color: theme.accentGold }}>SUBITO</span>
       </div>
       <div
         style={{
