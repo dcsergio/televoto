@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { firstValueFrom, map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
+import { ThemeStateService } from '../../state/theme-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { AuthApi } from '../../api/auth.api';
 import { EventsApi } from '../../api/events.api';
@@ -68,6 +69,9 @@ export class EventManagerShellComponent {
   protected readonly votingState = inject(VotingStateService);
   protected readonly toast = inject(ToastService);
   private readonly title = inject(Title);
+  // Instantiated here (not only in the toolbar) so the saved light/dark choice
+  // also applies to the event-code / password gates shown before login.
+  private readonly themeState = inject(ThemeStateService);
 
   protected readonly passwordError = signal('');
 

@@ -789,6 +789,76 @@ input[type="color"]::-moz-color-swatch {
   color: var(--color-text-primary);
 }
 
+/* "Studio" dark variant — opt-in via the sun/moon toggle in the admin /
+   manager toolbar (`ThemeStateService` sets `.studio-dark` on <html>).
+   Keyed on <html> rather than the shell host so the `.theme-pro` overlay
+   panes (dialogs, event select panel) follow the choice too. Re-points
+   the Studio tokens back to the Palco stage values (see `@theme` and
+   `_material-theme.scss`), keeping the Studio layout/patches intact. */
+html.studio-dark .theme-pro {
+  color-scheme: dark;
+
+  --color-bg-primary: #09090b;
+  --color-bg-secondary: #0f0f12;
+  --color-bg-card: #141417;
+  --color-bg-card-hover: #1a1a1f;
+  --color-bg-card-selected: #201d16;
+  --color-border-glass: rgba(255, 255, 255, 0.08);
+  --color-border-neon: rgba(255, 176, 32, 0.55);
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  /* Palco muted (#71717a) is ~4:1 on the card — nudged up for the small
+     eyebrow/hint text the Studio screens use it on. */
+  --color-text-muted: #8b8b94;
+  --color-accent-cyan: #ffb020;
+  --color-accent-coral: #df5b48;
+  --color-accent-yellow: #f2c86a;
+  --color-on-accent: #1a1206;
+  --color-neon-glow: rgba(255, 176, 32, 0.18);
+
+  --color-emerald-100: #d6e8da;
+  --color-emerald-200: #a9d3b4;
+  --color-emerald-300: #8ac79b;
+  --color-emerald-400: #5fb37f;
+  --color-emerald-500: #3f9366;
+  --color-amber-100: #f0dcc2;
+  --color-amber-200: #e6c8a2;
+  --color-amber-300: #dcae6f;
+  --color-amber-400: #c9923f;
+  --color-amber-500: #a9741f;
+  --color-red-100: #f0d5d0;
+  --color-red-200: #e0aaa2;
+  --color-red-300: #d68d82;
+  --color-red-500: #d94f3d;
+
+  --color-signal-open: #5fb37f;
+  --color-signal-warn: #dcae6f;
+  --color-signal-danger: #df5b48;
+
+  --shadow-card: 0 1px 2px rgba(8, 5, 2, 0.45), 0 10px 30px -12px rgba(6, 4, 1, 0.7);
+  --shadow-lift: 0 2px 6px rgba(8, 5, 2, 0.5), 0 20px 48px -16px rgba(0, 0, 0, 0.72);
+  --shadow-gold:
+    0 0 0 1px var(--color-border-neon), 0 14px 44px -10px rgba(255, 176, 32, 0.24),
+    0 10px 28px rgba(0, 0, 0, 0.5);
+
+  --mat-sys-surface: #0f0f12;
+  --mat-sys-background: #09090b;
+  --mat-sys-surface-container: #141417;
+  --mat-sys-surface-container-high: #1a1a1f;
+  --mat-sys-surface-container-highest: #201d16;
+  --mat-sys-on-surface: #f4f4f5;
+  --mat-sys-on-surface-variant: #a1a1aa;
+  --mat-sys-outline: rgba(255, 255, 255, 0.22);
+  --mat-sys-outline-variant: rgba(255, 255, 255, 0.1);
+  --mat-sys-primary: #ffb020;
+  --mat-sys-on-primary: #1a1206;
+  --mat-sys-tertiary: #ffb020;
+  --mat-sys-on-tertiary: #1a1206;
+  --mat-sys-error: #df5b48;
+  --mat-dialog-container-color: #141417;
+  --mat-select-panel-background-color: #141417;
+}
+
 /* The admin status chips ("Votazione aperta", "Archiviato", …) are rendered
    with `disabled` purely to make them static, non-interactive badges. MDC
    greys a disabled chip's label to 38% of the surface ink — near-invisible
