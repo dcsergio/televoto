@@ -278,6 +278,19 @@ export async function setEventArchivedState(eventId: string, archived: boolean) 
   }
 }
 
+export async function deleteArchivedEvent(eventId: string) {
+  // Eliminazione definitiva consentita solo sugli eventi archiviati: candidati,
+  // voti, codici giudice e credenziale manager vengono rimossi in cascata.
+  const { count } = await eventRepository.deleteArchivedEvent(eventId);
+  if (count > 0) return;
+
+  const existing = await eventRepository.findEventArchiveState(eventId);
+  if (!existing) {
+    throw new AppError(404, "Evento non trovato");
+  }
+  throw new AppError(409, "Solo gli eventi archiviati possono essere eliminati");
+}
+
 export type CloneEventInput = {
   managerPassword: string;
   name: string;
