@@ -132,6 +132,14 @@ eventsRouter.put("/api/events/:eventId/archive-state", async (req, res) => {
   res.json(await eventService.setEventArchivedState(eventId, archived));
 });
 
+eventsRouter.delete("/api/events/:eventId", async (req, res) => {
+  if (!requireRootAuth(req, res)) return;
+
+  const { eventId } = req.params;
+  await eventService.deleteArchivedEvent(eventId);
+  res.json({ ok: true });
+});
+
 eventsRouter.post("/api/events/:eventId/clone", async (req, res) => {
   if (!requireRootAuth(req, res)) return;
 

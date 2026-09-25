@@ -670,7 +670,7 @@
                             <mat-icon aria-hidden="true">inventory_2</mat-icon>
                             Archiviato
                           </span>
-                          <div class="flex gap-2">
+                          <div class="flex flex-wrap gap-2">
                             <button
                               type="button"
                               class="btn btn-tinted btn-sm flex-1"
@@ -688,6 +688,17 @@
                             >
                               <mat-icon aria-hidden="true">content_copy</mat-icon>
                               {{ cloningEventId() === ev.id ? 'Clonazione...' : 'Clona' }}
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-ghost btn-sm text-signal-danger"
+                              matTooltip="Elimina definitivamente questo evento"
+                              [attr.aria-label]="'Elimina ' + ev.name"
+                              [disabled]="deletingEventId() === ev.id"
+                              (click)="handleDeleteEvent(ev.id)"
+                            >
+                              <mat-icon aria-hidden="true">delete_forever</mat-icon>
+                              {{ deletingEventId() === ev.id ? 'Eliminazione...' : 'Elimina' }}
                             </button>
                           </div>
                       </div>
