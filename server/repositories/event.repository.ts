@@ -44,6 +44,8 @@ export function createEvent(input: CreateEventRepoInput) {
       votingClosed: true,
       popularVoteMode: input.popularVoteMode,
       maxPreferences: input.maxPreferences,
+      // PREFERENCE events are always scored 100% on the popular vote.
+      ...(input.popularVoteMode === "PREFERENCE" ? { weightQualificata: 0, weightPopolare: 100 } : {}),
       managerCredential: { create: input.managerPasswordRecord },
     },
     select: eventSummarySelect,
@@ -90,6 +92,10 @@ export function updateEventSummary(eventId: string, data: EventUpdateData) {
   return prisma.event.update({ where: { id: eventId }, data, select: eventSummarySelect });
 }
 
+export function findEventPopularVoteMode(eventId: string) {
+  return prisma.event.findUnique({ where: { id: eventId }, select: { popularVoteMode: true } });
+}
+
 export function findEventBasic(eventId: string) {
   return prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
 }
@@ -134,8 +140,8 @@ export function cloneEvent(
       subtitle: source.subtitle,
       active: true,
       votingClosed: true,
-      weightQualificata: source.weightQualificata,
-      weightPopolare: source.weightPopolare,
+      weightQualificata: source.popularVoteMode === "PREFERENCE" ? 0 : source.weightQualificata,
+      weightPopolare: source.popularVoteMode === "PREFERENCE" ? 100 : source.weightPopolare,
       enableTrimmedMean: source.enableTrimmedMean,
       trimmedMeanPercentage: source.trimmedMeanPercentage,
       popularVoteMode: source.popularVoteMode,
