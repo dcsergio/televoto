@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ThemeStateService } from '../../state/theme-state.service';
 
 /**
- * The public-view / logout action buttons shared by the admin (`/`) and `/manager`
+ * The public-view / theme-toggle / logout action buttons shared by the admin (`/`) and `/manager`
  * toolbars. Both shells rendered their own near-identical copy of these three
  * buttons and drifted (the manager copy had an icon-only "Esci" with no caption
  * and non-working tooltips because the shell never imported `MatTooltipModule`).
@@ -44,6 +45,17 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     </button>
     <button
       type="button"
+      mat-icon-button
+      [matTooltip]="themeToggleLabel()"
+      [attr.aria-label]="themeToggleLabel()"
+      [attr.aria-pressed]="themeState.theme() === 'dark'"
+      [attr.data-testid]="testidPrefix() + '-theme-toggle'"
+      (click)="themeState.toggle()"
+    >
+      <mat-icon>{{ themeState.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+    <button
+      type="button"
       mat-button
       [matTooltip]="logoutTooltip()"
       [attr.aria-label]="logoutTooltip()"
@@ -56,6 +68,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   `,
 })
 export class ShellToolbarActionsComponent {
+  protected readonly themeState = inject(ThemeStateService);
+
   /** `admin` or `event-manager` — prefixes the `data-testid` of each button. */
   readonly testidPrefix = input.required<string>();
   /** Disables the two "open public view" buttons while no event is selected/loaded. */
@@ -72,6 +86,10 @@ export class ShellToolbarActionsComponent {
   readonly openVoting = output<void>();
   readonly openScore = output<void>();
   readonly logout = output<void>();
+
+  protected themeToggleLabel(): string {
+    return this.themeState.theme() === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro';
+  }
 
   protected withContext(base: string): string {
     const ctx = this.contextLabel().trim();
