@@ -20,9 +20,9 @@
         <div class="px-5 py-6">
           <div class="flex items-center gap-2.5">
             <span class="h-4 w-1 rounded-full bg-accent-cyan"></span>
-            <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Voto Subito</h1>
+            <h1 class="text-xl font-extrabold tracking-[0.015em] uppercase neon-text leading-none">Voto Subito</h1>
           </div>
-          <p class="mt-1 text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">Pannello Admin</p>
+          <p class="mt-1 text-[0.625rem] uppercase tracking-[0.015em] text-text-muted">Pannello Admin</p>
         </div>
 
         <mat-nav-list class="flex-1 px-2">
@@ -62,7 +62,7 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="flex h-full flex-col">
-      <mat-toolbar class="app-shell-toolbar !h-auto !min-h-16 gap-2 !bg-bg-primary/90 border-b border-border-glass py-2 pl-4 backdrop-blur-xl sm:gap-3">
+      <mat-toolbar class="app-shell-toolbar !h-auto !min-h-16 gap-2 !bg-bg-card/60 border-b border-border-glass py-2 pl-4 backdrop-blur-xl sm:gap-3">
         @if (isHandset()) {
           <button type="button" mat-icon-button (click)="toggleSidenav()" aria-label="Apri menu">
             <mat-icon>menu</mat-icon>
@@ -131,7 +131,7 @@
           @if (activeSection() === 'dashboard') {
             <div class="space-y-6">
               <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Dashboard</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Dashboard</p>
                 <h2 class="mt-2 text-2xl font-bold text-text-primary">Panoramica generale</h2>
                 <p class="mt-1 text-sm text-text-secondary">Stato di tutti gli eventi e accesso rapido alla gestione di ciascun evento.</p>
               </div>
@@ -143,22 +143,22 @@
               } @else {
                 <div class="surface-card flex flex-wrap divide-y divide-border-glass sm:divide-y-0 sm:divide-x">
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi totali</p>
+                    <p class="text-xs uppercase tracking-[0.015em] text-text-secondary">Eventi totali</p>
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{{ eventsOverview().total }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Eventi attivi</p>
+                    <p class="text-xs uppercase tracking-[0.015em] text-text-secondary">Eventi attivi</p>
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{{ eventsOverview().active }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-text-secondary">
+                    <p class="flex items-center gap-1.5 text-xs uppercase tracking-[0.015em] text-text-secondary">
                       <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent-cyan"></span>
                       Votazione aperta
                     </p>
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-accent-cyan">{{ eventsOverview().votingOpen }}</p>
                   </div>
                   <div class="min-w-[8rem] flex-1 px-5 py-4">
-                    <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Votazione chiusa</p>
+                    <p class="text-xs uppercase tracking-[0.015em] text-text-secondary">Votazione chiusa</p>
                     <p class="mt-1 font-display text-3xl font-semibold tabular-nums text-text-secondary">{{ eventsOverview().votingClosed }}</p>
                   </div>
                 </div>
@@ -197,8 +197,8 @@
                         >
                           <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
-                              <p class="font-display text-xs tabular-nums tracking-[0.1em] text-text-secondary">{{ ev.code }}</p>
-                              <p class="min-h-3.5 truncate text-[0.625rem] uppercase leading-[0.875rem] tracking-[0.18em] text-text-muted" [attr.title]="ev.name">{{ ev.nameParts.prefix }}</p>
+                              <p class="font-display text-xs tabular-nums tracking-[0.015em] text-text-secondary">{{ ev.code }}</p>
+                              <p class="min-h-3.5 truncate text-[0.625rem] uppercase leading-[0.875rem] tracking-[0.015em] text-text-muted" [attr.title]="ev.name">{{ ev.nameParts.prefix }}</p>
                               <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.nameParts.emphasized }}</p>
                               <p class="min-h-4 truncate text-xs text-text-secondary" [attr.title]="ev.subtitle">{{ ev.subtitle }}</p>
                             </div>
@@ -266,7 +266,7 @@
           @if (activeSection() === 'create-events') {
             <div class="surface-card space-y-4 p-6">
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                  <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Gestione eventi</p>
                   <h2 class="mt-2 text-2xl font-bold text-text-primary">Crea Eventi</h2>
                 </div>
 
@@ -279,16 +279,16 @@
                   <div class="surface-panel space-y-4 border-signal-open/40 bg-signal-open/5 p-5" data-testid="admin-create-confirmation">
                     <div class="flex items-center gap-2 text-signal-open">
                       <mat-icon aria-hidden="true">check_circle</mat-icon>
-                      <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em]">Evento creato</p>
+                      <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em]">Evento creato</p>
                     </div>
                     <p class="text-sm text-text-secondary">
                       L'evento <span class="font-semibold text-text-primary">{{ created.name }}</span> è pronto.
                       Comunica il codice ai votanti e al manager per accedere.
                     </p>
                     <div class="space-y-1">
-                      <p class="text-xs uppercase tracking-[0.15em] text-text-secondary">Codice evento</p>
+                      <p class="text-xs uppercase tracking-[0.015em] text-text-secondary">Codice evento</p>
                       <div class="flex flex-wrap items-center gap-3">
-                        <span class="font-display text-3xl font-bold tabular-nums tracking-[0.2em] text-text-primary" data-testid="admin-created-event-code">{{ created.code }}</span>
+                        <span class="font-display text-3xl font-bold tabular-nums tracking-[0.015em] text-text-primary" data-testid="admin-created-event-code">{{ created.code }}</span>
                         <button type="button" mat-stroked-button (click)="copyEventCode(created.code)">
                           <mat-icon>{{ eventCodeCopied() ? 'check' : 'content_copy' }}</mat-icon>
                           {{ eventCodeCopied() ? 'Copiato' : 'Copia' }}
@@ -312,7 +312,7 @@
                   </div>
                 } @else {
                   <form (ngSubmit)="handleCreateEvent()" class="surface-panel space-y-3 p-4">
-                    <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Crea nuovo evento</p>
+                    <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Crea nuovo evento</p>
                     <label class="block space-y-1">
                       <span class="text-sm text-text-secondary">Nome evento</span>
                       <input
@@ -420,7 +420,7 @@
           @if (activeSection() === 'edit-events') {
             <div class="surface-card space-y-5 p-6">
               <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Gestione eventi</p>
                 <h2 class="mt-2 text-2xl font-bold text-text-primary">Modifica Eventi</h2>
                 <p class="mt-1 text-sm text-text-secondary">
                   Le modifiche agiscono sull'evento scelto in <span class="font-semibold text-text-primary">Azioni rapide su</span> nella barra in alto.
@@ -472,7 +472,7 @@
 
                 <!-- Anagrafica -->
                 <form (ngSubmit)="handleRenameSelectedEvent()" class="surface-panel space-y-3 p-4">
-                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">
+                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">
                     <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">badge</mat-icon>
                     Anagrafica
                   </p>
@@ -507,7 +507,7 @@
 
                 <!-- Sicurezza -->
                 <form (ngSubmit)="handleRotateEventManagerPassword()" class="surface-panel space-y-3 p-4">
-                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">
+                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">
                     <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">lock</mat-icon>
                     Sicurezza
                   </p>
@@ -560,7 +560,7 @@
 
                 <!-- Calcolo punteggio -->
                 <form (ngSubmit)="handleUpdateVotingSettings()" class="surface-panel space-y-3 p-4">
-                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">
+                  <p class="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">
                     <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">calculate</mat-icon>
                     Calcolo punteggio
                   </p>
@@ -653,7 +653,7 @@
           @if (activeSection() === 'archived') {
             <div class="surface-card space-y-4 p-6">
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Gestione eventi</p>
+                  <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Gestione eventi</p>
                   <h2 class="mt-2 text-2xl font-bold text-text-primary">Eventi archiviati</h2>
                   <p class="mt-1 text-sm text-text-secondary">
                     Gli eventi archiviati non compaiono più tra quelli attivi. Puoi ripristinarli o usarli come base per un nuovo evento.
@@ -671,9 +671,9 @@
                     @for (ev of archivedEvents(); track ev.id) {
                       <div class="surface-card space-y-3 p-4">
                           <div>
-                            <p class="font-display text-xs tabular-nums tracking-[0.1em] text-text-secondary">{{ ev.code }}</p>
+                            <p class="font-display text-xs tabular-nums tracking-[0.015em] text-text-secondary">{{ ev.code }}</p>
                             @if (ev.nameParts.prefix) {
-                              <p class="truncate text-[0.625rem] uppercase tracking-[0.18em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
+                              <p class="truncate text-[0.625rem] uppercase tracking-[0.015em] text-text-muted" [title]="ev.name">{{ ev.nameParts.prefix }}</p>
                             }
                             <p class="truncate font-semibold text-text-primary" [title]="ev.name">{{ ev.nameParts.emphasized }}</p>
                             @if (ev.subtitle) {
@@ -725,7 +725,7 @@
           @if (activeSection() === 'settings') {
             <div class="surface-card space-y-4 p-6">
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza</p>
+                  <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Sicurezza</p>
                   <h2 class="mt-2 text-2xl font-bold text-text-primary">Impostazioni</h2>
                   <p class="mt-1 text-sm text-text-secondary">
                     Gestisci le credenziali di accesso all'area amministrativa.
@@ -733,7 +733,7 @@
                 </div>
 
                 <form (ngSubmit)="handleUpdateRootPassword()" class="surface-panel space-y-3 p-4">
-                  <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Sicurezza root</p>
+                  <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Sicurezza root</p>
                   <p class="text-sm text-text-secondary">Aggiorna la password root usata per l'accesso alle aree protette amministrative.</p>
                   <div class="grid gap-3 md:grid-cols-3">
                     <input

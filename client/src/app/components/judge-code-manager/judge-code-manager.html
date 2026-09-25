@@ -6,7 +6,7 @@
   <section class="surface-card mt-8 p-6">
     <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
       <div class="min-w-0">
-        <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Codici Voto</p>
+        <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Codici Voto</p>
         <h2 class="mt-2 text-2xl font-bold text-text-primary">Codici di voto</h2>
         <p class="mt-2 max-w-2xl text-sm text-text-secondary">
           Genera i codici, consegnali tramite QR, validali o revocali. L'elenco si aggiorna in tempo reale.
@@ -41,14 +41,14 @@
 
     <!-- ─────────  Region 1 — generate new codes  ───────── -->
     <form (ngSubmit)="handleGenerate()" class="surface-panel mt-6 bg-bg-primary/60 p-5">
-      <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Genera nuovi codici</p>
+      <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Genera nuovi codici</p>
       <p class="mt-2 text-sm text-text-secondary">
         Crea codici mai visti prima. Ogni codice viene salvato nel database e mostrato in chiaro solo al momento della generazione.
       </p>
 
       <div class="mt-4 grid gap-4 sm:grid-cols-2">
         <label class="space-y-2">
-          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Numero</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary">Numero</span>
           <input
             type="number"
             min="1"
@@ -60,7 +60,7 @@
           />
         </label>
         <label class="space-y-2">
-          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Prefisso etichetta</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary">Prefisso etichetta</span>
           <input
             type="text"
             [ngModel]="generatorForm().labelPrefix"
@@ -71,7 +71,7 @@
           />
         </label>
         <label class="space-y-2 sm:col-span-2">
-          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Tipo</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary">Tipo</span>
           <select
             [ngModel]="generatorForm().voterType"
             (ngModelChange)="onVoterTypeChange($event)"
@@ -87,11 +87,11 @@
       <p class="mt-3 text-xs text-text-secondary">Ogni codice ha una lunghezza fissa di 16 caratteri.</p>
 
       <details class="mt-3 rounded-2xl border border-border-glass bg-bg-secondary px-4 py-3">
-        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
+        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary">
           Opzioni avanzate
         </summary>
         <label class="mt-3 block space-y-2">
-          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">Base URL dei link</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary">Base URL dei link</span>
           <input
             type="url"
             [ngModel]="generatorForm().baseUrl"
@@ -113,7 +113,7 @@
 
     <!-- Validate — demoted from a co-equal column to a compact utility. -->
     <details class="mt-3 rounded-2xl border border-border-glass bg-bg-primary/40 px-4 py-3">
-      <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
+      <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary">
         Valida un codice
       </summary>
       <form (ngSubmit)="handleValidate()" class="mt-3">
@@ -144,15 +144,15 @@
             @if (vr.code) {
               <dl class="mt-4 grid gap-3 text-sm text-text-primary">
                 <div class="rounded-2xl border border-border-glass bg-bg-primary px-3 py-2">
-                  <dt class="text-xs uppercase tracking-[0.2em] text-text-secondary">Etichetta</dt>
+                  <dt class="text-xs uppercase tracking-[0.015em] text-text-secondary">Etichetta</dt>
                   <dd class="mt-1 font-semibold">{{ vr.code.label ?? '-' }}</dd>
                 </div>
                 <div class="rounded-2xl border border-border-glass bg-bg-primary px-3 py-2">
-                  <dt class="text-xs uppercase tracking-[0.2em] text-text-secondary">Creato</dt>
+                  <dt class="text-xs uppercase tracking-[0.015em] text-text-secondary">Creato</dt>
                   <dd class="mt-1 font-semibold">{{ formatDate(vr.code.createdAt) }}</dd>
                 </div>
                 <div class="rounded-2xl border border-border-glass bg-bg-primary px-3 py-2">
-                  <dt class="text-xs uppercase tracking-[0.2em] text-text-secondary">Usato</dt>
+                  <dt class="text-xs uppercase tracking-[0.015em] text-text-secondary">Usato</dt>
                   <dd class="mt-1 font-semibold">{{ formatDate(vr.code.usedAt) }}</dd>
                 </div>
               </dl>
@@ -166,7 +166,7 @@
     <div class="surface-panel mt-6 bg-bg-primary/60 p-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Codici esistenti</p>
+          <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Codici esistenti</p>
           <p class="mt-2 text-sm text-text-secondary">
             {{ listTokens().length }} {{ listTokens().length === 1 ? 'codice' : 'codici' }} per questo evento.
           </p>
@@ -202,7 +202,7 @@
                       <span class="status-pill status-warn">nuovo</span>
                     }
                   </div>
-                  <p class="mt-1 text-[0.625rem] uppercase tracking-[0.18em] text-text-secondary">{{ typeLabel(token.type) }}</p>
+                  <p class="mt-1 text-[0.625rem] uppercase tracking-[0.015em] text-text-secondary">{{ typeLabel(token.type) }}</p>
                 </div>
                 <span class="status-pill" [class]="getStatusClass(token.status)">
                   {{ getStatusLabel(token.status) }}
@@ -245,7 +245,7 @@
                   </div>
                 }
               } @else {
-                <p class="mt-3 text-xs font-mono tracking-[0.2em] text-text-secondary">
+                <p class="mt-3 text-xs font-mono tracking-[0.015em] text-text-secondary">
                   {{ token.tokenPreview }}&bull;&bull;&bull;&bull;
                 </p>
               }

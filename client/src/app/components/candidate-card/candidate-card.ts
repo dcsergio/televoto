@@ -51,7 +51,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
         </div>
 
         <span
-          class="font-display text-xl md:text-2xl font-bold tabular-nums tracking-[-0.04em]"
+          class="font-display text-xl md:text-2xl font-bold tabular-nums tracking-[0.009em]"
           [style.color]="candidate().color"
           [style.opacity]="isVoted() && !selected() ? 0.4 : 0.9"
         >
@@ -100,7 +100,7 @@ import { ScoreSelectorComponent } from '../score-selector/score-selector';
         <div class="px-3.5 pb-3.5 md:px-4 md:pb-4 animate-slide-down">
           <div class="rounded-2xl border border-border-glass bg-bg-secondary p-4">
             <div class="mb-3.5 flex items-center justify-between gap-4">
-              <p class="text-[10px] uppercase tracking-[0.2em] text-text-secondary font-bold">
+              <p class="text-[10px] uppercase tracking-[0.015em] text-text-secondary font-bold">
                 Seleziona un punteggio
               </p>
               @if (submitting()) {

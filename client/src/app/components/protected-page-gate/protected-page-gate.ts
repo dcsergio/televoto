@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="flex min-h-dvh items-center justify-center px-4">
       <div class="glass w-full max-w-md p-7">
-        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-accent-cyan">Area protetta</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Area protetta</p>
         <h2 class="gradient-title mt-3 text-2xl font-bold uppercase leading-[1] sm:text-3xl">{{ pageLabel() }}</h2>
         <p class="mt-3 text-sm text-text-secondary text-pretty">{{ passwordPrompt() }}</p>
 

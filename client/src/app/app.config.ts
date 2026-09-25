@@ -14,9 +14,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor])),
     // Every MatDialog in the app is an admin/manager confirm dialog, and those
-    // shells render on the light "Studio" theme (`.theme-pro`). The dialog opens
-    // in the CDK overlay, outside the shell subtree, so it needs the class on its
-    // own pane to pick up the light tokens. A public-side dialog would override.
+    // shells carry the `.theme-pro` marker class. The dialog opens in the CDK
+    // overlay, outside the shell subtree, so it needs the class on its own pane
+    // to pick up the workspace Material patches. A public-side dialog would override.
     { provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: { panelClass: 'theme-pro' } },
   ]
 };

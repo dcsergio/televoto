@@ -1,12 +1,11 @@
-// Angular Material M3 theme, recolored to match the app's "Palco" design
-// tokens (see the @theme block in styles.scss) rather than left at Material's
-// default azure/blue palette. Highly custom elements (score buttons, candidate
-// cards, hero title, Classifica reveal) stay plain CSS and are not themed
-// through Material at all.
+// Angular Material M3 theme, recolored to the DESIGN.md palette (repo root —
+// the source of truth for the site's style; see the @theme block in
+// styles.scss for the tokens). Highly custom elements (score buttons,
+// candidate cards, hero title, Classifica reveal) stay plain CSS and are not
+// themed through Material at all.
 //
 // The mixin name is kept as `neon-dark-theme` for backward compatibility with
-// the `@include` in styles.scss; the palette it applies is the gold-accent
-// broadcast theme.
+// the `@include` in styles.scss.
 @use '@angular/material' as mat;
 
 @mixin neon-dark-theme() {
@@ -14,50 +13,98 @@
     (
       color: (
         theme-type: dark,
-        primary: mat.$yellow-palette,
-        tertiary: mat.$orange-palette,
+        primary: mat.$violet-palette,
+        tertiary: mat.$rose-palette,
       ),
       typography: 'Inter, system-ui, -apple-system, sans-serif',
       density: 0,
     )
   );
 
-  // Re-point Material's system-level CSS variables at the same hex values
-  // already defined in the app's Palco token set, so colors are shared
-  // rather than duplicated.
-  --mat-sys-surface: #0f0f12;
-  --mat-sys-surface-container: #141417;
-  --mat-sys-surface-container-high: #1a1a1f;
-  --mat-sys-surface-container-highest: #201d16;
-  --mat-sys-on-surface: #f4f4f5;
-  --mat-sys-on-surface-variant: #a1a1aa;
-  --mat-sys-outline: rgba(255, 255, 255, 0.22);
-  --mat-sys-outline-variant: rgba(255, 255, 255, 0.1);
-  --mat-sys-primary: #ffb020;
-  --mat-sys-on-primary: #1a1206;
-  --mat-sys-tertiary: #ff7a45;
-  --mat-sys-on-tertiary: #1a1206;
-  --mat-sys-error: #f43f5e;
+  // Re-point Material's system-level CSS variables at the DESIGN.md tokens
+  // (surface stack Midnight → Slate → Carbon → Twilight Plum, Iris/Steel
+  // hairlines, Bone/Ash ink, Arc Violet accent, Ember Coral error).
+  --mat-sys-surface: var(--color-midnight-indigo);
+  --mat-sys-background: var(--color-midnight-indigo);
+  --mat-sys-surface-container-lowest: var(--color-abyss-black);
+  --mat-sys-surface-container-low: var(--color-carbon-iris);
+  --mat-sys-surface-container: var(--color-slate-indigo);
+  --mat-sys-surface-container-high: var(--color-slate-indigo);
+  --mat-sys-surface-container-highest: var(--color-twilight-plum);
+  --mat-sys-on-surface: var(--color-bone);
+  --mat-sys-on-surface-variant: var(--color-ash);
+  --mat-sys-outline: var(--color-steel);
+  --mat-sys-outline-variant: var(--color-iris-border);
+  --mat-sys-primary: var(--color-accent-cyan);
+  --mat-sys-on-primary: var(--color-bone);
+  --mat-sys-primary-container: var(--color-twilight-plum);
+  --mat-sys-on-primary-container: var(--color-bone);
+  --mat-sys-secondary-container: var(--color-twilight-plum);
+  --mat-sys-on-secondary-container: var(--color-bone);
+  --mat-sys-tertiary: var(--color-ember-coral);
+  --mat-sys-on-tertiary: var(--color-bone);
+  --mat-sys-error: var(--color-ember-coral);
+  --mat-sys-on-error: var(--color-bone);
 
-  // Dialogs and menus get the same solid dark surface as the rest of the app.
+  // Dialogs: Slate Indigo, 20px (large card), 1px border handled below, no shadow.
   @include mat.dialog-overrides(
     (
-      container-color: #141417,
+      container-color: #0c0a2b,
       container-shape: 20px,
     )
   );
+  // Buttons: 30px pills (DESIGN.md — every interactive element is a pill).
   @include mat.button-overrides(
     (
-      filled-container-shape: 14px,
-      outlined-container-shape: 14px,
+      filled-container-shape: 30px,
+      outlined-container-shape: 30px,
+      text-container-shape: 30px,
+      protected-container-shape: 30px,
+      outlined-outline-color: #353545,
     )
   );
-
   // The select panel (e.g. "Evento selezionato") needs a solid background so
   // the dropdown panel doesn't show page content bleeding through.
   @include mat.select-overrides(
     (
-      panel-background-color: #141417,
+      panel-background-color: #0c0a2b,
     )
   );
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: 30px,
+      outlined-outline-color: #353545,
+      outlined-hover-outline-color: #292a4d,
+      outlined-focus-outline-color: #665eff,
+    )
+  );
+  @include mat.snack-bar-overrides(
+    (
+      container-color: #0c0a2b,
+      supporting-text-color: #ffffff,
+    )
+  );
+  @include mat.tooltip-overrides(
+    (
+      container-color: #2c2b52,
+      supporting-text-color: #ffffff,
+    )
+  );
+}
+
+// DESIGN.md: no drop-shadow elevation — overlays float by a 1px border.
+.mat-mdc-dialog-surface {
+  border: 1px solid var(--color-iris-border);
+  box-shadow: none !important;
+}
+.mat-mdc-select-panel {
+  border: 1px solid var(--color-iris-border);
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+// The only filled button is the coral CTA: a Material flat button gets the
+// Ember Coral gradient instead of a saturated violet fill.
+.mat-mdc-unelevated-button:not(:disabled) {
+  background: linear-gradient(135deg, oklch(0.81 0.15 47.92) 0%, oklch(0.69 0.26 16.93) 100%) !important;
+  color: #ffffff !important;
 }

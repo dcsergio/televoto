@@ -11,7 +11,7 @@
   <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Backstage</p>
+        <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Backstage</p>
         <h2 class="text-xl font-semibold text-text-primary">Progresso votazioni</h2>
       </div>
       <div class="flex flex-wrap items-center gap-3">
@@ -37,7 +37,7 @@
     }
 
     <div class="surface-panel mb-6 p-5">
-      <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">Voti pubblico espressi</p>
+      <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-text-secondary">Voti pubblico espressi</p>
       <div class="mt-1 font-display text-5xl font-semibold tabular-nums text-accent-cyan">
         {{ p.popular.totalVotesCast }}
       </div>
@@ -76,7 +76,7 @@
 
     @if (p.incompleteCandidates.length > 0) {
       <div class="mb-6">
-        <h3 class="mb-3 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">
+        <h3 class="mb-3 text-[0.625rem] font-bold uppercase tracking-[0.015em] text-text-secondary">
           Candidati con voti incompleti
         </h3>
         <div class="space-y-2">
@@ -95,7 +95,7 @@
 
     @if (activeIncompleteJudges().length > 0) {
       <div>
-        <h3 class="mb-3 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">Giurati attivi incompleti</h3>
+        <h3 class="mb-3 text-[0.625rem] font-bold uppercase tracking-[0.015em] text-text-secondary">Giurati attivi incompleti</h3>
         <div class="space-y-2">
           @for (judge of activeIncompleteJudges(); track judge.id) {
             <div class="surface-panel px-4 py-3">

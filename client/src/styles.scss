@@ -2,97 +2,139 @@
 @use './styles/tailwind.css';
 
 /* ──────────────────────────────────────────────────────────────
-   "Palco" theme — broadcast / awards language.
-   Dark stage, hairline surfaces, one reserved accent (electric gold).
-   Token NAMES are kept from the former "Neon Dark" set for compatibility
-   with existing utility classes across admin/manager; only the VALUES
-   changed. `accent-cyan` is now the single gold accent.
-   ────────────────────────────────────────────────────────────── */
-@theme {
-  --color-bg-primary: #09090b;
-  --color-bg-secondary: #0f0f12;
-  --color-bg-card: #141417;
-  --color-bg-card-hover: #1a1a1f;
-  --color-bg-card-selected: #201d16;
-  --color-border-glass: rgba(255, 255, 255, 0.08);
-  --color-border-neon: rgba(255, 176, 32, 0.55);
-  --color-text-primary: #f4f4f5;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #71717a;
+   Design system — the SOURCE OF TRUTH is the repo-root `DESIGN.md`
+   ("twilight summit command center"): violet-tinted near-black
+   canvas, 1px violet hairlines, no drop-shadow elevation, bone-white
+   ink, and one warm signal — the coral→red gradient — reserved for
+   the primary CTA. Dark only: there is no light variant. Every value
+   below is taken from (or derived from) a DESIGN.md token; change
+   DESIGN.md first, then mirror it here.
 
-  /* One reserved accent. `accent-cyan` is the legacy name kept so the ~16
-     admin/manager files that reference it don't need editing. */
-  --color-accent-cyan: #ffb020;
-  /* `accent-yellow` is the champagne "victory" tone — distinct from the
-     interactive gold so the winner beat doesn't read as a clickable accent. */
-  --color-accent-yellow: #f2c86a;
-  /* `accent-coral` is the legacy error name — realigned to the warm brick
-     of the danger ramp below so it sits in one gray/warm family. */
-  --color-accent-coral: #df5b48;
+   Token NAMES are legacy ("Neon Dark" / "Palco" era) and kept so the
+   utility classes across the app (`bg-bg-card`, `text-accent-cyan`,
+   …) need no per-file edits; only the VALUES follow DESIGN.md.
+   ────────────────────────────────────────────────────────────── */
+@theme static {
+  /* ── DESIGN.md palette (canonical names) ── */
+  --color-abyss-black: #02030b;
+  --color-midnight-indigo: #04061c;
+  --color-slate-indigo: #0c0a2b;
+  --color-carbon-iris: #13151f;
+  --color-twilight-plum: #2c2b52;
+  --color-iris-border: #292a4d;
+  --color-graphite: #202333;
+  --color-steel: #353545;
+  --color-smoke: #9b9ba4;
+  --color-ash: #b4b4bb;
+  --color-bone: #ffffff;
+  --color-ember-coral: #ff3a63;
+  --color-ember-coral-start: oklch(0.81 0.15 47.92);
+  --color-electric-blue: #0067ff;
+  --color-arc-violet: #665eff;
+  --color-chartreuse: #ffff00;
+
+  /* ── Surfaces — the luminance stack Abyss → Midnight → Slate → Carbon → Plum ── */
+  --color-bg-primary: var(--color-midnight-indigo);
+  --color-bg-secondary: var(--color-carbon-iris);
+  --color-bg-card: var(--color-slate-indigo);
+  --color-bg-card-hover: var(--color-twilight-plum);
+  --color-bg-card-selected: color-mix(in srgb, var(--color-twilight-plum) 70%, var(--color-slate-indigo));
+  --color-border-glass: var(--color-iris-border);
+  --color-border-neon: var(--color-arc-violet);
+  --color-text-primary: var(--color-bone);
+  /* DESIGN.md lists Smoke as "secondary" and Ash as "tertiary", but Ash is
+     the lighter of the two; mapped so the hierarchy stays monotonic
+     (primary > secondary > muted) and small text never uses 100% Bone. */
+  --color-text-secondary: var(--color-ash);
+  --color-text-muted: var(--color-smoke);
+
+  /* The one interactive accent (`accent-cyan` is the legacy name): Arc
+     Violet, lifted toward Bone so it clears AA as small text on Slate
+     Indigo (pure #665eff is ~4.3:1). Used for focus, selection, links,
+     eyebrows — never as a filled button (see `.btn-primary`). */
+  --color-accent-cyan: color-mix(in oklab, var(--color-arc-violet) 78%, var(--color-bone));
+  /* Winner / "victory" beat on the Classifica — the sunrise tone of the
+     Ember Coral gradient. The ceremony has no CTA on screen, so the one
+     warm signal is spent on the winner instead. */
+  --color-accent-yellow: var(--color-ember-coral-start);
+  /* Legacy error name → Ember Coral (DESIGN.md: coral = blocked / high priority). */
+  --color-accent-coral: var(--color-ember-coral);
   /* legacy secondary aliases — kept pointing at the single accent so any
      stray reference stays on-palette instead of resurrecting a 2nd hue. */
   --color-accent-magenta: var(--color-accent-cyan);
   --color-accent-violet: var(--color-accent-cyan);
 
-  /* Ink that sits on a filled accent surface (gold button, active score).
-     One token instead of a hard-coded `#1a1206` copied across 9 files;
-     `.theme-pro` flips it to white for the deep-amber Studio accent. */
-  --color-on-accent: #1a1206;
+  /* Ink on a filled accent surface (the coral CTA) — Bone. */
+  --color-on-accent: var(--color-bone);
 
-  --color-neon-glow: rgba(255, 176, 32, 0.18);
+  --color-neon-glow: color-mix(in srgb, var(--color-arc-violet) 22%, transparent);
 
   /* ── Status ramps ──────────────────────────────────────────────
-     Warm-shifted and desaturated so "aperto" green no longer reads
-     cool next to the gold stage, and "warning" amber is pulled toward
-     honey/ochre so it's not mistaken for the brand accent. Only the
-     steps actually referenced in markup are overridden. */
-  --color-emerald-100: #d6e8da;
-  --color-emerald-200: #a9d3b4;
-  --color-emerald-300: #8ac79b;
-  --color-emerald-400: #5fb37f;
-  --color-emerald-500: #3f9366;
-  --color-amber-100: #f0dcc2;
-  --color-amber-200: #e6c8a2;
-  --color-amber-300: #dcae6f;
-  --color-amber-400: #c9923f;
-  --color-amber-500: #a9741f;
-  --color-red-100: #f0d5d0;
-  --color-red-200: #e0aaa2;
-  --color-red-300: #d68d82;
-  --color-red-500: #d94f3d;
+     DESIGN.md maps saturated colour to function: Electric Blue = in
+     progress, Arc Violet = planned, Ember Coral = blocked, Chartreuse =
+     done. The default Tailwind emerald/amber/red steps referenced in
+     markup are re-pointed accordingly: emerald ("fatto / registrato") →
+     Chartreuse, amber (attenzione) → coral sunrise tone, red → Ember Coral. */
+  --color-emerald-100: color-mix(in oklab, var(--color-chartreuse) 30%, var(--color-bone));
+  --color-emerald-200: color-mix(in oklab, var(--color-chartreuse) 55%, var(--color-bone));
+  --color-emerald-300: color-mix(in oklab, var(--color-chartreuse) 75%, var(--color-bone));
+  --color-emerald-400: var(--color-chartreuse);
+  --color-emerald-500: color-mix(in oklab, var(--color-chartreuse) 80%, var(--color-midnight-indigo));
+  --color-amber-100: color-mix(in oklab, var(--color-ember-coral-start) 30%, var(--color-bone));
+  --color-amber-200: color-mix(in oklab, var(--color-ember-coral-start) 55%, var(--color-bone));
+  --color-amber-300: color-mix(in oklab, var(--color-ember-coral-start) 80%, var(--color-bone));
+  --color-amber-400: var(--color-ember-coral-start);
+  --color-amber-500: color-mix(in oklab, var(--color-ember-coral-start) 80%, var(--color-midnight-indigo));
+  --color-red-100: color-mix(in oklab, var(--color-ember-coral) 30%, var(--color-bone));
+  --color-red-200: color-mix(in oklab, var(--color-ember-coral) 55%, var(--color-bone));
+  --color-red-300: color-mix(in oklab, var(--color-ember-coral) 75%, var(--color-bone));
+  --color-red-500: var(--color-ember-coral);
 
   /* ── Status signals ───────────────────────────────────────────
-     Semantic names for the three operational states surfaced in
-     the regia ("Studio") UI — open / warning / danger. On the
-     dark "Palco" stage they read as text on a dark tint; the
-     `.theme-pro` block below flattens them to one darker step that
-     also clears AA on white and over its own /12–/15 tint. Use the
-     `.status-*` helpers (paired with an icon) rather than the raw
-     `emerald/amber/red` ramps so meaning is never colour-only. */
-  --color-signal-open: #5fb37f;
-  --color-signal-warn: #dcae6f;
-  --color-signal-danger: #df5b48;
+     Semantic names for the three operational states — open (voting in
+     progress → Electric Blue), warning (coral sunrise tone), danger
+     (Ember Coral). Lifted toward Bone where needed so they read as text
+     on their own /12–/15 tint. Use the `.status-*` helpers (paired with
+     an icon) so meaning is never colour-only. */
+  --color-signal-open: color-mix(in oklab, var(--color-electric-blue) 62%, var(--color-bone));
+  --color-signal-warn: var(--color-ember-coral-start);
+  --color-signal-danger: color-mix(in oklab, var(--color-ember-coral) 85%, var(--color-bone));
 
-  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  /* DESIGN.md "Index" display face → its listed substitute Inter Tight; Inter for UI. */
+  --font-display: "Inter Tight", "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  /* DESIGN.md weights are 400 / 500 / 600 only: the heavier Tailwind
+     steps used across the templates collapse onto semibold. */
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
 
-  /* ── Radius scale ──────────────────────────────────────────────
-     Re-pointed so the steps cluster instead of jumping 8 → 24px:
-     small controls land ~10–12, cards ~16, big surfaces ~20. Siblings
-     that mix `rounded-lg`/`rounded-2xl` now read as one system. */
-  --radius-sm: 0.375rem; /* 6px  — chips, tags */
-  --radius-md: 0.625rem; /* 10px — inputs, mini buttons */
-  --radius-lg: 0.75rem; /*  12px — buttons */
-  --radius-xl: 0.875rem; /* 14px — nested panels */
-  --radius-2xl: 1rem; /*    16px — cards */
-  --radius-3xl: 1.25rem; /* 20px — hero / takeover surfaces */
+  /* ── Radius scale (DESIGN.md) ──────────────────────────────────
+     Cards 12–20px, feature panels 24px, and 30px pills for every
+     interactive element (buttons, inputs, tags, nav). */
+  --radius-sm: 6px; /*   small elements */
+  --radius-md: 6px; /*   small elements */
+  --radius-lg: 9px;
+  --radius-xl: 12px; /*  cards, nested panels */
+  --radius-2xl: 20px; /* large cards */
+  --radius-3xl: 24px; /* feature panels / takeover surfaces */
+  --radius-pill: 30px; /* buttons, inputs, tags, nav */
 
-  /* Warm, near-black tinted shadows — never flat #000 at low opacity. */
-  --shadow-card: 0 1px 2px rgba(8, 5, 2, 0.45), 0 10px 30px -12px rgba(6, 4, 1, 0.7);
-  --shadow-lift:
-    0 2px 6px rgba(8, 5, 2, 0.5), 0 20px 48px -16px rgba(0, 0, 0, 0.72);
-  --shadow-gold:
-    0 0 0 1px var(--color-border-neon), 0 14px 44px -10px rgba(255, 176, 32, 0.24),
-    0 10px 28px rgba(0, 0, 0, 0.5);
+  /* No drop-shadow elevation: surfaces float by luminance + 1px border.
+     The shadow tokens survive only as hairline rings so existing
+     `shadow-*` references stay valid. */
+  --shadow-card: 0 0 #0000;
+  --shadow-lift: 0 0 0 1px var(--color-iris-border);
+  --shadow-gold: 0 0 0 1px var(--color-border-neon);
+  /* DESIGN.md "Gradient CTA Glow Ring" — decorative focal glow (winner card only). */
+  --shadow-glow-ring:
+    0 0 70px 0 oklch(0.76 0.15 225.13 / 0.6), 0 0 0 26px oklch(0.52 0.28 280.29 / 0.11),
+    0 0 0 52px oklch(0.54 0.29 296.54 / 0.09), 0 0 0 80px oklch(0.62 0.27 308.71 / 0.1);
+
+  /* The two gradients DESIGN.md allows: coral = primary CTA only,
+     alpine = the brand horizon behind the hero title only. */
+  --gradient-ember-coral: linear-gradient(135deg, oklch(0.81 0.15 47.92) 0%, oklch(0.69 0.26 16.93) 100%);
+  --gradient-alpine: linear-gradient(135deg, rgb(2, 229, 239) 0%, rgb(72, 89, 235) 71.5%, rgb(138, 56, 244) 100%);
 
   /* Easings — one restrained ease-out, one with a hair of overshoot for tactility. */
   --ease-out-quart: cubic-bezier(0.16, 1, 0.3, 1);
@@ -104,7 +146,9 @@ html {
   height: 100%;
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  /* Tabular figures everywhere — scores, counts and codes stay aligned. */
+  font-feature-settings: "tnum" on;
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
   @include material-theme.neon-dark-theme();
@@ -114,23 +158,14 @@ body {
   margin: 0;
   height: 100%;
   min-height: 100dvh;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0.015em;
+  /* A faint dusk glow above the ridge — the canvas stays Midnight Indigo. */
   background:
-    radial-gradient(120% 75% at 50% -12%, rgba(255, 176, 32, 0.07), transparent 58%),
+    radial-gradient(120% 70% at 50% -15%, color-mix(in srgb, var(--color-arc-violet) 10%, transparent), transparent 60%),
     var(--color-bg-primary);
   color-scheme: dark;
-}
-
-/* ── Film grain — a fixed, non-interactive overlay that breaks the digital
-   flatness of a pure-vector dark UI. Static; plain opacity (no blend mode) so
-   it stays cheap on low-end phones during scroll. ── */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 app-root {
@@ -142,46 +177,50 @@ app-root {
 
 /* ── Keyboard focus — one visible, on-brand ring everywhere ── */
 :focus-visible {
+  /* The outline follows each element's own radius (pills stay pills). */
   outline: 2px solid var(--color-accent-cyan);
   outline-offset: 2px;
-  border-radius: 3px;
 }
 
-/* ── Type niceties ── */
+/* ── Type — DESIGN.md: tracking scales inversely with size, always
+   within 0.003em–0.015em (never negative). ── */
 h1,
 h2,
 h3 {
   text-wrap: balance;
+  letter-spacing: 0.006em;
+}
+h4,
+h5,
+h6 {
+  letter-spacing: 0.011em;
 }
 p {
   text-wrap: pretty;
 }
 
-/* ── Surface card (name kept: `.glass`) ── */
+/* ── Surface card (name kept: `.glass`) — Slate Indigo + 1px Iris Border, no shadow ── */
 .glass {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border-glass);
   border-radius: var(--radius-2xl);
-  /* hairline top highlight (edge catching the stage light) + tinted drop */
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-card);
 }
 
 .glass-selected {
   background: var(--color-bg-card-selected);
   border-color: var(--color-border-neon);
-  box-shadow: inset 0 1px 0 rgba(255, 207, 74, 0.12), var(--shadow-gold);
 }
 
 .glass-voted {
   background: var(--color-bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-graphite);
   opacity: 0.72;
 }
 
 /* ── Display text (name kept: `.neon-text`) ── */
 .neon-text {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.006em;
 }
 
 /* ── Score button ── */
@@ -190,7 +229,7 @@ p {
   width: 100%;
   max-width: 3.25rem;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -199,15 +238,15 @@ p {
   font-size: 1.1rem;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: transform 0.16s var(--ease-spring), background 0.14s ease, box-shadow 0.16s ease;
-  border: 1px solid var(--color-border-glass);
+  transition: transform 0.16s var(--ease-spring), background 0.14s ease, border-color 0.14s ease;
+  border: 1px solid var(--color-steel);
   flex-shrink: 0;
   touch-action: manipulation;
 }
 
 .score-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-card);
+  border-color: var(--color-iris-border);
 }
 
 .score-btn:active {
@@ -215,8 +254,7 @@ p {
 }
 
 .score-btn.active {
-  border-color: transparent;
-  box-shadow: 0 0 0 2px var(--color-accent-cyan);
+  border-color: var(--color-border-neon);
 }
 
 @media (min-width: 768px) {
@@ -234,7 +272,7 @@ p {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--color-steel);
   border-radius: 3px;
 }
 
@@ -270,17 +308,15 @@ p {
   animation: stageRise 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* A warm halo settling around the winner card — a soft ambient bloom,
-   not a neon ring. Stops well short of the electric look. */
+/* The winner card settles into the DESIGN.md "Gradient CTA Glow Ring" — a
+   celestial focal glow (cyan bloom + violet rings), the one decorative
+   glow in the system. */
 @keyframes winnerGlow {
   0% {
-    box-shadow: 0 0 0 1px rgba(255, 207, 74, 0.28), 0 20px 40px -20px rgba(255, 176, 32, 0);
-  }
-  55% {
-    box-shadow: 0 0 0 1px rgba(255, 207, 74, 0.5), 0 24px 70px -18px rgba(255, 176, 32, 0.32);
+    box-shadow: 0 0 0 1px var(--color-border-neon), 0 0 0 0 transparent;
   }
   100% {
-    box-shadow: 0 0 0 1px rgba(255, 207, 74, 0.36), 0 22px 55px -20px rgba(255, 176, 32, 0.2);
+    box-shadow: 0 0 0 1px var(--color-border-neon), var(--shadow-glow-ring);
   }
 }
 
@@ -312,7 +348,7 @@ p {
   animation: stageSlam 0.5s var(--ease-spring) forwards;
 }
 
-/* ── Stage loader — an equalizer motif, on-brand for the broadcast look ── */
+/* ── Stage loader — an equalizer motif ── */
 @keyframes barPulse {
   0%,
   100% {
@@ -365,40 +401,38 @@ p {
   animation: slideInRight 0.3s ease-out forwards;
 }
 
-/* The snackbar renders in the CDK overlay, outside `.theme-pro` and outside any
-   Material snackbar theming — MDC's dark-theme default gives the label the DARK
-   `inverse-on-surface` ink (meant for a light snackbar). Our tinted surfaces are
-   dark, so the label has to be forced light or it reads as ~invisible. Values
-   are explicit (not tokens) because this overlay always paints on a dark chip
-   regardless of which page opened it. */
+/* The snackbar renders in the CDK overlay, outside any Material snackbar
+   theming — MDC's dark-theme default gives the label the DARK
+   `inverse-on-surface` ink (meant for a light snackbar). Our surfaces are
+   dark, so the label is forced to Bone. */
 .app-toast {
-  --mdc-snackbar-supporting-text-color: #f4f4f5;
+  --mdc-snackbar-supporting-text-color: var(--color-bone);
 
   .mdc-snackbar__surface {
+    background: var(--color-slate-indigo) !important;
+    border: 1px solid var(--color-iris-border);
     border-radius: var(--radius-xl) !important;
+    box-shadow: none !important;
   }
   .mdc-snackbar__label {
-    color: #f4f4f5 !important;
+    color: var(--color-bone) !important;
   }
 
   &.toast-success .mdc-snackbar__surface {
-    background: color-mix(in srgb, var(--color-emerald-500) 30%, #101014) !important;
-    border: 1px solid color-mix(in srgb, var(--color-emerald-400) 55%, transparent);
+    border-color: color-mix(in srgb, var(--color-chartreuse) 55%, transparent);
   }
   &.toast-error .mdc-snackbar__surface {
-    background: color-mix(in srgb, var(--color-red-500) 28%, #101014) !important;
-    border: 1px solid color-mix(in srgb, var(--color-red-500) 55%, transparent);
+    border-color: color-mix(in srgb, var(--color-ember-coral) 60%, transparent);
   }
 }
 
 /* ── Display title (name kept: `.gradient-title`) ──
-   Solid ink in the display face — no gradient fill on text. Colour comes
-   from the current theme's `--color-text-primary`, so it reads on the dark
-   stage and on the light "Studio" admin surfaces without a second rule. */
+   Solid Bone ink in the display face — no gradient fill on text. */
 .gradient-title {
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.004em;
+  line-height: 1.2;
   text-wrap: balance;
   color: var(--color-text-primary);
 }
@@ -419,7 +453,7 @@ p {
 }
 
 .progress-bar-glow {
-  box-shadow: 0 2px 10px -4px var(--color-neon-glow);
+  box-shadow: none;
 }
 
 .btn-tactile {
@@ -430,7 +464,9 @@ p {
   filter: brightness(0.94);
 }
 
-/* ── Shell toolbar spacing ── */
+/* ── Shell toolbar — DESIGN.md "Frosted Nav Bar": translucent Slate Indigo
+   (`!bg-bg-card/60`) with backdrop blur and a 1px Iris Border hairline, set
+   by utilities on the <mat-toolbar> in each shell. ── */
 .app-shell-toolbar {
   padding-top: 16px !important;
   padding-bottom: 16px !important;
@@ -464,11 +500,10 @@ p {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   Shared component primitives. Before this, every hand-rolled
-   button/card/input re-declared the same ~8 utilities inline (and
-   drifted: three radii for the same field, `text-[#1a1206]` copied
-   into 9 files). These classes are the single source; call sites
-   add only layout utilities (`w-full`, `flex-1`, sizing).
+   Shared component primitives — the single source for buttons /
+   cards / inputs / pills. Call sites add only layout utilities
+   (`w-full`, `flex-1`, sizing). Shapes and colours follow the
+   DESIGN.md component specs.
    ────────────────────────────────────────────────────────────── */
 @layer components {
   .btn {
@@ -476,17 +511,19 @@ p {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border-radius: var(--radius-lg);
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.1;
+    border-radius: var(--radius-pill);
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.014em;
     white-space: nowrap;
     cursor: pointer;
     transition:
       transform 0.12s ease,
       background-color 0.16s ease,
       border-color 0.16s ease,
+      color 0.16s ease,
       filter 0.16s ease;
   }
   .btn:active {
@@ -497,87 +534,91 @@ p {
     opacity: 0.5;
   }
 
-  /* Primary — the one filled accent action per view. */
+  /* Primary — DESIGN.md "Coral CTA Button": the ONLY filled button and the
+     only warm element on screen. One per view. */
   .btn-primary {
-    background: var(--color-accent-cyan);
+    background: var(--gradient-ember-coral);
     color: var(--color-on-accent);
     border: 1px solid transparent;
+    font-family: var(--font-display);
   }
   .btn-primary:hover:not(:disabled) {
     filter: brightness(1.08);
   }
 
-  /* Tinted — a lower-commitment accent action (was the `border-accent-cyan/50
-     bg-accent-cyan/20` pattern hand-written across the admin forms). */
+  /* Tinted — a lower-commitment accent action: Twilight Plum fill with a
+     violet hairline (never a saturated fill). */
   .btn-tinted {
-    background: color-mix(in srgb, var(--color-accent-cyan) 14%, transparent);
-    color: var(--color-accent-cyan);
-    border: 1px solid color-mix(in srgb, var(--color-accent-cyan) 32%, transparent);
+    background: color-mix(in srgb, var(--color-twilight-plum) 55%, transparent);
+    color: var(--color-bone);
+    border: 1px solid color-mix(in srgb, var(--color-arc-violet) 55%, transparent);
   }
   .btn-tinted:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-accent-cyan) 22%, transparent);
+    background: var(--color-twilight-plum);
   }
 
-  /* Ghost — secondary / cancel. */
+  /* Ghost — secondary / cancel: Steel hairline, Ash ink → Bone on hover. */
   .btn-ghost {
     background: transparent;
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border-glass);
+    color: var(--color-ash);
+    border: 1px solid var(--color-steel);
   }
   .btn-ghost:hover:not(:disabled) {
-    background: var(--color-bg-card-hover);
-    color: var(--color-text-primary);
+    background: color-mix(in srgb, var(--color-twilight-plum) 45%, transparent);
+    color: var(--color-bone);
   }
 
-  /* Danger — destructive, warm brick not pure red. */
+  /* Danger — destructive: Ember Coral hairline + ink, no saturated fill. */
   .btn-danger {
-    background: color-mix(in srgb, var(--color-red-500) 14%, transparent);
+    background: color-mix(in srgb, var(--color-ember-coral) 10%, transparent);
     color: var(--color-red-300);
-    border: 1px solid color-mix(in srgb, var(--color-red-500) 28%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-ember-coral) 45%, transparent);
   }
   .btn-danger:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-red-500) 22%, transparent);
+    background: color-mix(in srgb, var(--color-ember-coral) 18%, transparent);
   }
 
   .btn-sm {
-    padding: 0.375rem 0.75rem;
+    padding: 0.25rem 0.75rem;
     font-size: 0.8125rem;
-    border-radius: var(--radius-md);
   }
 
-  /* Surface — the flat hairline card. Same look as `.glass` but usable
-     as a class name that reads as intent at the call site. */
+  /* Surface — DESIGN.md "Feature Card": Slate Indigo, 1px Iris Border, 20px. */
   .surface-card {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-glass);
     border-radius: var(--radius-2xl);
   }
+  /* Nested panel / list well — Carbon Iris inset, 12px. */
   .surface-panel {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border-glass);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-graphite);
     border-radius: var(--radius-xl);
   }
 
-  /* Text input — one declaration for the field styling copy-pasted
-     across ~15 inputs at three different radii. */
+  /* Text input — pill-shaped, Carbon Iris well, Steel outline. */
   .field-input {
     width: 100%;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-border-glass);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-steel);
     background: var(--color-bg-secondary);
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 1rem;
     color: var(--color-text-primary);
     outline: none;
     transition:
       border-color 0.16s ease,
-      box-shadow 0.16s ease;
+      background-color 0.16s ease;
+  }
+  textarea.field-input {
+    border-radius: var(--radius-xl);
   }
   .field-input::placeholder {
-    color: var(--color-text-muted);
+    color: var(--color-ash);
+    opacity: 0.7;
   }
   .field-input:focus {
-    border-color: var(--color-accent-cyan);
-    box-shadow: 0 0 0 1px var(--color-accent-cyan);
+    border-color: var(--color-arc-violet);
+    background: color-mix(in srgb, var(--color-twilight-plum) 35%, var(--color-bg-secondary));
   }
   .field-input:disabled {
     opacity: 0.5;
@@ -585,22 +626,21 @@ p {
   }
 
   /* ── Status pill ──────────────────────────────────────────────
-     The one badge for "votazione aperta / chiusa", token lifecycle
-     counts, and any other operational state. Colour is always
-     paired with the leading icon/dot the call site provides, so a
-     state is never signalled by hue alone. */
+     DESIGN.md "Status Tag Pill": 30px pill, dark fill, 1px border in the
+     status colour. Colour is always paired with the leading icon/dot the
+     call site provides, so a state is never signalled by hue alone. */
   .status-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-pill);
     border: 1px solid transparent;
-    padding: 0.1875rem 0.5rem;
-    font-size: 0.6875rem;
-    font-weight: 700;
+    background: var(--color-slate-indigo);
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
     line-height: 1;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    letter-spacing: 0.015em;
     white-space: nowrap;
   }
   .status-pill .mat-icon,
@@ -611,34 +651,31 @@ p {
     line-height: 0.875rem;
   }
   .status-open {
-    background: color-mix(in srgb, var(--color-signal-open) 15%, transparent);
-    border-color: color-mix(in srgb, var(--color-signal-open) 32%, transparent);
+    border-color: color-mix(in srgb, var(--color-electric-blue) 70%, transparent);
     color: var(--color-signal-open);
   }
   .status-warn {
-    background: color-mix(in srgb, var(--color-signal-warn) 15%, transparent);
-    border-color: color-mix(in srgb, var(--color-signal-warn) 32%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-warn) 60%, transparent);
     color: var(--color-signal-warn);
   }
   .status-danger {
-    background: color-mix(in srgb, var(--color-signal-danger) 14%, transparent);
-    border-color: color-mix(in srgb, var(--color-signal-danger) 28%, transparent);
+    border-color: color-mix(in srgb, var(--color-ember-coral) 65%, transparent);
     color: var(--color-signal-danger);
   }
   .status-neutral {
-    background: var(--color-bg-card-hover);
-    border-color: var(--color-border-glass);
+    background: color-mix(in srgb, var(--color-twilight-plum) 40%, var(--color-slate-indigo));
+    border-color: var(--color-steel);
     color: var(--color-text-secondary);
   }
 
-  /* ── Inline notice ────────────────────────────────────────────
-     The full-width error/callout box that was hand-rolled (at three
-     radii and two colour families) across the regia components. */
+  /* ── Inline notice — full-width callout on a dark well with a
+     status-coloured hairline. ── */
   .notice {
     display: flex;
     gap: 0.625rem;
     border-radius: var(--radius-xl);
     border: 1px solid transparent;
+    background: var(--color-bg-secondary);
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
   }
@@ -651,28 +688,23 @@ p {
     line-height: 1.125rem;
   }
   .notice-danger {
-    background: color-mix(in srgb, var(--color-signal-danger) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-signal-danger) 30%, transparent);
+    border-color: color-mix(in srgb, var(--color-ember-coral) 50%, transparent);
     color: var(--color-signal-danger);
   }
   .notice-warn {
-    background: color-mix(in srgb, var(--color-signal-warn) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-signal-warn) 30%, transparent);
+    border-color: color-mix(in srgb, var(--color-signal-warn) 50%, transparent);
     color: var(--color-signal-warn);
   }
   .notice-ok {
-    background: color-mix(in srgb, var(--color-signal-open) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-signal-open) 30%, transparent);
+    border-color: color-mix(in srgb, var(--color-electric-blue) 55%, transparent);
     color: var(--color-signal-open);
   }
 }
 
-/* ── Native form controls — checkbox / radio / colour picker.
-   These were browser-default (blue tick, square swatch) in the admin
-   voting-settings and candidate forms, out of step with the rest. ── */
+/* ── Native form controls — checkbox / radio / colour picker. ── */
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: var(--color-accent-cyan);
+  accent-color: var(--color-arc-violet);
   width: 1rem;
   height: 1rem;
   cursor: pointer;
@@ -682,7 +714,7 @@ input[type="color"] {
   -moz-appearance: none;
   appearance: none;
   background: transparent;
-  border: 1px solid var(--color-border-glass);
+  border: 1px solid var(--color-steel);
   border-radius: var(--radius-md);
   padding: 2px;
   cursor: pointer;
@@ -700,170 +732,17 @@ input[type="color"]::-moz-color-swatch {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   "Studio" — the professional light theme for the /admin and
-   /manager workspaces. Set as a host class on the two shell
-   components; the public voting page and the /score reveal keep
-   the dark "Palco" stage.
-
-   It only re-points the shared token set and Angular Material's
-   system variables inside this subtree, so every existing utility
-   (`bg-bg-card`, `text-accent-cyan`, `.glass`, `.gradient-title`)
-   and every Material component re-skins with no per-file edits.
-   The default-palette ramps used for status colours (emerald /
-   amber / red at the 100–400 steps) are darkened here so they
-   hold contrast on white. Overlay surfaces (confirm dialog, the
-   event <mat-select> panel) opt in via `panelClass="theme-pro"`.
+   `.theme-pro` — marker class for the operational workspaces (admin
+   `/` and `/manager`) and their CDK overlay panes (confirm dialog,
+   event <mat-select> panel). It no longer switches palette — DESIGN.md
+   is dark-only and the whole app shares one token set — it only
+   carries the Material patches those screens need.
    ────────────────────────────────────────────────────────────── */
-.theme-pro {
-  color-scheme: light;
-
-  --color-bg-primary: #fbfbfc;
-  --color-bg-secondary: #f1f2f4;
-  --color-bg-card: #ffffff;
-  --color-bg-card-hover: #f6f7f9;
-  --color-bg-card-selected: #fbf3e8;
-  --color-border-glass: rgba(18, 20, 24, 0.1);
-  --color-border-neon: rgba(180, 83, 9, 0.5);
-  --color-text-primary: #16181d;
-  --color-text-secondary: #55585f;
-  /* Muted was #83868e — only 3.6:1 on white, below AA for the 10–12px
-     eyebrow/hint text it's used on. Darkened to ~5.7:1. */
-  --color-text-muted: #63666e;
-  --color-accent-cyan: #b45309;
-  --color-accent-coral: #c11919;
-  --color-accent-yellow: #a16207;
-  --color-on-accent: #ffffff;
-  --color-neon-glow: rgba(180, 83, 9, 0.14);
-
-  /* Status ramps — flattened to one dark step each, chosen to clear AA
-     both as solid text on white and as text over the matching /10–/15
-     tint. emerald ~7:1, red ~6:1, amber ~5.5:1 on white. */
-  --color-emerald-100: #05664a;
-  --color-emerald-200: #05664a;
-  --color-emerald-300: #05664a;
-  --color-emerald-400: #05664a;
-  --color-emerald-500: #05664a;
-  --color-amber-100: #b45309;
-  --color-amber-200: #b45309;
-  --color-amber-300: #b45309;
-  --color-amber-400: #d97706;
-  --color-amber-500: #b45309;
-  --color-red-100: #c11919;
-  --color-red-200: #c11919;
-  --color-red-300: #c11919;
-  --color-red-500: #c11919;
-
-  /* Status signals — one dark step each, same values as the flattened
-     ramps above, chosen to clear AA as solid text on white and over
-     the matching /12–/15 tint the `.status-*` helpers apply. */
-  --color-signal-open: #05664a;
-  --color-signal-warn: #b45309;
-  --color-signal-danger: #c11919;
-
-  --shadow-card: 0 1px 2px rgba(18, 20, 24, 0.06), 0 1px 3px rgba(18, 20, 24, 0.04);
-  --shadow-lift: 0 2px 4px rgba(18, 20, 24, 0.06), 0 14px 30px -14px rgba(18, 20, 24, 0.16);
-  --shadow-gold: 0 0 0 1px var(--color-border-neon), 0 12px 32px -14px rgba(180, 83, 9, 0.26);
-
-  --mat-sys-surface: #fbfbfc;
-  --mat-sys-background: #fbfbfc;
-  --mat-sys-surface-container: #ffffff;
-  --mat-sys-surface-container-high: #f6f7f9;
-  --mat-sys-surface-container-highest: #f1f2f4;
-  --mat-sys-on-surface: #16181d;
-  --mat-sys-on-surface-variant: #55585f;
-  --mat-sys-outline: rgba(18, 20, 24, 0.26);
-  --mat-sys-outline-variant: rgba(18, 20, 24, 0.12);
-  --mat-sys-primary: #b45309;
-  --mat-sys-on-primary: #ffffff;
-  --mat-sys-tertiary: #b45309;
-  --mat-sys-on-tertiary: #ffffff;
-  --mat-sys-error: #c11919;
-  --mat-dialog-container-color: #ffffff;
-  /* `mat.select-overrides` in _material-theme.scss pins the dropdown panel to a
-     solid dark #141417 globally; that override isn't a `--mat-sys-*` token, so
-     it survives into the `panelClass="theme-pro"` overlay and leaves the event
-     selector panel near-black on the light Studio paper. Re-point it here. */
-  --mat-select-panel-background-color: #ffffff;
-
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-}
-
-/* "Studio" dark variant — opt-in via the sun/moon toggle in the admin /
-   manager toolbar (`ThemeStateService` sets `.studio-dark` on <html>).
-   Keyed on <html> rather than the shell host so the `.theme-pro` overlay
-   panes (dialogs, event select panel) follow the choice too. Re-points
-   the Studio tokens back to the Palco stage values (see `@theme` and
-   `_material-theme.scss`), keeping the Studio layout/patches intact. */
-html.studio-dark .theme-pro {
-  color-scheme: dark;
-
-  --color-bg-primary: #09090b;
-  --color-bg-secondary: #0f0f12;
-  --color-bg-card: #141417;
-  --color-bg-card-hover: #1a1a1f;
-  --color-bg-card-selected: #201d16;
-  --color-border-glass: rgba(255, 255, 255, 0.08);
-  --color-border-neon: rgba(255, 176, 32, 0.55);
-  --color-text-primary: #f4f4f5;
-  --color-text-secondary: #a1a1aa;
-  /* Palco muted (#71717a) is ~4:1 on the card — nudged up for the small
-     eyebrow/hint text the Studio screens use it on. */
-  --color-text-muted: #8b8b94;
-  --color-accent-cyan: #ffb020;
-  --color-accent-coral: #df5b48;
-  --color-accent-yellow: #f2c86a;
-  --color-on-accent: #1a1206;
-  --color-neon-glow: rgba(255, 176, 32, 0.18);
-
-  --color-emerald-100: #d6e8da;
-  --color-emerald-200: #a9d3b4;
-  --color-emerald-300: #8ac79b;
-  --color-emerald-400: #5fb37f;
-  --color-emerald-500: #3f9366;
-  --color-amber-100: #f0dcc2;
-  --color-amber-200: #e6c8a2;
-  --color-amber-300: #dcae6f;
-  --color-amber-400: #c9923f;
-  --color-amber-500: #a9741f;
-  --color-red-100: #f0d5d0;
-  --color-red-200: #e0aaa2;
-  --color-red-300: #d68d82;
-  --color-red-500: #d94f3d;
-
-  --color-signal-open: #5fb37f;
-  --color-signal-warn: #dcae6f;
-  --color-signal-danger: #df5b48;
-
-  --shadow-card: 0 1px 2px rgba(8, 5, 2, 0.45), 0 10px 30px -12px rgba(6, 4, 1, 0.7);
-  --shadow-lift: 0 2px 6px rgba(8, 5, 2, 0.5), 0 20px 48px -16px rgba(0, 0, 0, 0.72);
-  --shadow-gold:
-    0 0 0 1px var(--color-border-neon), 0 14px 44px -10px rgba(255, 176, 32, 0.24),
-    0 10px 28px rgba(0, 0, 0, 0.5);
-
-  --mat-sys-surface: #0f0f12;
-  --mat-sys-background: #09090b;
-  --mat-sys-surface-container: #141417;
-  --mat-sys-surface-container-high: #1a1a1f;
-  --mat-sys-surface-container-highest: #201d16;
-  --mat-sys-on-surface: #f4f4f5;
-  --mat-sys-on-surface-variant: #a1a1aa;
-  --mat-sys-outline: rgba(255, 255, 255, 0.22);
-  --mat-sys-outline-variant: rgba(255, 255, 255, 0.1);
-  --mat-sys-primary: #ffb020;
-  --mat-sys-on-primary: #1a1206;
-  --mat-sys-tertiary: #ffb020;
-  --mat-sys-on-tertiary: #1a1206;
-  --mat-sys-error: #df5b48;
-  --mat-dialog-container-color: #141417;
-  --mat-select-panel-background-color: #141417;
-}
 
 /* The admin status chips ("Votazione aperta", "Archiviato", …) are rendered
    with `disabled` purely to make them static, non-interactive badges. MDC
-   greys a disabled chip's label to 38% of the surface ink — near-invisible
-   on the light Studio paper — and that rule sits on the label span, so the
-   `!text-*` colour set on the chip host never reaches it. Undo both. */
+   greys a disabled chip's label to 38% ink, and that rule sits on the label
+   span, so the `!text-*` colour set on the chip host never reaches it. */
 .theme-pro .mat-mdc-chip-disabled {
   opacity: 1;
 }
@@ -873,11 +752,8 @@ html.studio-dark .theme-pro {
   opacity: 1;
 }
 
-/* Section headings on the Studio surface default to the primary ink.
-   A few admin/manager `<h2>`/`<h3>` shipped with no colour class and
-   leant on inheritance, which read washed-out next to the accent
-   eyebrow above them. Kept in `@layer base` and behind `:where()` so an
-   explicit `text-*` utility on a heading still wins. */
+/* Section headings default to the primary ink. Kept in `@layer base` and
+   behind `:where()` so an explicit `text-*` utility on a heading still wins. */
 @layer base {
   .theme-pro :where(h1, h2, h3, h4) {
     color: var(--color-text-primary);

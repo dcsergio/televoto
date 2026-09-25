@@ -12,16 +12,16 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
             (click)="change.emit(score)"
             class="score-btn"
             [class.active]="value() === score"
-            [style.background]="value() === score ? 'var(--color-accent-cyan)' : fillFor(score)"
-            [style.color]="value() === score ? 'var(--color-on-accent)' : textFor(score)"
+            [style.background]="value() === score ? 'var(--color-twilight-plum)' : fillFor(score)"
+            [style.color]="value() === score ? 'var(--color-bone)' : textFor(score)"
           >
             {{ score }}
           </button>
         }
       </div>
       <div class="flex justify-between mt-2.5 px-0.5">
-        <span class="text-[10px] uppercase tracking-[0.15em] text-text-muted font-semibold">Minimo</span>
-        <span class="text-[10px] uppercase tracking-[0.15em] text-text-muted font-semibold">Massimo</span>
+        <span class="text-[10px] uppercase tracking-[0.015em] text-text-muted font-semibold">Minimo</span>
+        <span class="text-[10px] uppercase tracking-[0.015em] text-text-muted font-semibold">Massimo</span>
       </div>
     </div>
   `,
@@ -32,13 +32,13 @@ export class ScoreSelectorComponent {
 
   protected readonly scores = Array.from({ length: 10 }, (_, i) => i + 1);
 
-  /** Gold at rising opacity — the row reads as a meter that fills toward 10. */
+  /** Carbon Iris warming toward Twilight Plum — the row reads as a meter that fills toward 10. */
   protected fillFor(score: number): string {
-    const alpha = 0.05 + (score / 10) * 0.22;
-    return `rgba(255, 176, 32, ${alpha.toFixed(3)})`;
+    const pct = Math.round(10 + (score / 10) * 45);
+    return `color-mix(in srgb, var(--color-twilight-plum) ${pct}%, var(--color-carbon-iris))`;
   }
 
   protected textFor(score: number): string {
-    return score >= 6 ? '#ffcf7a' : '#a1a1aa';
+    return score >= 6 ? 'var(--color-bone)' : 'var(--color-ash)';
   }
 }
