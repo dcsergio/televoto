@@ -564,34 +564,48 @@
                     <mat-icon aria-hidden="true" class="!h-3.5 !w-3.5 !text-[14px]">calculate</mat-icon>
                     Calcolo punteggio
                   </p>
-                  <div class="grid gap-2 sm:grid-cols-2">
-                    <label class="space-y-1">
-                      <span class="text-xs text-text-secondary">Peso Qualificata (%)</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        [ngModel]="eventSettingsDraft().weightQualificata"
-                        (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightQualificata: $event })"
-                        name="weightQualificata"
-                        class="field-input text-sm"
-                      />
-                    </label>
-                    <label class="space-y-1">
-                      <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
-                      <input
-                        type="number"
-                        [ngModel]="eventSettingsWeightPopolare()"
-                        name="weightPopolare"
-                        disabled
-                        class="field-input text-sm"
-                      />
-                    </label>
-                  </div>
-                  <p class="text-xs text-text-secondary">
-                    Somma sempre 100: il peso Popolare è calcolato automaticamente per differenza.
-                  </p>
-                  @if (!isPreferenceVoteEvent()) {
+                  @if (isPreferenceVoteEvent()) {
+                    <div class="grid gap-2 sm:grid-cols-2">
+                      <label class="space-y-1">
+                        <span class="text-xs text-text-secondary">Peso Qualificata (%)</span>
+                        <input type="number" [ngModel]="0" name="weightQualificataFixed" disabled class="field-input text-sm" />
+                      </label>
+                      <label class="space-y-1">
+                        <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
+                        <input type="number" [ngModel]="100" name="weightPopolareFixed" disabled class="field-input text-sm" />
+                      </label>
+                    </div>
+                    <p class="text-xs text-text-secondary">
+                      In modalità Preferenze il punteggio finale è sempre calcolato al 100% sul voto del Pubblico: i pesi non sono modificabili.
+                    </p>
+                  } @else {
+                    <div class="grid gap-2 sm:grid-cols-2">
+                      <label class="space-y-1">
+                        <span class="text-xs text-text-secondary">Peso Qualificata (%)</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          [ngModel]="eventSettingsDraft().weightQualificata"
+                          (ngModelChange)="eventSettingsDraft.set({ ...eventSettingsDraft(), weightQualificata: $event })"
+                          name="weightQualificata"
+                          class="field-input text-sm"
+                        />
+                      </label>
+                      <label class="space-y-1">
+                        <span class="text-xs text-text-secondary">Peso Popolare (%)</span>
+                        <input
+                          type="number"
+                          [ngModel]="eventSettingsWeightPopolare()"
+                          name="weightPopolare"
+                          disabled
+                          class="field-input text-sm"
+                        />
+                      </label>
+                    </div>
+                    <p class="text-xs text-text-secondary">
+                      Somma sempre 100: il peso Popolare è calcolato automaticamente per differenza.
+                    </p>
                     <label class="flex items-center gap-2 text-sm text-text-secondary">
                       <input
                         type="checkbox"
@@ -615,18 +629,18 @@
                         class="field-input text-sm"
                       />
                     </label>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <button type="submit" [disabled]="updatingVotingSettings() || !votingSettingsDirty()" class="btn btn-tinted btn-sm">
+                        {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva pesi e calcolo' }}
+                      </button>
+                      @if (savedFlash() === 'votingSettings') {
+                        <span class="flex items-center gap-1 text-xs font-semibold text-signal-open">
+                          <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
+                          Salvato
+                        </span>
+                      }
+                    </div>
                   }
-                  <div class="flex flex-wrap items-center gap-2">
-                    <button type="submit" [disabled]="updatingVotingSettings() || !votingSettingsDirty()" class="btn btn-tinted btn-sm">
-                      {{ updatingVotingSettings() ? 'Salvataggio...' : 'Salva pesi e calcolo' }}
-                    </button>
-                    @if (savedFlash() === 'votingSettings') {
-                      <span class="flex items-center gap-1 text-xs font-semibold text-signal-open">
-                        <mat-icon aria-hidden="true" class="!h-4 !w-4 !text-[16px] !leading-4">check</mat-icon>
-                        Salvato
-                      </span>
-                    }
-                  </div>
                 </form>
               } @else {
                 <p class="text-sm text-text-secondary">

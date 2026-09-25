@@ -189,6 +189,16 @@ export function buildEventUpdateData(body: RawEventUpdateBody): EventUpdateData 
 export async function updateEvent(eventId: string, body: RawEventUpdateBody) {
   const updateData = buildEventUpdateData(body);
 
+  if (updateData.weightQualificata !== undefined) {
+    const event = await eventRepository.findEventPopularVoteMode(eventId);
+    if (!event) {
+      throw new AppError(404, "Evento non trovato");
+    }
+    if (event.popularVoteMode === "PREFERENCE" && updateData.weightQualificata !== 0) {
+      throw new AppError(400, "In modalità Preferenze il peso è fisso: 100% Pubblico");
+    }
+  }
+
   try {
     return await eventRepository.updateEventSummary(eventId, updateData);
   } catch (e: unknown) {

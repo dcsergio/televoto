@@ -73,6 +73,21 @@ function popularComponentApplies(
   return popularVoteMode === "PREFERENCE" ? totalPopularVotesCast > 0 : candidatePopularVoteCount > 0;
 }
 
+/**
+ * In PREFERENCE mode the final score is always 100% popular: the stored
+ * weights are ignored (legacy events may still carry 70/30), so qualified
+ * judges' numeric scores never enter the blended score.
+ */
+export function effectiveWeights(event: {
+  popularVoteMode: RankingSettings["popularVoteMode"];
+  weightQualificata: number;
+  weightPopolare: number;
+}) {
+  return event.popularVoteMode === "PREFERENCE"
+    ? { weightQualificata: 0, weightPopolare: 100 }
+    : { weightQualificata: event.weightQualificata, weightPopolare: event.weightPopolare };
+}
+
 async function loadRankingInputs(eventId: string) {
   const [event, candidates, qualifiedTokenIds] = await Promise.all([
     eventRepository.findEventRankingSettings(eventId),
@@ -83,6 +98,7 @@ async function loadRankingInputs(eventId: string) {
   if (!event) {
     throw new AppError(404, "Evento non trovato");
   }
+  const weights = effectiveWeights(event);
 
   const eligibleQualifiedJudgeCount = qualifiedTokenIds.length;
   const votes = await voteRepository.findVotesForRanking(eventId);
@@ -108,11 +124,11 @@ async function loadRankingInputs(eventId: string) {
     0,
   );
 
-  return { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast };
+  return { event, weights, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast };
 }
 
 export async function getRankings(eventId: string) {
-  const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
+  const { event, weights, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
     await loadRankingInputs(eventId);
 
   if (!event.votingClosed) {
@@ -133,7 +149,7 @@ export async function getRankings(eventId: string) {
         candidateVotes.popularScores.length,
         totalPopularVotesCast,
       );
-      const finalScore = blendFinalScore(avgQualificata, avgPopolare, applyPopular, event);
+      const finalScore = blendFinalScore(avgQualificata, avgPopolare, applyPopular, weights);
       const totalValidVotes = candidateVotes.qualifiedScores.length + candidateVotes.popularScores.length;
 
       return {
@@ -167,7 +183,7 @@ export async function getRankings(eventId: string) {
 }
 
 export async function getPartialRankings(eventId: string) {
-  const { event, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
+  const { event, weights, candidates, eligibleQualifiedJudgeCount, votesByCandidate, totalPopularVotesCast } =
     await loadRankingInputs(eventId);
 
   const baseEntries = candidates.map((candidate) => {
@@ -183,7 +199,7 @@ export async function getPartialRankings(eventId: string) {
       candidateVotes.popularScores.length,
       totalPopularVotesCast,
     );
-    const finalScore = blendFinalScore(avgQualificata, avgPopolare, applyPopular, event);
+    const finalScore = blendFinalScore(avgQualificata, avgPopolare, applyPopular, weights);
 
     return {
       id: candidate.id,
@@ -231,7 +247,7 @@ export async function getPartialRankings(eventId: string) {
     qualified: qualifiedRankings,
     popular: popularRankings,
     weighted: weightedRankings,
-    weights: { qualificata: event.weightQualificata, popolare: event.weightPopolare },
+    weights: { qualificata: weights.weightQualificata, popolare: weights.weightPopolare },
     eligibleQualifiedJudges: eligibleQualifiedJudgeCount,
     event: {
       enableTrimmedMean: event.enableTrimmedMean,
