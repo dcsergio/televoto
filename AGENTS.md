@@ -26,6 +26,9 @@ Notes:
 - Port 8080 conflicts will fail startup outright.
 - `npm run build` runs the backend TypeScript build (`tsc -b`) then `ng build` inside `client/`; the Angular output is configured to land in repo-root `dist/`, not `client/dist/`.
 
+## Visual Style
+**`DESIGN.md` (repo root) is the single source of truth for the site's visual style** — palette, typography, spacing, radii, elevation, component specs and do's/don'ts. Every UI change must follow it; if a change needs something DESIGN.md doesn't cover, extend DESIGN.md first, then mirror it in `client/src/styles.scss` (the `@theme` tokens + `@layer components` primitives) and `client/src/styles/_material-theme.scss`. It is dark-only (no light mode), and the coral→red gradient is reserved for the primary CTA (`.btn-primary` / `mat-flat-button`). `client/DESIGN.md` is the superseded "Palco/Studio" spec — do not follow it. Implementation notes: `client/CLAUDE.md`.
+
 ## Architecture Boundaries
 - Frontend app: `client/src/app/` (Angular standalone components, signals, Angular Material, Tailwind). Pages: `admin-shell` (root-only, `/`), `event-manager-shell` (single-event ops, `/manager`), `voting-shell` (public voting, `/vote`); Classifica lives in `client/src/app/components/score/` (`/score`).
 - Frontend API layer: `client/src/app/api/*.api.ts` (one Angular service per resource area; use these, avoid raw `HttpClient` calls in components/pages).

@@ -15,7 +15,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
       }
       <div class="flex flex-1 items-center justify-center px-4 py-8">
         <div class="glass w-full max-w-xl p-7 sm:p-8">
-          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-accent-cyan">Codice evento</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Codice evento</p>
           <h2 class="gradient-title mt-3 text-3xl font-bold uppercase leading-[0.98] sm:text-4xl">
             Inserisci il codice
           </h2>
@@ -30,7 +30,7 @@ const EVENT_CODE_REGEX = /^\d{1,5}$/;
               (ngModelChange)="codeInput.set($event)"
               name="eventCode"
               placeholder="Es. 00001"
-              class="field-input flex-1 font-display tabular-nums tracking-[0.1em]"
+              class="field-input flex-1 font-display tabular-nums tracking-[0.015em]"
             />
             <button type="submit" class="btn btn-primary">Entra</button>
           </form>

@@ -8,7 +8,7 @@
   <div class="surface-card mt-8 p-6">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Classifica parziale</p>
+        <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Classifica parziale</p>
         <h2 class="text-xl font-semibold text-text-primary">Giuria, Pubblico e Ponderata</h2>
         <p class="mt-1 text-xs text-text-secondary">
           Pesi: Giuria {{ r.weights.qualificata }}% &middot; Pubblico {{ r.weights.popolare }}%
@@ -42,7 +42,7 @@
     <div class="grid gap-4 lg:grid-cols-3">
       @for (column of columns(); track column.title) {
         <div class="surface-panel bg-bg-card/50 p-5">
-          <h3 class="mb-2 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-text-secondary">{{ column.title }}</h3>
+          <h3 class="mb-2 text-[0.625rem] font-bold uppercase tracking-[0.015em] text-text-secondary">{{ column.title }}</h3>
           @if (column.note) {
             <p class="mb-3 text-xs text-text-secondary">{{ column.note }}</p>
           }
@@ -70,7 +70,7 @@
                     >
                       {{ formatScore(scoreOf(entry, column.scoreKey)) }}
                     </div>
-                    <div class="text-[0.625rem] uppercase tracking-wider text-text-secondary">
+                    <div class="text-[0.625rem] uppercase tracking-[0.015em] text-text-secondary">
                       {{ column.scoreLabel }} &middot; {{ voteCountOf(entry, column.voteCountKey) }} voti
                     </div>
                   </div>

@@ -45,7 +45,7 @@ export class QrCodePreviewComponent {
         errorCorrectionLevel: 'M',
         margin: 1,
         width: 240,
-        color: { dark: '#f4f4f5', light: '#0f0f12cc' },
+        color: { dark: '#ffffff', light: '#13151fcc' },
       })
         .then((url) => {
           if (!cancelled) this.qrDataUrl.set(url);

@@ -98,5 +98,5 @@ Do not fork logic between these two entry points — `api/[...path].ts` should s
 - `prisma.config.ts` picks the CLI datasource URL from, in order: `PRISMA_CLI_URL` → `DATABASE_URL`.
 - `scripts/create_db_from_zero.sql` drops and recreates the whole `televoto` schema with demo seed data for local resets; `scripts/bootstrap-db.ts` is the programmatic equivalent (e.g. seeding the root credential from `ROOT_ADMIN_PASSWORD`). Both target the `televoto` schema with snake_case names and are destructive (drop + recreate) — neither is a non-destructive provisioning step.
 
-### Angular Material theming
-See `client/CLAUDE.md`.
+### Visual style / theming
+**`DESIGN.md` (repo root) is the single source of truth for the site's visual style** — palette, typography, spacing, radii, elevation, component specs and do's/don'ts. Every UI change must follow it; if a change needs something DESIGN.md doesn't cover, extend DESIGN.md first, then mirror it in `client/src/styles.scss` (the `@theme` tokens + `@layer components` primitives) and `client/src/styles/_material-theme.scss`. It is dark-only (no light mode), and the coral→red gradient is reserved for the primary CTA (`.btn-primary` / `mat-flat-button`). `client/DESIGN.md` is the superseded "Palco/Studio" spec — do not follow it. Implementation details (token mapping, Material theme, shared primitives): see `client/CLAUDE.md`.

@@ -35,7 +35,7 @@
               type="button"
               (click)="handleBackToAdmin()"
               data-testid="event-manager-back-to-admin"
-              class="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.15em] text-text-secondary transition hover:text-accent-cyan"
+              class="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.015em] text-text-secondary transition hover:text-accent-cyan"
             >
               <span aria-hidden="true">&larr;</span>
               Area admin
@@ -43,9 +43,9 @@
           }
           <div class="flex items-center gap-2.5">
             <span class="h-4 w-1 rounded-full bg-accent-cyan"></span>
-            <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Voto Subito</h1>
+            <h1 class="text-xl font-extrabold tracking-[0.015em] uppercase neon-text leading-none">Voto Subito</h1>
           </div>
-          <p class="mt-1 text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">Gestione evento</p>
+          <p class="mt-1 text-[0.625rem] uppercase tracking-[0.015em] text-text-muted">Gestione evento</p>
         </div>
 
         <mat-nav-list class="flex-1 px-2">
@@ -73,13 +73,13 @@
             <mat-icon>logout</mat-icon>
             Esci
           </button>
-          <p class="text-center text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">ver. 1.0</p>
+          <p class="text-center text-[0.625rem] uppercase tracking-[0.015em] text-text-muted">ver. 1.0</p>
         </div>
       </div>
     </mat-sidenav>
 
     <mat-sidenav-content class="flex h-full flex-col">
-      <mat-toolbar class="app-shell-toolbar !h-auto !min-h-16 gap-2 !bg-bg-primary/90 border-b border-border-glass py-2 pl-4 backdrop-blur-xl sm:gap-3">
+      <mat-toolbar class="app-shell-toolbar !h-auto !min-h-16 gap-2 !bg-bg-card/60 border-b border-border-glass py-2 pl-4 backdrop-blur-xl sm:gap-3">
         @if (isHandset()) {
           <button type="button" mat-icon-button (click)="toggleSidenav()" aria-label="Apri menu">
             <mat-icon>menu</mat-icon>
@@ -144,7 +144,7 @@
                       }
                     </span>
                     <span
-                      class="whitespace-nowrap text-xs font-semibold tracking-tight transition"
+                      class="whitespace-nowrap text-xs font-semibold tracking-[0.003em] transition"
                       [class.text-accent-cyan]="step.state === 'current'"
                       [class.text-text-secondary]="step.state === 'done'"
                       [class.text-text-muted]="step.state === 'todo'"
@@ -188,7 +188,7 @@
           @if (activeSection() === 'settings') {
             <div class="surface-card space-y-4 p-6">
               <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-cyan">Evento</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.015em] text-accent-cyan">Evento</p>
                 <h2 class="mt-2 text-2xl font-bold text-text-primary">Impostazioni</h2>
                 <p class="mt-1 text-sm text-text-secondary">
                   Gestisci il nome e le credenziali di accesso di questo evento.
@@ -196,7 +196,7 @@
               </div>
 
               <form (ngSubmit)="handleUpdateEventName()" class="surface-panel space-y-3 p-4">
-                <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Nome evento</p>
+                <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Nome evento</p>
                 <p class="text-sm text-text-secondary">Aggiorna il nome visualizzato di questo evento.</p>
                 <div class="grid gap-3 md:grid-cols-3">
                   <input
@@ -223,7 +223,7 @@
               </form>
 
               <form (ngSubmit)="handleUpdateEventPassword()" class="surface-panel space-y-3 p-4">
-                <p class="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-accent-cyan">Password evento</p>
+                <p class="text-[0.625rem] font-bold uppercase tracking-[0.015em] text-accent-cyan">Password evento</p>
                 <p class="text-sm text-text-secondary">Aggiorna la password usata per accedere alla gestione di questo evento.</p>
                 <div class="grid gap-3 md:grid-cols-3">
                   <input

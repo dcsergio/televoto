@@ -128,6 +128,9 @@ components:
     size: "3.25rem"
 ---
 
+> **SUPERSEDED.** This "Palco/Studio" spec is no longer in force. The source of truth for the site's style is the repo-root [`DESIGN.md`](../DESIGN.md). Kept only for history.
+
+
 # Design System: Voto Subito
 
 ## Overview
