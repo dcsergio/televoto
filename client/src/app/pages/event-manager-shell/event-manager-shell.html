@@ -43,7 +43,7 @@
           }
           <div class="flex items-center gap-2.5">
             <span class="h-4 w-1 rounded-full bg-accent-cyan"></span>
-            <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Televoto</h1>
+            <h1 class="text-xl font-extrabold tracking-wider uppercase neon-text leading-none">Voto Subito</h1>
           </div>
           <p class="mt-1 text-[0.625rem] uppercase tracking-[0.2em] text-text-muted">Gestione evento</p>
         </div>
@@ -96,7 +96,7 @@
             [class.status-neutral]="event()!.votingClosed"
           >
             <mat-icon aria-hidden="true">{{ event()!.votingClosed ? 'lock' : 'lock_open' }}</mat-icon>
-            {{ event()!.votingClosed ? 'Televoto chiuso' : 'Televoto aperto' }}
+            {{ event()!.votingClosed ? 'Votazione chiusa' : 'Votazione aperta' }}
           </span>
         </div>
 

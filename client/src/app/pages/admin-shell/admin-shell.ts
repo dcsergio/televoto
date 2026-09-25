@@ -16,6 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { firstValueFrom, map } from 'rxjs';
 import { AuthStateService } from '../../state/auth-state.service';
+import { ThemeStateService } from '../../state/theme-state.service';
 import { VotingStateService } from '../../state/voting-state.service';
 import { AuthApi } from '../../api/auth.api';
 import { AdminEventSummary, EventsApi } from '../../api/events.api';
@@ -61,6 +62,9 @@ export class AdminShellComponent {
   protected readonly votingState = inject(VotingStateService);
   protected readonly toast = inject(ToastService);
   private readonly title = inject(Title);
+  // Instantiated here (not only in the toolbar) so the saved light/dark choice
+  // also applies to the password gate shown before login.
+  private readonly themeState = inject(ThemeStateService);
 
   protected readonly passwordError = signal('');
 
@@ -111,7 +115,7 @@ export class AdminShellComponent {
   });
   protected readonly selectedEventVotingClosed = computed(() => this.selectedEvent()?.votingClosed ?? true);
   protected readonly selectedEventStatusLabel = computed(() =>
-    this.selectedEventVotingClosed() ? 'Televoto chiuso' : 'Televoto aperto',
+    this.selectedEventVotingClosed() ? 'Votazione chiusa' : 'Votazione aperta',
   );
   protected readonly selectedEventPopularVoteMode = computed(() => this.selectedEvent()?.popularVoteMode ?? 'NUMERIC');
   protected readonly isPreferenceVoteEvent = computed(() => this.selectedEventPopularVoteMode() === 'PREFERENCE');

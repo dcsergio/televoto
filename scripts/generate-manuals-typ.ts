@@ -1,5 +1,5 @@
 /**
- * Genera i PDF dei manuali Televoto a partire dai sorgenti Typst in
+ * Genera i PDF dei manuali Voto Subito a partire dai sorgenti Typst in
  * `docs/manuals/typ/<locale>/<id>.typ`, invocando il binario `typst`.
  *
  * Esecuzione: `tsx scripts/generate-manuals-typ.ts [--locale=it|en]`

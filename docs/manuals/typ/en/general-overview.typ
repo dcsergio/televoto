@@ -1,11 +1,11 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Televoto — General Overview", lang: "en")
+#show: manual.with(title: "Voto Subito — General Overview", lang: "en")
 
 #cover(
   icon: "🗳  📱  🏆  📊",
   eyebrow: "Live voting platform for events",
-  title: "Televoto",
+  title: "Voto Subito",
   subtitle: [
     Turn your audience into a jury. Real-time voting, live rankings, and a grand Final Ranking
     reveal — no app to install.
@@ -13,9 +13,9 @@
   meta: "General overview — document for prospective adopters",
 )
 
-#section-title[What is Televoto]
+#section-title[What is Voto Subito]
 
-Televoto is a web platform designed for organizers running *events with live voting*: talent
+Voto Subito is a web platform designed for organizers running *events with live voting*: talent
 shows, artistic or sports competitions, hackathons, festivals, corporate or school contests. It
 replaces paper ballots, spreadsheets, and manual counting with a real-time digital system,
 accessible from a smartphone via a simple link or QR code — no app to download, no account to
@@ -77,7 +77,7 @@ create for voters.
 
 #section-title[Who it's for]
 
-Televoto adapts to any live event where a vote needs to be collected from multiple people,
+Voto Subito adapts to any live event where a vote needs to be collected from multiple people,
 quickly and transparently:
 
 #chip-row((
@@ -142,7 +142,7 @@ quickly and transparently:
   text(26pt, weight: 700, fill: tv.ink)[Ready to bring live voting to your next event?]
   v(0.8em)
   text(14pt, fill: tv.ink-soft)[
-    Televoto is the solution for anyone who wants to engage the audience and the jury in real
+    Voto Subito is the solution for anyone who wants to engage the audience and the jury in real
     time, with a system that's simple, secure, and built for the drama of the verdict moment.
   ]
 }))

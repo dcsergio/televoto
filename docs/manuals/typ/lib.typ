@@ -1,4 +1,4 @@
-// Televoto — libreria tipografica condivisa per i manuali PDF (Typst).
+// Voto Subito — libreria tipografica condivisa per i manuali PDF (Typst).
 //
 // Ricostruisce in Typst il sistema grafico di `docs/manuals/src/shared/manual.css`
 // (palette "Neon Dark" adattata alla carta chiara: inchiostro scuro su fondo

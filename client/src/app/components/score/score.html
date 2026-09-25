@@ -21,17 +21,17 @@
   <div class="flex items-center justify-center min-h-dvh px-4">
     <div class="max-w-md text-center rounded-2xl border border-border-glass bg-bg-card p-8">
       <p class="text-4xl mb-4">&#128274;</p>
-      <h1 class="text-2xl font-bold mb-2 neon-text">Televoto ancora aperto</h1>
+      <h1 class="text-2xl font-bold mb-2 neon-text">Votazione ancora aperta</h1>
       <p class="text-text-secondary">
-        La Classifica si sblocca automaticamente alla chiusura del televoto.
+        La Classifica si sblocca automaticamente alla chiusura della votazione.
       </p>
       <button
         type="button"
-        (click)="handleCloseTelevote()"
-        [disabled]="closingTelevote()"
+        (click)="handleCloseVoting()"
+        [disabled]="closingVoting()"
         class="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/15 px-4 py-2 font-semibold text-amber-200 transition hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {{ closingTelevote() ? 'Chiusura...' : 'Chiudi televoto' }}
+        {{ closingVoting() ? 'Chiusura...' : 'Chiudi votazione' }}
       </button>
     </div>
   </div>

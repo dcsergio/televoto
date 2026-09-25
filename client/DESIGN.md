@@ -1,5 +1,5 @@
 ---
-name: Televoto
+name: Voto Subito
 description: Sistema di voto in diretta per eventi dal vivo — un palco per il pubblico, una regia per chi organizza.
 colors:
   stage-black: "#09090b"
@@ -128,13 +128,13 @@ components:
     size: "3.25rem"
 ---
 
-# Design System: Televoto
+# Design System: Voto Subito
 
 ## Overview
 
 **Creative North Star: "La Regia e il Palco"**
 
-Televoto è una sola produzione televisiva vissuta da due lati del vetro. Il **Palco** (tema scuro, di default — `/vote` voto e `/score` Classifica) è ciò che va in onda: un fondo nero-scena, superfici solide con bordo a filo di lama, un'unica luce d'oro puntata e una tipografia da manifesto per il momento della premiazione. La **Regia** (tema chiaro "Studio", `.theme-pro` su `/` e `/manager`) è il banco dietro le quinte: carta chiara, ordine, tutto leggibile a colpo d'occhio mentre l'evento corre. Stessi token, stessi componenti, stesso impianto — cambia solo il lato del vetro da cui guardi.
+Voto Subito è una sola produzione televisiva vissuta da due lati del vetro. Il **Palco** (tema scuro, di default — `/vote` voto e `/score` Classifica) è ciò che va in onda: un fondo nero-scena, superfici solide con bordo a filo di lama, un'unica luce d'oro puntata e una tipografia da manifesto per il momento della premiazione. La **Regia** (tema chiaro "Studio", `.theme-pro` su `/` e `/manager`) è il banco dietro le quinte: carta chiara, ordine, tutto leggibile a colpo d'occhio mentre l'evento corre. Stessi token, stessi componenti, stesso impianto — cambia solo il lato del vetro da cui guardi.
 
 Il sistema è **cerimoniale quando serve, trattenuto ovunque altro**. Sul Palco i momenti chiave (il vincitore, la finale a due, il terzo classificato) sono trattati come rivelazioni: numero che atterra, count-up sul punteggio, alone caldo attorno al vincitore. Fuori da quei beat, tutto si fa strumento: un solo pieno d'accento per vista, stati appena percettibili, molto respiro. Il colore non porta informazione da solo, l'accento non è mai decorazione diffusa, e i nomi dei token legacy ("neon", "glass", "gradient") **non descrivono più il look** — non c'è bagliore elettrico, non c'è vetro, non c'è gradiente sul testo.
 
@@ -165,7 +165,7 @@ Una scena quasi nera con una sola luce calda; nello Studio la stessa luce, calma
 
 Ramp caldi e desaturati, così il verde "aperto" non stona vicino all'oro di scena. Sul Palco si usano come testo/tinta su fondo scuro; nello Studio sono appiattiti a un unico passo scuro che tiene AA sia su bianco sia sulla propria tinta /10–/15.
 
-- **Segnale Aperto** (`#3f9366` Palco / `#05664a` Studio): televoto aperto, evento attivo, esito "salvato".
+- **Segnale Aperto** (`#3f9366` Palco / `#05664a` Studio): votazione aperta, evento attivo, esito "salvato".
 - **Segnale Avviso** (`#c9923f` Palco / `#b45309` Studio): stato archiviato, cautele; tirato verso l'ocra/miele per non confondersi con l'accento di marca.
 - **Segnale Pericolo** (`#df5b48` Palco / `#c11919` Studio): errori, danger zone (azzera classifica, revoca). Un mattone caldo, non un rosso puro — legacy `accent-coral`.
 
@@ -268,7 +268,7 @@ Rifiniti e trattenuti: presenza minima, molto respiro, un solo pieno d'accento p
 
 ### Status pill (`.status-pill`)
 
-L'unico badge di stato del sistema — "Televoto aperto / chiuso", conteggi di codici, "Attivo", "Archiviato". Pill da 6px (`radius-sm`), 0.6875rem maiuscoletto `tracking-[0.1em]`, bordo hairline in tinta. Il colore è **sempre** accoppiato all'icona o al pallino che il call site fornisce, così lo stato non è mai segnalato dalla sola tinta.
+L'unico badge di stato del sistema — "Votazione aperta / chiusa", conteggi di codici, "Attivo", "Archiviato". Pill da 6px (`radius-sm`), 0.6875rem maiuscoletto `tracking-[0.1em]`, bordo hairline in tinta. Il colore è **sempre** accoppiato all'icona o al pallino che il call site fornisce, così lo stato non è mai segnalato dalla sola tinta.
 
 - `.status-open` → tinta/bordo/testo `signal-open` (verde). `.status-warn` → `signal-warn` (ocra). `.status-danger` → `signal-danger` (mattone). `.status-neutral` → `card-hover` + `ink-secondary` per gli stati informativi senza valenza.
 - Sostituisce le vecchie `<mat-chip disabled>` (che MDC grigiava al 38%) e i box `emerald/amber/red` hand-rolled.
@@ -295,7 +295,7 @@ Il box di avviso/errore a piena larghezza. `radius-xl`, icona 18px opzionale a s
 
 ### Navigation
 
-- **Header pubblico:** barra sticky `h-14`, `backdrop-blur-xl` su `bg-primary/85`, hairline inferiore. Wordmark = barretta accento da `h-4 w-1` + "Televoto" in display 16px maiuscoletto `tracking-[0.14em]` + tagline da 10px.
+- **Header pubblico:** barra sticky `h-14`, `backdrop-blur-xl` su `bg-primary/85`, hairline inferiore. Wordmark = barretta accento da `h-4 w-1` + "Voto Subito" in display 16px maiuscoletto `tracking-[0.14em]` + tagline da 10px.
 - **Rail di regia:** `mat-nav-list`, voce attiva con tinta accento /15 e testo accento, raggio 12px; icona Material + label + eventuale meta-conteggio a destra. In fondo, divider + bottone "Esci" ghost a piena larghezza.
 - **Mobile:** il rail passa a `over`, aperto da un `mat-icon-button` hamburger nella toolbar.
 
@@ -313,7 +313,7 @@ Title card a schermo intero, una posizione alla volta. Il numero di posizione at
 
 ### Stepper del ciclo (regia)
 
-Striscia di orientamento in cima a ogni sezione di `/manager`: `Candidati → Codici → Televoto → Classifica`, derivata dagli stessi input di `contextualDefaultEventManagerSection` (`candidateCount` + `votingClosed`). Marker da 24px in `font-display tabular-nums`: `done` = tinta accento /15 + icona `check`; `current` = pieno accento + `on-accent`; `todo` = hairline + `text-muted`. Connettore hairline tra i marker (accento /50 sui segmenti completati). Quieto — `pb-4` + bordo inferiore, dimensioni piccole: è orientamento, non un hero. Scorre internamente (`overflow-x-auto`) su schermi stretti, il body non scrolla mai in orizzontale.
+Striscia di orientamento in cima a ogni sezione di `/manager`: `Candidati → Codici → Votazione → Classifica`, derivata dagli stessi input di `contextualDefaultEventManagerSection` (`candidateCount` + `votingClosed`). Marker da 24px in `font-display tabular-nums`: `done` = tinta accento /15 + icona `check`; `current` = pieno accento + `on-accent`; `todo` = hairline + `text-muted`. Connettore hairline tra i marker (accento /50 sui segmenti completati). Quieto — `pb-4` + bordo inferiore, dimensioni piccole: è orientamento, non un hero. Scorre internamente (`overflow-x-auto`) su schermi stretti, il body non scrolla mai in orizzontale.
 
 ## Do's and Don'ts
 

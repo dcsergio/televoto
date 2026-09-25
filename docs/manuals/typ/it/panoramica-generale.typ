@@ -1,11 +1,11 @@
 #import "../lib.typ": *
 
-#show: manual.with(title: "Televoto — Panoramica generale", lang: "it")
+#show: manual.with(title: "Voto Subito — Panoramica generale", lang: "it")
 
 #cover(
   icon: "🗳  📱  🏆  📊",
   eyebrow: "Piattaforma di voto live per eventi",
-  title: "Televoto",
+  title: "Voto Subito",
   subtitle: [
     Trasforma il pubblico in giuria. Voto in tempo reale, classifiche live e un gran finale in
     Classifica — senza app da installare.
@@ -13,9 +13,9 @@
   meta: "Panoramica generale — documento per potenziali adopter",
 )
 
-#section-title[Cos'è Televoto]
+#section-title[Cos'è Voto Subito]
 
-Televoto è una piattaforma web pensata per chi organizza eventi con *votazione live*: talent
+Voto Subito è una piattaforma web pensata per chi organizza eventi con *votazione live*: talent
 show, gare artistiche o sportive, hackathon, festival, concorsi aziendali o scolastici.
 Sostituisce schede cartacee, fogli Excel e conteggi manuali con un sistema digitale in tempo
 reale, accessibile da smartphone tramite semplice link o QR code — nessuna app da scaricare,
@@ -78,7 +78,7 @@ nessun account da creare per chi vota.
 
 #section-title[Per chi è pensato]
 
-Televoto si adatta a qualsiasi evento dal vivo in cui serve raccogliere un voto da più
+Voto Subito si adatta a qualsiasi evento dal vivo in cui serve raccogliere un voto da più
 persone, in modo rapido e trasparente:
 
 #chip-row((
@@ -147,7 +147,7 @@ persone, in modo rapido e trasparente:
   ]
   v(0.8em)
   text(14pt, fill: tv.ink-soft)[
-    Televoto è la soluzione per chi vuole coinvolgere pubblico e giuria in tempo reale, con un
+    Voto Subito è la soluzione per chi vuole coinvolgere pubblico e giuria in tempo reale, con un
     sistema semplice, sicuro e pensato per lo spettacolo del momento del verdetto.
   ]
 }))

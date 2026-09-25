@@ -100,7 +100,7 @@ export class JudgeCodeManagerComponent {
     );
   });
   protected readonly typeLabel = (type: 'QUALIFICATA' | 'POPOLARE'): string =>
-    type === 'QUALIFICATA' ? 'Giuria' : 'Televoto';
+    type === 'QUALIFICATA' ? 'Giuria' : 'Pubblico';
 
   private lastLoadedEventId: string | null = null;
 
@@ -210,7 +210,7 @@ export class JudgeCodeManagerComponent {
       try {
         origin = new URL(originInput).origin;
       } catch {
-        throw new Error('Base URL non valido. Esempio: https://televoto.it');
+        throw new Error('Base URL non valido. Esempio: https://voto-subito.it');
       }
 
       const result = await firstValueFrom(

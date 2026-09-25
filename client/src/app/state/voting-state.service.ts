@@ -197,7 +197,7 @@ export class VotingStateService {
       const updated = await firstValueFrom(this.eventsApi.updateEventVotingState(ev.id, true, authToken));
       this.event.update((prev) => (prev ? { ...prev, votingClosed: updated.votingClosed } : prev));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Errore nella chiusura del televoto';
+      const msg = err instanceof Error ? err.message : 'Errore nella chiusura della votazione';
       this.toast.error(msg);
     }
   }
