@@ -116,6 +116,15 @@ export function setEventArchivedState(eventId: string, archived: boolean) {
   return prisma.event.update({ where: { id: eventId }, data: { active: !archived }, select: eventSummarySelect });
 }
 
+export function findEventArchiveState(eventId: string) {
+  return prisma.event.findUnique({ where: { id: eventId }, select: { active: true } });
+}
+
+/** Deletes the event only if archived; candidates, votes, judge tokens and manager credential cascade. */
+export function deleteArchivedEvent(eventId: string) {
+  return prisma.event.deleteMany({ where: { id: eventId, active: false } });
+}
+
 export function findEventForClone(eventId: string) {
   return prisma.event.findUnique({
     where: { id: eventId },

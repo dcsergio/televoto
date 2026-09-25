@@ -152,6 +152,12 @@ export class EventsApi {
       );
   }
 
+  deleteArchivedEvent(eventId: string, authToken: string): Observable<{ ok: true }> {
+    return this.http
+      .delete<{ ok: true }>(`${BASE}/events/${eventId}`, withAuth(authToken))
+      .pipe(catchError((err) => throwError(() => toApiError(err, "Errore nell'eliminazione evento"))));
+  }
+
   cloneEvent(eventId: string, input: CloneEventInput, authToken: string): Observable<AdminEventSummary> {
     return this.http
       .post<AdminEventSummary>(

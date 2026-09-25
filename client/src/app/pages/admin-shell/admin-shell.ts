@@ -162,6 +162,7 @@ export class AdminShellComponent {
 
   protected readonly archivingEventId = signal<string | null>(null);
   protected readonly cloningEventId = signal<string | null>(null);
+  protected readonly deletingEventId = signal<string | null>(null);
 
   /** Post-create confirmation panel: the freshly created event (its code is the payload). */
   protected readonly lastCreatedEvent = signal<AdminEventSummary | null>(null);
@@ -658,6 +659,42 @@ export class AdminShellComponent {
       this.toast.error(err instanceof Error ? err.message : "Errore nell'aggiornamento dell'archiviazione");
     } finally {
       this.archivingEventId.set(null);
+    }
+  }
+
+  protected handleDeleteEvent(eventId: string): void {
+    const ev = this.events().find((e) => e.id === eventId);
+    if (!ev) return;
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Elimina evento',
+        message:
+          "Vuoi eliminare definitivamente questo evento? Verranno cancellati anche candidati, voti, codici di voto e password manager. L'operazione non può essere annullata.",
+        detail: `${ev.name} (${ev.code})`,
+        confirmLabel: 'Elimina definitivamente',
+        confirmVariant: 'danger',
+      },
+    });
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) void this.deleteEvent(eventId);
+    });
+  }
+
+  private async deleteEvent(eventId: string): Promise<void> {
+    const token = this.authState.rootAuthToken();
+    if (!token) {
+      this.toast.error("Sessione root non valida. Rientra nell'area admin.");
+      return;
+    }
+    this.deletingEventId.set(eventId);
+    try {
+      await firstValueFrom(this.eventsApi.deleteArchivedEvent(eventId, token));
+      this.events.update((prev) => prev.filter((e) => e.id !== eventId));
+      this.toast.success('Evento eliminato');
+    } catch (err) {
+      this.toast.error(err instanceof Error ? err.message : "Errore nell'eliminazione evento");
+    } finally {
+      this.deletingEventId.set(null);
     }
   }
 
